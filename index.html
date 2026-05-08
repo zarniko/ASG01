@@ -463,6 +463,7 @@
       #ig-panel .ctrl-panel { width: 100%; gap: 4px; }
       #ig-viz-cv { flex: none; height: 140px; }
       #ig-panel .ctrl-row.slider { min-height: 44px; }
+      #ig-panel .tui-btn { min-height: 44px; }
       #ig-panel .ctrl-gap { height: 18px; }
       #ig-panel .panel-rule { margin: 8px 0; }
       #ig-fx-panel-1, #ig-fx-panel-2 { gap: 10px !important; }
@@ -3945,11 +3946,22 @@ $$('clearRefresh').addEventListener('click', (e) => {
   function addLongPress(id, onLong) {
     const el = document.getElementById(id);
     let timer = null;
-    el.addEventListener('touchstart', e => {
-      timer = setTimeout(() => { timer = null; onLong(); }, 350);
-    }, { passive: true });
-    el.addEventListener('touchmove', () => { if (timer) { clearTimeout(timer); timer = null; } }, { passive: true });
-    el.addEventListener('touchend', () => { if (timer) { clearTimeout(timer); timer = null; } }, { passive: true });
+    let longFired = false;
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    el.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      longFired = false;
+      cancel();
+      timer = setTimeout(() => { timer = null; longFired = true; onLong(); }, 600);
+    });
+    el.addEventListener('pointerup', cancel);
+    el.addEventListener('pointercancel', cancel);
+    el.addEventListener('pointermove', e => {
+      if (timer && (Math.abs(e.movementX) > 4 || Math.abs(e.movementY) > 4)) cancel();
+    });
+    el.addEventListener('click', e => {
+      if (longFired) { e.preventDefault(); e.stopPropagation(); longFired = false; }
+    }, true);
   }
 
   addLongPress('ig-clearRefresh', () => {
