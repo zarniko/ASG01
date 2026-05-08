@@ -1635,6 +1635,7 @@ $$('spliceList').addEventListener('click', e => {
 });
 
 // ─── Canvas ────────────────────────────────────────────────────────────────────
+const dpr = window.devicePixelRatio || 1;
 const waveCV  = $$('waveform-cv');
 const waveCtx = waveCV.getContext('2d');
 const cloudCV = $$('cloud-cv');
@@ -1646,8 +1647,8 @@ ro.observe(waveCV.parentElement);
 function resizeCanvases() {
   const w = waveCV.offsetWidth;
   if (!w) return;
-  waveCV.width  = w; waveCV.height  = 200;
-  cloudCV.width = w; cloudCV.height = 52;
+  waveCV.width  = w * dpr; waveCV.height  = 200 * dpr;
+  cloudCV.width = w * dpr; cloudCV.height = 52 * dpr;
 }
 resizeCanvases();
 
@@ -1656,7 +1657,7 @@ waveCV.addEventListener('click', e => {
   const rect   = waveCV.getBoundingClientRect();
   const cx     = e.clientX - rect.left;
   const cy     = e.clientY - rect.top;
-  const pos    = cx / waveCV.width;
+  const pos    = cx / waveCV.offsetWidth;
 
   if (e.shiftKey) {
     if (S.splices.length >= 8) return;
@@ -1675,7 +1676,7 @@ waveCV.addEventListener('click', e => {
 waveCV.addEventListener('mousemove', e => {
   if (e.buttons !== 1 || e.shiftKey) return;
   const rect = waveCV.getBoundingClientRect();
-  const pos  = Math.max(0, Math.min(1, (e.clientX - rect.left) / waveCV.width));
+  const pos  = Math.max(0, Math.min(1, (e.clientX - rect.left) / waveCV.offsetWidth));
   S.position = pos;
   $$('posSlider').value = pos * 100;
   $$('posVal').textContent = pos.toFixed(2);
@@ -1687,9 +1688,9 @@ const waveData = new Float32Array(2048);
 let   ghostT   = 0;
 
 function drawWaveform(t) {
-  const w = waveCV.width, h = waveCV.height;
+  const w = waveCV.width / dpr, h = waveCV.height / dpr;
   const ctx = waveCtx;
-
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, w, h);
@@ -1817,9 +1818,9 @@ function drawWaveform(t) {
 }
 
 function drawCloud(t) {
-  const w = cloudCV.width, h = cloudCV.height;
+  const w = cloudCV.width / dpr, h = cloudCV.height / dpr;
   const ctx = cloudCtx;
-
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, w, h);
 
@@ -2054,6 +2055,7 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
   const gCvs     = $$('bh-grain');
   const gCtx     = gCvs.getContext('2d');
   let BW = 0, BH = 0;
+  const dpr = window.devicePixelRatio || 1;
 
   const VGA = ['#000000','#0000AA','#00AA00','#00AAAA','#AA0000','#AA00AA','#AA5500','#AAAAAA',
                '#555555','#5555FF','#55FF55','#55FFFF','#FF5555','#FF55FF','#FFFF55','#FFFFFF'];
@@ -2107,6 +2109,7 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
     const shadowPx = SHADOW_R * sc;
     const [cr, cg, cb] = hexToRgb(lineColor);
 
+    bhCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     bhCtx.clearRect(0, 0, BW, BH);
     bhCtx.fillStyle = '#000';
     bhCtx.fillRect(0, 0, BW, BH);
@@ -2189,8 +2192,10 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
   }
 
   function bhResize() {
-    BW = bhCanvas.width  = gCvs.width  = bhCanvas.offsetWidth;
-    BH = bhCanvas.height = gCvs.height = bhCanvas.offsetHeight;
+    const cssW = bhCanvas.offsetWidth, cssH = bhCanvas.offsetHeight;
+    BW = cssW; BH = cssH;
+    bhCanvas.width  = cssW * dpr; bhCanvas.height  = cssH * dpr;
+    gCvs.width      = cssW;       gCvs.height      = cssH;
   }
 
   let bhRunning = false;
@@ -2535,7 +2540,7 @@ requestAnimationFrame(animate);
 (function() {
 'use strict';
 function $$(id) { return document.getElementById('ig-' + id); }
-
+const dpr = window.devicePixelRatio || 1;
 
 'use strict';
 
@@ -2779,7 +2784,11 @@ window.asgGetGridStream = async () => {
 
     const W = cv.offsetWidth || 160;
     const H = cv.offsetHeight || 120;
-    cv.width = W; cv.height = H;
+    if (cv.width !== W * dpr || cv.height !== H * dpr) {
+      cv.width = W * dpr; cv.height = H * dpr;
+    }
+    vx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    vx.clearRect(0, 0, W, H);
 
     // Sound reactivity
     const rms = getRMS();
@@ -4770,8 +4779,12 @@ function drawScope() {
   if (!cv) return;
   const ctx2 = cv.getContext('2d');
   const W = cv.offsetWidth || 220, H = 56;
-  cv.width = W; cv.height = H;
+  if (cv.width !== W * dpr || cv.height !== H * dpr) {
+    cv.width = W * dpr; cv.height = H * dpr;
+  }
+  ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx2.clearRect(0, 0, W, H);
+
   if (analyser) {
     const buf = new Uint8Array(analyser.fftSize);
     analyser.getByteTimeDomainData(buf);
@@ -5263,6 +5276,7 @@ updateSelLabel();
 (function () {
 'use strict';
 function $$(id) { return document.getElementById('bm-' + id); }
+const dpr = window.devicePixelRatio || 1;
 
 /* ── Accent color ─────────────────────────────────────── */
 let lineColor = '#fff';
@@ -5422,12 +5436,12 @@ function resize() {
   const wrap = document.getElementById('bm-canvas-wrap');
   const w = wrap.clientWidth, h = wrap.clientHeight;
   if (w === 0 || h === 0) return;
-  cvW = canvas.width  = w;
-  cvH = canvas.height = h;
+  cvW = w; cvH = h;
+  canvas.width = w * dpr; canvas.height = h * dpr;
   grainImg = null;
   const tw = document.getElementById('bm-touch-wrap');
-  touchW = touchCv.width  = tw.clientWidth  || 1;
-  touchH = touchCv.height = tw.clientHeight || 1;
+  touchW = tw.clientWidth || 1; touchH = tw.clientHeight || 1;
+  touchCv.width = touchW * dpr; touchCv.height = touchH * dpr;
   rebuildDots();
 }
 window.addEventListener('resize', resize);
@@ -5914,11 +5928,13 @@ function frame() {
   cleanupDead();
   buildSumField();
   // Chladni canvas
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cvW, cvH);
   drawContour(sumField, 1);
   ctx.globalAlpha = 1;
   ctx.shadowBlur  = 0;
   // Touch canvas
+  touchCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   touchCtx.clearRect(0, 0, touchW, touchH);
   if (dotsCv) touchCtx.drawImage(dotsCv, 0, 0);
   drawDots();
