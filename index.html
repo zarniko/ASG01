@@ -486,6 +486,7 @@
       #ig-panel .hdr-mid .s-brk { padding: 10px 6px; cursor: pointer; }
     }
     .btn-play, .tui-btn, .tui-action, .page-btn, .copy-btn, #ig-hbtn, #ig-zko { touch-action: manipulation; }
+    #ig-randRefresh, #ig-clearRefresh { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
     .grid { touch-action: none; }
 
   </style>
@@ -3953,7 +3954,7 @@ $$('clearRefresh').addEventListener('click', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       longFired = false;
       cancel();
-      timer = setTimeout(() => { timer = null; longFired = true; onLong(); }, 600);
+      timer = setTimeout(() => { timer = null; onLong(); longFired = true; }, 600);
     });
     el.addEventListener('pointerup', cancel);
     el.addEventListener('pointercancel', cancel);
