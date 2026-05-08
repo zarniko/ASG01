@@ -74,7 +74,7 @@
     .app-toggle-sep { color: rgba(255,255,255,0.18); }
 
     /* ── Panel containers ── */
-    #gs-panel, #ig-panel, #bm-panel { padding: 32px 8px 48px; }
+    #gs-panel, #ig-panel, #bm-panel { padding: 12px 8px 48px; }
 
     /* ── Bloom tab ── */
     .bm-body {
@@ -114,12 +114,12 @@
     .bm-overlay-left {
       grid-column: 1; grid-row: 1;
       display: flex; align-items: center; gap: 8px;
-      padding: 6px 0 4px;
+      padding: 0 0 12px;
     }
     .bm-overlay-right {
       grid-column: 2; grid-row: 1;
       display: flex; align-items: center; gap: 8px;
-      padding: 6px 0 4px;
+      padding: 0 0 12px;
     }
     #bm-pattern-num {
       position: absolute; top: 6px; left: 8px;
@@ -160,6 +160,7 @@
     #bm-panel .ctrl-val { letter-spacing: 2px; color: rgba(255,255,255,0.45); min-width: 46px; text-align: right; }
     #bm-panel .instrument { max-width: 920px; margin: 0 auto; }
     #bm-panel .hdr-left, #bm-panel .hdr-mid, #bm-panel .hdr-right { color: rgba(255,255,255,0.45); }
+    #bm-panel .hdr { display: none; }
     #bm-panel .footer { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; letter-spacing: 0; }
     /* Touch friendliness */
     #bm-touch-wrap { touch-action: none; }
