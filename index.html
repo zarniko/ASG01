@@ -72,6 +72,8 @@
     .app-toggle-btn.active { color: #fff; text-shadow: 0 0 8px #fff, 0 0 18px #fff; }
     .app-toggle-btn:hover:not(.active) { color: rgba(255,255,255,0.65); }
     .app-toggle-sep { color: rgba(255,255,255,0.18); }
+    .tab-key { font-size: 10px; letter-spacing: 1px; color: rgba(255,255,255,0.22); margin-left: 4px; }
+    .app-toggle-btn.active .tab-key { color: rgba(255,255,255,0.4); }
 
     /* ── Panel containers ── */
     #gs-panel, #ig-panel, #bm-panel { padding: 12px 8px 48px; }
@@ -172,18 +174,20 @@
     #bm-playBtn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
     /* Mobile — stack vertically */
     @media (max-width: 600px) {
-      #bm-panel { padding: 16px 8px 32px; }
+      #bm-panel { padding: 16px 8px 12px; }
       .bm-body {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 36vh auto 44vh auto;
-        height: auto; min-height: 0; margin-bottom: 12px;
+        grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1.2fr) auto;
+        height: calc(100dvh - 76px);
+        min-height: 400px;
+        margin-bottom: 0;
       }
-      .bm-overlay-left  { grid-column: 1; grid-row: 1; }
+      .bm-overlay-left  { grid-column: 1; grid-row: 1; overflow: hidden; }
       #bm-canvas-wrap   { grid-column: 1; grid-row: 2; }
       #bm-color-box     { display: none; }
       .bm-overlay-right { grid-column: 1; grid-row: 3; }
       #bm-touch-wrap    { grid-column: 1; grid-row: 4; }
-      .bm-ctrl-strip    { grid-column: 1; grid-row: 5; padding-top: 8px; }
+      .bm-ctrl-strip    { grid-column: 1; grid-row: 5; padding-top: 8px; border-left: none; border-right: none; }
       #bm-panel input[type=range]::-webkit-slider-thumb { width: 22px; height: 22px; }
       #bm-panel input[type=range]::-moz-range-thumb     { width: 22px; height: 22px; }
     }
@@ -498,11 +502,11 @@
 <div id="vignette"></div>
 
 <div class="app-toggle-bar">
-  <button class="app-toggle-btn active" id="toggleGs">granular</button>
+  <button class="app-toggle-btn active" id="toggleGs">granular<span class="tab-key">(Q)</span></button>
   <span class="app-toggle-sep"> / </span>
-  <button class="app-toggle-btn" id="toggleIg">grid</button>
+  <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(W)</span></button>
   <span class="app-toggle-sep"> / </span>
-  <button class="app-toggle-btn" id="toggleBm">bloom</button>
+  <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
 </div>
 
 <div id="gs-panel">
@@ -1125,6 +1129,14 @@ function _showPanel(activePanel) {
 document.getElementById('toggleGs').addEventListener('click', () => _showPanel('gs-panel'));
 document.getElementById('toggleIg').addEventListener('click', () => _showPanel('ig-panel'));
 document.getElementById('toggleBm').addEventListener('click', () => _showPanel('bm-panel'));
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.key === 'q' || e.key === 'Q') _showPanel('gs-panel');
+  else if (e.key === 'w' || e.key === 'W') _showPanel('ig-panel');
+  else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
+});
 
 </script>
 
