@@ -1085,6 +1085,8 @@
         <button class="btn-action" id="bm-recBtn">rec</button>
         <span style="color:var(--dim);">-</span>
         <button class="btn-action" id="bm-playBtn" disabled>replay</button>
+        <span style="color:var(--dim);">|</span>
+        <button class="btn-action" id="bm-refreshBtn">refresh</button>
       </div>
       <div id="bm-touch-wrap">
         <canvas id="bm-touch-cv"></canvas>
@@ -1911,9 +1913,9 @@ function animate(ts) {
 
 // ─── Keyboard shortcuts ─────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+  if (document.getElementById('gs-panel').style.display === 'none') return;
   if (e.target.tagName === 'INPUT') return;
   if (e.code === 'Space') { e.preventDefault(); $$('freezeBtn').click(); }
-  if (e.code === 'KeyR')  { $$('recBtn').click(); }
   if (e.code === 'KeyH')  { helpVisible ? hideHelp() : showHelp(); }
 });
 
@@ -3838,6 +3840,12 @@ const pageBtns = [];
 let copiedPage = null;
 let pasteBtn = null;
 let copyBtn = null;
+let progressBtn = null;
+let progressActive = false;
+let progressTimer = null;
+let progressLoops = [];
+let progressPage = 0;
+let _lastSongMood = null;
 
 function buildPageBar() {
   const bar = $$('pageBar');
@@ -3899,6 +3907,74 @@ function buildPageBar() {
     renderAll();
   });
   bar.appendChild(pasteBtn);
+
+  // separator before progress button
+  const sep2 = document.createElement('span');
+  sep2.className = 'page-sep';
+  sep2.textContent = '|';
+  bar.appendChild(sep2);
+
+  // P — auto-progress through pages, 3-8 min cycle, page durations weighted by arc
+  progressBtn = document.createElement('button');
+  progressBtn.className = 'copy-btn';
+  progressBtn.textContent = 'prg';
+  progressBtn.tabIndex = -1;
+  progressBtn.title = 'auto-progress through pages (3-8 min cycle)';
+  progressBtn.addEventListener('click', () => {
+    progressActive ? stopProgression() : startProgression();
+  });
+  bar.appendChild(progressBtn);
+}
+
+// Build a per-run progression: 8 page durations (in pattern loops) summing to ~3-8 min
+// Weighted by song-arc shape — peaks get more time, intro/outro less. Re-randomized
+// each cycle so every loop through is different.
+function buildProgression(bpm) {
+  const loopSec   = (60 / bpm) * 4;            // one 16-step pattern
+  const targetSec = 180 + Math.random() * 300; // 3-8 minutes total
+  // Arc shape mirrors song-gen: intro → build×2 → peak×2 → develop → breakdown → outro
+  const ARC = [0.6, 0.9, 1.0, 1.4, 1.5, 1.2, 0.9, 0.6];
+  const weights = ARC.map(w => w * (0.5 + Math.random())); // ±50% per page
+  const sumW = weights.reduce((a, b) => a + b, 0);
+  return weights.map(w => Math.max(2, Math.round((targetSec / loopSec) * w / sumW)));
+}
+
+function scheduleNextProgression() {
+  if (!progressActive) return;
+  const loopMs = (60 / S.bpm) * 4 * 1000;
+  const dur = progressLoops[progressPage] * loopMs;
+  progressTimer = setTimeout(() => {
+    if (!progressActive) return;
+    progressPage++;
+    if (progressPage >= N_PAGES) {
+      // Cycle complete — regenerate the full song in the same mood, then restart
+      if (_lastSongMood) $$('moodSelect').value = _lastSongMood;
+      $$('randRefresh').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
+      // Song gen calls switchPage(0) internally; rebuild timing with new BPM
+      progressLoops = buildProgression(S.bpm);
+      progressPage = 0;
+      scheduleNextProgression();
+      return;
+    }
+    switchPage(progressPage);
+    scheduleNextProgression();
+  }, dur);
+}
+
+function startProgression() {
+  progressActive = true;
+  progressLoops = buildProgression(S.bpm);
+  progressPage = 0;
+  if (S.page !== 0) switchPage(0);
+  if (!S.playing) startSeq();
+  scheduleNextProgression();
+  progressBtn?.classList.add('has-copy');
+}
+
+function stopProgression() {
+  progressActive = false;
+  if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
+  progressBtn?.classList.remove('has-copy');
 }
 
 function switchPage(i) {
@@ -3907,6 +3983,32 @@ function switchPage(i) {
   pageBtns.forEach((btn, idx) => btn.classList.toggle('active', idx === i));
   clearSel();
   renderAll();
+}
+
+// Scan all pages except excludePage and return sonic context so single-page
+// generation can match timbre, brightness, and space to existing content.
+function extractPageContext(excludePage) {
+  const notes = [];
+  for (let p = 0; p < N_PAGES; p++) {
+    if (p === excludePage) continue;
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if (S.pages[p][r][c]) notes.push(S.pages[p][r][c]);
+  }
+  if (notes.length < 4) return null;
+
+  const wc = {};
+  notes.forEach(n => { wc[n.wave] = (wc[n.wave] || 0) + 1; });
+  const [dominantWave, dominantCount] = Object.entries(wc).sort((a, b) => b[1] - a[1])[0];
+
+  const avg = f => notes.reduce((s, n) => s + (n[f] ?? 0), 0) / notes.length;
+  return {
+    dominantWave,
+    dominantWaveFrac: dominantCount / notes.length,
+    reverbSend: avg('reverbSend'),
+    cutoff:     avg('cutoff'),
+    noteCount:  notes.length,
+  };
 }
 
 /* ── Controls ───────────────────────────────────────── */
@@ -4175,14 +4277,21 @@ $$('randRefresh').addEventListener('click', (e) => {
   const chosenScale = $$('scaleSelect').value;
   S.scale = chosenScale;
 
-  const bpm = Math.round(rngR(prof.bpmRange[0], prof.bpmRange[1]));
-  S.bpm = bpm;
-  $$('bpmSlider').value = bpm;
-  $$('bpmVal').textContent = bpm;
-  window.asgBpmSync?.(bpm);
+  // When single-page mode (shift), check if other pages already have patterns.
+  // If so, preserve the existing BPM/transpose and blend new notes toward the
+  // established sonic character instead of starting fresh.
+  const pageCtx = !e.shiftKey ? extractPageContext(S.page) : null;
+
+  if (!pageCtx) {
+    const bpm = Math.round(rngR(prof.bpmRange[0], prof.bpmRange[1]));
+    S.bpm = bpm;
+    $$('bpmSlider').value = bpm;
+    $$('bpmVal').textContent = bpm;
+    window.asgBpmSync?.(bpm);
+  }
 
   // ── Transpose — auto-apply for moods that have a target range ──
-  if (prof.transposeRange) {
+  if (!pageCtx && prof.transposeRange) {
     const t = Math.round(rngR(prof.transposeRange[0], prof.transposeRange[1]));
     S.transpose = t;
     $$('transposeSlider').value = t;
@@ -4195,6 +4304,8 @@ $$('randRefresh').addEventListener('click', (e) => {
   const hiWaves   = ['sine','triangle','sine','triangle','triangle'];
   function waveFor(r) {
     if (prof.chimeWave) return 'chime';
+    // Lock to dominant wave when other pages already establish a clear timbre
+    if (pageCtx && pageCtx.dominantWaveFrac >= 0.6) return pageCtx.dominantWave;
     if (r >= 12) return pick(bassWaves);
     if (r >= 5)  return pick(midWaves);
     return pick(hiWaves);
@@ -4202,6 +4313,9 @@ $$('randRefresh').addEventListener('click', (e) => {
   if (prof.chimeWave) {
     S.wave = 'chime';
     document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === 'chime'));
+  } else if (pageCtx && pageCtx.dominantWaveFrac >= 0.6) {
+    S.wave = pageCtx.dominantWave;
+    document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === pageCtx.dominantWave));
   }
 
   // ── Global FX shaped by mood ────────────────────────
@@ -4334,17 +4448,24 @@ $$('randRefresh').addEventListener('click', (e) => {
     return {
       attack:     rngR(0.005, 0.005 + t * 0.14),
       detune:     Math.round(rngR(0, 3 + t * 5)),
-      cutoff:     Math.round(rngR(3000 + (1 - t) * 8000, 6000 + (1 - t) * 12000)),
+      cutoff:     (() => {
+        const base = Math.round(rngR(3000 + (1 - t) * 8000, 6000 + (1 - t) * 12000));
+        return pageCtx ? Math.round(base * 0.6 + pageCtx.cutoff * 0.4) : base;
+      })(),
       resonance:  rngR(0.5, 2.0 + (1 - t) * 2),
       distortion: gDist,
       delaySend:  rng() < 0.18 ? rngR(0.05, 0.18) : gDelay,
-      reverbSend: prof.chimeWave ? rngR(0.55, 0.85) : rngR(0.12 + (1 - t) * 0.1, 0.30 + (1 - t) * 0.2),
+      reverbSend: (() => {
+        const base = prof.chimeWave ? rngR(0.55, 0.85) : rngR(0.12 + (1 - t) * 0.1, 0.30 + (1 - t) * 0.2);
+        return pageCtx ? base * 0.5 + pageCtx.reverbSend * 0.5 : base;
+      })(),
       pan:        usePan ? Math.round(rngR(12, 38)) * (rng() < 0.5 ? -1 : 1) : 0,
       prob:       rngR(0.55, 1.0),
     };
   }
 
   if (e.shiftKey) {
+    _lastSongMood = mood; // remember for prg auto-regeneration
     // ── Full song generation across all 8 pages ─────────
     //
     // Algorithm:
@@ -4644,6 +4765,7 @@ $$('randRefresh').addEventListener('click', (e) => {
   }));
 });
 document.addEventListener('keydown', e => {
+  if (document.getElementById('ig-panel').style.display === 'none') return;
   if (e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault();
   const tag = e.target.tagName;
   if (tag === 'INPUT' || tag === 'SELECT') return;
@@ -4652,7 +4774,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'h' || e.key === 'H') { helpVisible ? hideHelp() : showHelp(); }
   if (e.key === 'c' || e.key === 'C') $$('clearRefresh').click();
-  if (e.key === 'r' || e.key === 'R') $$('randRefresh').click();
+  if (e.key === 'g' || e.key === 'G') $$('randRefresh').click();
   const pageNum = parseInt(e.key);
   if (pageNum >= 1 && pageNum <= 8) switchPage(pageNum - 1);
   if (e.code === 'ArrowUp') {
@@ -4677,7 +4799,7 @@ const HELP_COLS = [
   ['row',  'h',        'toggle help'],
   ['row',  'A (hold)', 'per-note fx panel'],
   ['row',  'B (hold)', 'global fx panel'],
-  ['row',  'R',        'random pattern + scale'],
+  ['row',  'G',        'single-page generate'],
   ['row',  'C',        'clear pattern'],
   ['row',  '◄ ►',      'nudge bpm ±1'],
   ['gap'],
@@ -4694,7 +4816,7 @@ const HELP_COLS = [
   ['row',  'long-press note', 'erase note',        true],
   ['row',  'drag',            'paint / erase',     true],
   ['row',  'tap A / B',            'toggle fx panels',   true],
-  ['row',  'long-press generate', 'fill all 8 pages',   true],
+  ['row',  'long-press generate', 'fill all 8 pages',    true],
   ['row',  'long-press clear',    'clear all 8 pages',  true],
   ['gap'],
   ['head', 'PAGES', ''],
@@ -5938,6 +6060,11 @@ playBtn.addEventListener('click', () => {
   if (!bmHasRecording) return;
   if (bmReplaying) bmStopReplay();
   else bmStartReplay();
+});
+
+$$('refreshBtn').addEventListener('click', () => {
+  bmStopReplay();
+  for (const id of [...voices.keys()]) killVoice(id);
 });
 
 touchCv.addEventListener('pointerdown', e => {
