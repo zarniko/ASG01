@@ -4020,7 +4020,14 @@ $$('clearRefresh').addEventListener('click', (e) => {
       if (timer && (Math.abs(e.movementX) > 4 || Math.abs(e.movementY) > 4)) cancel();
     });
     el.addEventListener('click', e => {
-      if (longFired) { e.preventDefault(); e.stopPropagation(); longFired = false; }
+      // Only suppress the trailing native (trusted) click after a long-press fired.
+      // Programmatic clicks (keyboard R via .click(), dispatchEvent) are non-trusted
+      // and must always go through. Always reset the flag so it can't get stuck.
+      if (longFired && e.isTrusted) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      longFired = false;
     }, true);
   }
 
@@ -5103,6 +5110,7 @@ function serializeState() {
     volume:    S.volume,
     masterVol: S.masterVol,
     decay:     S.decay,
+    transpose: S.transpose,
     fx:      {...FX},
     accent:  lineColor,
     mutedRows: [...mutedRows],
@@ -5158,6 +5166,7 @@ function restoreState(data) {
   S.volume    = data.volume    ?? 0.70;
   S.masterVol = data.masterVol ?? 0.80;
   S.decay     = data.decay     ?? 0.40;
+  S.transpose = data.transpose ?? 0;
   if (master) master.gain.value = S.masterVol;
   Object.assign(FX, data.fx ?? {});
   if (data.accent) setAccent(data.accent);
@@ -5170,6 +5179,8 @@ function restoreState(data) {
   $$('mvolSlider').value = Math.round(S.masterVol * 100);
   $$('mvolVal').textContent = `${Math.round(S.masterVol * 100)}%`;
   $$('scaleSelect').value = S.scale;
+  $$('transposeSlider').value = S.transpose;
+  $$('transposeVal').textContent = S.transpose > 0 ? `+${S.transpose}` : `${S.transpose}`;
   document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b =>
     b.classList.toggle('sel', b.dataset.wave === S.wave));
 
