@@ -1087,6 +1087,8 @@
         <button class="btn-action" id="bm-playBtn" disabled>replay</button>
         <span style="color:var(--dim);">|</span>
         <button class="btn-action" id="bm-refreshBtn">refresh</button>
+        <span style="color:var(--dim);">|</span>
+        <button class="btn-action" id="bm-autoBtn">auto</button>
       </div>
       <div id="bm-touch-wrap">
         <canvas id="bm-touch-cv"></canvas>
@@ -2733,6 +2735,9 @@ window.asgGetGridStream = async () => {
   if (audioCtx.state === 'suspended') await audioCtx.resume();
   return gridStreamDest ? gridStreamDest.stream : null;
 };
+
+// Bloom auto-mode reads playing + bpm to schedule sparse complementary bursts
+window.asgGetGridState = () => ({ playing: S.playing, bpm: S.bpm });
 
 /* ── Topo visualization ─────────────────────────────── */
 (function () {
@@ -6067,6 +6072,66 @@ $$('refreshBtn').addEventListener('click', () => {
   for (const id of [...voices.keys()]) killVoice(id);
 });
 
+/* ── Auto mode — sparse complementary bursts aligned to grid playback ── */
+let bmAutoActive   = false;
+let bmAutoTimer    = null;
+let bmAutoCooldown = 0;        // bars to skip after a burst (prevents clustering)
+let _autoPidCounter = 7000;
+
+const AUTO_PROB_PER_BAR = 0.15; // base trigger chance — combined w/ cooldown ≈ 5%/bar effective
+
+function fireAutoBurst(bpm) {
+  const beatMs = (60 / bpm) * 1000;
+  // 1–3 touches per burst, weighted toward 1 (sparse)
+  const n = Math.random() < 0.6 ? 1 : (Math.random() < 0.6 ? 2 : 3);
+  // Anchor X/Y for the burst — touches cluster around an axis to form a motif,
+  // not scatter across the whole canvas. Y biased upward (high pitches that
+  // don't compete with grid bass).
+  const baseX = 0.30 + Math.random() * 0.40; // middle 60% of width
+  const baseY = 0.10 + Math.random() * 0.30; // upper 40% of height
+  for (let i = 0; i < n; i++) {
+    const delay = i * beatMs * (0.5 + Math.random() * 0.5); // 0.5–1 beats apart
+    const hold  = beatMs * (1 + Math.random() * 2);          // 1–3 beats hold
+    const x = Math.max(0, Math.min(touchW, (baseX + (Math.random() - 0.5) * 0.20) * touchW));
+    const y = Math.max(0, Math.min(touchH, (baseY + (Math.random() - 0.5) * 0.15) * touchH));
+    const pid = 'auto_' + (_autoPidCounter++);
+    setTimeout(() => {
+      if (!bmAutoActive) return;
+      bmHandleDown(x, y, pid);
+      // Always release on its own timer, even if user toggles auto off mid-burst
+      setTimeout(() => bmHandleUp(pid), hold);
+    }, delay);
+  }
+}
+
+function tickAuto() {
+  if (!bmAutoActive) return;
+  const state = window.asgGetGridState?.() || { playing: false, bpm: 120 };
+  const barMs = (60 / Math.max(40, state.bpm)) * 4 * 1000;
+  if (state.playing) {
+    if (bmAutoCooldown > 0) {
+      bmAutoCooldown--;
+    } else if (Math.random() < AUTO_PROB_PER_BAR) {
+      fireAutoBurst(state.bpm);
+      bmAutoCooldown = 1 + (Math.random() * 2 | 0); // skip next 1–3 bars
+    }
+  }
+  bmAutoTimer = setTimeout(tickAuto, barMs);
+}
+
+const autoBtn = $$('autoBtn');
+autoBtn.addEventListener('click', () => {
+  bmAutoActive = !bmAutoActive;
+  autoBtn.classList.toggle('active', bmAutoActive);
+  if (bmAutoActive) {
+    bmAutoCooldown = 0;
+    tickAuto();
+  } else if (bmAutoTimer) {
+    clearTimeout(bmAutoTimer);
+    bmAutoTimer = null;
+  }
+});
+
 touchCv.addEventListener('pointerdown', e => {
   e.preventDefault();
   const rect = touchCv.getBoundingClientRect();
@@ -6283,6 +6348,10 @@ const BM_HELP = [
   ['gap'],
   ['head', 'BPM SYNC', ''],
   ['row',  'bpm sync on',      'tremolo follows grid bpm'],
+  ['gap'],
+  ['head', 'AUTO', ''],
+  ['row',  'auto on',          'sparse bursts when grid plays'],
+  ['row',  'refresh',          'kill all stuck voices'],
   ['gap'],
   ['head', 'COLORS', ''],
   ['row',  'click swatch',     'set accent color'],
