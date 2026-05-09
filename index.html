@@ -813,6 +813,7 @@
             <option value="dark">dark</option>
             <option value="bright">bright</option>
             <option value="movement">movement</option>
+            <option value="chime">chime</option>
           </select>
         </div>
       </div>
@@ -838,7 +839,16 @@
           <button class="tui-btn"     data-wave="triangle" tabindex="-1">tri</button>
           <button class="tui-btn"     data-wave="square"   tabindex="-1">sqr</button>
           <button class="tui-btn"     data-wave="sawtooth"  tabindex="-1">saw</button>
+          <button class="tui-btn"     data-wave="chime"    tabindex="-1">chime</button>
         </div>
+      </div>
+
+      <div class="ctrl-row slider" style="margin-top:6px;">
+        <span class="ctrl-key">xpose</span>
+        <span class="s-brk">◄</span>
+        <input type="range" id="ig-transposeSlider" min="-24" max="24" value="0" step="1">
+        <span class="s-brk">►</span>
+        <span class="ctrl-val" id="ig-transposeVal">0</span>
       </div>
 
       <div class="panel-rule" style="margin-top: 8px;"></div>
@@ -2891,6 +2901,7 @@ const S = {
   volume:  0.70,
   decay:   0.40,
   masterVol: 0.80,
+  transpose: 0,
 };
 
 /* ── FX state ───────────────────────────────────────── */
@@ -2969,7 +2980,7 @@ function midiToHz(n) { return 440 * Math.pow(2, (n - 69) / 12); }
 const FREQ_CACHES = {};
 function freqFor(scaleName, row) {
   if (!FREQ_CACHES[scaleName]) FREQ_CACHES[scaleName] = buildFreqs(scaleName);
-  return FREQ_CACHES[scaleName][row];
+  return FREQ_CACHES[scaleName][row] * Math.pow(2, (S.transpose || 0) / 12);
 }
 
 /* ── Row mute state ─────────────────────────────────── */
@@ -3489,6 +3500,8 @@ function reflectNote(note) {
 }
 
 /* ── Audio ──────────────────────────────────────────── */
+let _chimeWave = null; // cached PeriodicWave for 'chime' type
+
 function playTone(freq, note, when) {
   const adsr_ = note.adsr ?? FX.adsr ?? null;
   const dur   = adsr_ ? (adsr_.a + adsr_.d + adsr_.h + adsr_.r) : note.decay;
@@ -3508,7 +3521,16 @@ function playTone(freq, note, when) {
   const panner = audioCtx.createStereoPanner();
   panner.pan.value = Math.max(-1, Math.min(1, pan));
 
-  osc.type = note.wave;
+  if (note.wave === 'chime') {
+    if (!_chimeWave) {
+      const real = new Float32Array([0, 1, 0.30, 0.10, 0.04, 0.01]);
+      const imag = new Float32Array(real.length);
+      _chimeWave = audioCtx.createPeriodicWave(real, imag);
+    }
+    osc.setPeriodicWave(_chimeWave);
+  } else {
+    osc.type = note.wave;
+  }
   osc.frequency.value = freq;
 
   filt.type = 'lowpass';
@@ -3573,12 +3595,27 @@ function playTone(freq, note, when) {
   osc.start(when);
   osc.stop(when + dur + 0.02);
 
+  // inharmonic partial for chime — windchime bar mode at 2.756× fundamental
+  if (note.wave === 'chime') {
+    const oscH  = audioCtx.createOscillator();
+    const gainH = audioCtx.createGain();
+    oscH.frequency.value = freq * 2.756;
+    const hDur = Math.min(dur * 0.45, 1.0);
+    gainH.gain.setValueAtTime(0, when);
+    gainH.gain.linearRampToValueAtTime(pk * 0.10, when + atk);
+    gainH.gain.exponentialRampToValueAtTime(0.001, when + Math.max(atk + 0.01, hDur));
+    oscH.connect(gainH);
+    gainH.connect(filt);
+    oscH.start(when);
+    oscH.stop(when + Math.max(atk + 0.02, hDur) + 0.02);
+  }
+
   spawnLfo('cut', filt.frequency, cut);
   spawnLfo('res', filt.Q,         4);
   spawnLfo('pan', panner.pan,     1);
   spawnLfo('det', osc.detune,     50);
 
-  if (det > 0) {
+  if (det > 0 && note.wave !== 'chime') {
     const osc2  = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
     osc2.type = note.wave;
@@ -4017,6 +4054,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [2, 3],
     bassDroneChance: 0.80, ghostChance: 0.60,
+    transposeRange: [-3, 5],
   },
   // sparse, slow pulse — gentle and grounded
   rhythmic: {
@@ -4034,6 +4072,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [2, 3],
     bassDroneChance: 0.75, ghostChance: 0.35,
+    transposeRange: [-3, 3],
   },
   // deep, meditative, minor tonalities
   dark: {
@@ -4051,6 +4090,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.92, ghostChance: 0.20,
+    transposeRange: [-9, -2],
   },
   // warm, open, hopeful
   bright: {
@@ -4068,6 +4108,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [2, 3],
     bassDroneChance: 0.60, ghostChance: 0.65,
+    transposeRange: [4, 12],
   },
   // slow drift, evolving texture
   movement: {
@@ -4085,6 +4126,26 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [2, 3],
     bassDroneChance: 0.78, ghostChance: 0.52,
+    transposeRange: [-5, 8],
+  },
+  // sparse percussive pings — windchime and kalimba textures
+  chime: {
+    scales: ['major_pentatonic','major_pentatonic','hawaiian','japanese_miyakobushi','ryuku'],
+    bpmRange: [38, 56],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.002, 0.005], cutoffRange: [5000, 14000],
+    lpfRange: [9000, 20000],
+    delayRange: [0.20, 0.36], reverbRange: [0.75, 0.92],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0, tremoloRange: [0, 0],
+    adsrChance: 1.0, adsrStyle: 'chime',
+    lfoParams: ['pan', 'rev'], lfoChance: 0.20, lfoRateRange: [0.04, 0.16],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.0, ghostChance: 0.72,
+    chimeWave: true,
+    transposeRange: [12, 19],
   },
 };
 
@@ -4113,14 +4174,27 @@ $$('randRefresh').addEventListener('click', (e) => {
   $$('bpmVal').textContent = bpm;
   window.asgBpmSync?.(bpm);
 
+  // ── Transpose — auto-apply for moods that have a target range ──
+  if (prof.transposeRange) {
+    const t = Math.round(rngR(prof.transposeRange[0], prof.transposeRange[1]));
+    S.transpose = t;
+    $$('transposeSlider').value = t;
+    $$('transposeVal').textContent = '+' + t;
+  }
+
   // ── Wave palette per register ───────────────────────
   const bassWaves = ['sine','sine','triangle'];
   const midWaves  = ['sine','sine','triangle','triangle'];
   const hiWaves   = ['sine','triangle','sine','triangle','triangle'];
   function waveFor(r) {
+    if (prof.chimeWave) return 'chime';
     if (r >= 12) return pick(bassWaves);
     if (r >= 5)  return pick(midWaves);
     return pick(hiWaves);
+  }
+  if (prof.chimeWave) {
+    S.wave = 'chime';
+    document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === 'chime'));
   }
 
   // ── Global FX shaped by mood ────────────────────────
@@ -4185,6 +4259,9 @@ $$('randRefresh').addEventListener('click', (e) => {
     }
     if (prof.adsrStyle === 'short') {
       return { a: rngR(0.005, 0.03), d: rngR(0.05, 0.12), s: rngR(0.30, 0.55), h: rngR(0.05, 0.15), r: rngR(0.05, 0.18) };
+    }
+    if (prof.adsrStyle === 'chime') {
+      return { a: rngR(0.001, 0.004), d: rngR(0.80, 2.50), s: 0.001, h: 0, r: rngR(0.20, 0.45) };
     }
     return { a: rngR(0.03, 0.12), d: rngR(0.10, 0.25), s: rngR(0.50, 0.75), h: rngR(0.15, 0.35), r: rngR(0.15, 0.40) };
   }
@@ -4254,7 +4331,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       resonance:  rngR(0.5, 2.0 + (1 - t) * 2),
       distortion: gDist,
       delaySend:  rng() < 0.18 ? rngR(0.05, 0.18) : gDelay,
-      reverbSend: rngR(0.12 + (1 - t) * 0.1, 0.30 + (1 - t) * 0.2),
+      reverbSend: prof.chimeWave ? rngR(0.55, 0.85) : rngR(0.12 + (1 - t) * 0.1, 0.30 + (1 - t) * 0.2),
       pan:        usePan ? Math.round(rngR(12, 38)) * (rng() < 0.5 ? -1 : 1) : 0,
       prob:       rngR(0.55, 1.0),
     };
@@ -4544,7 +4621,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       const c = rng() * COLS | 0;
       if (S.cells[r][c] || colCount[c] >= MAX_VOICES) continue;
       const note = {
-        wave: 'sine', vol: rngR(0.08, 0.20), decay: rngR(0.3, 0.6),
+        wave: prof.chimeWave ? 'chime' : 'sine', vol: rngR(0.08, 0.20), decay: rngR(0.3, 0.6),
         scale: chosenScale, ...noteFx(r), prob: rngR(0.30, 0.60),
       };
       applyMoodFx(note, r);
@@ -4964,6 +5041,11 @@ $$('revSlider').addEventListener('input', function () {
 $$('probSlider').addEventListener('input', function () {
   $$('probVal').textContent = `${this.value}%`;
   if (selR >= 0 && S.cells[selR][selC]) S.cells[selR][selC].prob = this.value / 100;
+});
+$$('transposeSlider').addEventListener('input', function () {
+  S.transpose = +this.value;
+  const v = S.transpose;
+  $$('transposeVal').textContent = v > 0 ? `+${v}` : `${v}`;
 });
 
 // reset fx — per-note controls only
