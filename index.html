@@ -492,6 +492,7 @@
     .btn-play, .tui-btn, .tui-action, .page-btn, .copy-btn, #ig-hbtn, #ig-zko { touch-action: manipulation; }
     #ig-randRefresh, #ig-clearRefresh { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
     .grid { touch-action: none; }
+    #ig-spiral-cv { display: none; touch-action: none; cursor: pointer; background: #000; border: 1px solid #111; border-radius: 4px; align-self: flex-start; }
 
   </style>
 </head>
@@ -749,13 +750,14 @@
   <div class="main-layout">
 
     <div class="grid-col">
-      <div class="grid-with-rows">
+      <div class="grid-with-rows" id="ig-grid-wrap">
         <div class="row-bar" id="ig-rowBar"></div>
-        <div class="step-grid-col">
+        <div class="step-grid-col" id="ig-step-grid-col">
           <div class="step-bar" id="ig-stepBar"></div>
           <div class="grid" id="ig-grid"></div>
         </div>
       </div>
+      <canvas id="ig-spiral-cv"></canvas>
     </div>
 
     <div class="ctrl-panel">
@@ -3852,6 +3854,15 @@ let progressLoops = [];
 let progressPage = 0;
 let _lastSongMood = null;
 
+/* ── Spiral view ────────────────────────────────────── */
+let spiralBtn = null;
+let spiralView = false;
+let spiralRaf = null;
+let spiralCv = null;
+let spiralCtx = null;
+let spiralDragPaint = null;
+let spiralMouseX = -1, spiralMouseY = -1;
+
 function buildPageBar() {
   const bar = $$('pageBar');
 
@@ -3929,6 +3940,21 @@ function buildPageBar() {
     progressActive ? stopProgression() : startProgression();
   });
   bar.appendChild(progressBtn);
+
+  // separator before spiral toggle
+  const sep3 = document.createElement('span');
+  sep3.className = 'page-sep';
+  sep3.textContent = '|';
+  bar.appendChild(sep3);
+
+  // spiral view toggle
+  spiralBtn = document.createElement('button');
+  spiralBtn.className = 'copy-btn';
+  spiralBtn.textContent = '◯';
+  spiralBtn.tabIndex = -1;
+  spiralBtn.title = 'toggle spiral sequencer view';
+  spiralBtn.addEventListener('click', toggleSpiralView);
+  bar.appendChild(spiralBtn);
 }
 
 // Build a per-run progression: 8 page durations (in pattern loops) summing to ~3-8 min
@@ -5476,6 +5502,352 @@ $$('shareBtn').addEventListener('click', async () => {
     btn.textContent = 'share';
     btn.style.color = '';
   }
+});
+
+/* ── Spiral sequencer view ──────────────────────────── */
+function spiralGeom() {
+  if (!spiralCv) return null;
+  const dpx = window.devicePixelRatio || 1;
+  const cw = spiralCv.width / dpx;
+  const ch = spiralCv.height / dpx;
+  const cx = cw / 2;
+  const cy = ch / 2;
+  const R_outer = Math.min(cx, cy) * 0.95;
+  const R_inner = R_outer * 0.15;
+  const ringSpacing = (R_outer - R_inner) / ROWS;
+  return { cw, ch, cx, cy, R_outer, R_inner, ringSpacing, dpx };
+}
+
+function spiralCellXY(r, c, geom) {
+  const { cx, cy, R_outer, ringSpacing } = geom;
+  // c: 0..15 for notes, 16 for mute
+  let cEff = (c === 16) ? -0.5 : c;
+  // Rotate entire spiral by 0.5 steps so that Step -0.5 (Mute) is at -PI/2 (top)
+  const angle  = ((cEff + 0.5) / 16) * 2 * Math.PI - Math.PI / 2;
+  const radius = R_outer - (r + cEff / 16) * ringSpacing;
+  return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+}
+
+function spiralHitTest(px, py) {
+  const geom = spiralGeom();
+  if (!geom) return null;
+  const { cx, cy, R_outer, ringSpacing } = geom;
+  const dx = px - cx;
+  const dy = py - cy;
+  const d = Math.hypot(dx, dy);
+
+  let angle = Math.atan2(dy, dx) + Math.PI / 2;
+  while (angle < 0) angle += 2 * Math.PI;
+  while (angle >= 2 * Math.PI) angle -= 2 * Math.PI;
+
+  const cFracRaw = (angle / (2 * Math.PI)) * 16;
+  // cEff in [-0.5, 15.5) aligns with spiral radius logic in spiralCellXY
+  const cEff = cFracRaw - 0.5;
+
+  const s = (R_outer - d) / ringSpacing;
+  const rCont = s - (cEff / 16);
+  const r = Math.round(rCont);
+
+  if (r >= 0 && r < ROWS && Math.abs(rCont - r) < 0.45) {
+    // Mute bar hit area: cEff centered around -0.5 (or 15.5)
+    let distToMute = Math.abs(cEff + 0.5);
+    if (distToMute > 8) distToMute = Math.abs(distToMute - 16);
+    if (distToMute < 0.3) return { r, c: 16 };
+    
+    // Otherwise standard note step
+    let step = Math.round(cEff);
+    while (step < 0) step += 16;
+    return { r, c: step % 16 };
+  }
+  return null;
+}
+
+function spiralToggleMute(r) {
+  if (mutedRows.has(r)) {
+    mutedRows.delete(r);
+    rowPips[r]?.classList.remove('muted');
+    if (mutedRows.size === 0) stopMuteIndicator();
+  } else {
+    mutedRows.add(r);
+    rowPips[r]?.classList.add('muted');
+    startMuteIndicator();
+  }
+}
+
+function drawSpiral() {
+  if (!spiralCtx || !spiralView) return;
+  const geom = spiralGeom();
+  if (!geom) return;
+  const { cw, ch, cx, cy, R_outer, R_inner, ringSpacing, dpx } = geom;
+  const dotR = Math.max(2, ringSpacing * 0.24);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffffff';
+
+  spiralCtx.save();
+  spiralCtx.setTransform(dpx, 0, 0, dpx, 0, 0); // Ensure transform is consistent
+  
+  spiralCtx.clearRect(0, 0, cw, ch);
+  spiralCtx.fillStyle = '#000';
+  spiralCtx.fillRect(0, 0, cw, ch);
+
+  // Determine hovered row continuously
+  const hit = (spiralMouseX >= 0) ? spiralHitTest(spiralMouseX, spiralMouseY) : null;
+  const hoveredRow = hit ? hit.r : -1;
+
+  // smooth spiral guide
+  const SMOOTH = 2048;
+  spiralCtx.beginPath();
+  for (let i = 0; i <= SMOOTH; i++) {
+    const s = (i / SMOOTH) * ROWS;
+    const angle  = (s % 1 + 0.5/16) * 2 * Math.PI - Math.PI / 2;
+    const radius = R_outer - s * ringSpacing;
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    if (i === 0) spiralCtx.moveTo(x, y); else spiralCtx.lineTo(x, y);
+  }
+  spiralCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  spiralCtx.lineWidth = 1;
+  spiralCtx.stroke();
+
+  // Dotted lines from Step 0 to Mute bars
+  spiralCtx.save();
+  spiralCtx.setLineDash([1, 3]);
+  spiralCtx.strokeStyle = 'rgba(255,255,255,0.30)';
+  spiralCtx.lineWidth = 1;
+  for (let r = 0; r < ROWS; r++) {
+    spiralCtx.beginPath();
+    // Arc segment from cEff = -0.5 (Mute) to cEff = 0 (Step 0)
+    const SEGS = 12;
+    for (let i = 0; i <= SEGS; i++) {
+      const cEff = -0.5 + (i / SEGS) * 0.5;
+      const angle = ((cEff + 0.5) / 16) * 2 * Math.PI - Math.PI / 2;
+      const radius = R_outer - (r + cEff / 16) * ringSpacing;
+      const x = cx + radius * Math.cos(angle);
+      const y = cy + radius * Math.sin(angle);
+      if (i === 0) spiralCtx.moveTo(x, y); else spiralCtx.lineTo(x, y);
+    }
+    spiralCtx.stroke();
+  }
+  spiralCtx.restore();
+
+  // draw cells
+  for (let r = 0; r < ROWS; r++) {
+    const rowHovered = (r === hoveredRow);
+    for (let c = 0; c < 17; c++) {
+      const { x, y } = spiralCellXY(r, c, geom);
+      
+      if (c === 16) {
+        // Mute bar
+        const muted = mutedRows.has(r);
+        if (!muted || rowHovered) {
+          const barH = ringSpacing * 0.75;
+          const barW = 2;
+          
+          // Rotation: Step -0.5 is at -PI/2 (top). 
+          // We want it vertical, which is its radial direction at the top.
+          spiralCtx.save();
+          spiralCtx.translate(x, y);
+          spiralCtx.rotate(0); 
+          
+          spiralCtx.beginPath();
+          spiralCtx.rect(-barW / 2, -barH / 2, barW, barH);
+          if (muted) {
+            spiralCtx.fillStyle = 'rgba(255,255,255,0.22)';
+          } else {
+            const dist = Math.hypot(spiralMouseX - x, spiralMouseY - y);
+            const muteHovered = dist < ringSpacing * 0.75;
+            spiralCtx.fillStyle = muteHovered ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.38)';
+          }
+          spiralCtx.fill();
+          spiralCtx.restore();
+        }
+        continue;
+      }
+
+      // Sequencer dots (c=0..15)
+      const on = !!S.cells[r][c];
+      const isSel = on && r === selR && c === selC;
+
+      spiralCtx.beginPath();
+      if (isSel) {
+        spiralCtx.arc(x, y, dotR * 1.4, 0, 2 * Math.PI);
+        spiralCtx.fillStyle = accent;
+        spiralCtx.shadowColor = accent;
+        spiralCtx.shadowBlur = 10;
+        spiralCtx.fill();
+        spiralCtx.shadowBlur = 0;
+        spiralCtx.beginPath();
+        spiralCtx.arc(x, y, dotR * 1.95, 0, 2 * Math.PI);
+        spiralCtx.strokeStyle = 'rgba(255,255,255,0.80)';
+        spiralCtx.lineWidth = 2;
+        spiralCtx.stroke();
+        const dist = Math.hypot(spiralMouseX - x, spiralMouseY - y);
+        if (dist < dotR * 2.2) {
+          const xr = dotR * 0.85;
+          spiralCtx.beginPath();
+          spiralCtx.moveTo(x - xr, y - xr); spiralCtx.lineTo(x + xr, y + xr);
+          spiralCtx.moveTo(x + xr, y - xr); spiralCtx.lineTo(x - xr, y + xr);
+          spiralCtx.strokeStyle = 'rgba(255,255,255,0.90)';
+          spiralCtx.lineWidth = 2;
+          spiralCtx.stroke();
+        }
+      } else if (on) {
+        spiralCtx.arc(x, y, dotR * 1.4, 0, 2 * Math.PI);
+        spiralCtx.fillStyle = accent;
+        spiralCtx.shadowColor = accent;
+        spiralCtx.shadowBlur = 10;
+        spiralCtx.fill();
+      } else {
+        spiralCtx.arc(x, y, dotR * 0.6, 0, 2 * Math.PI);
+        spiralCtx.fillStyle = 'rgba(255,255,255,0.10)';
+        spiralCtx.fill();
+      }
+    }
+  }
+
+  // Draw ring highlight for hovered row
+  if (hoveredRow >= 0) {
+    const r = hoveredRow;
+    const SAMPLES = 256;
+    spiralCtx.beginPath();
+    for (let i = 0; i <= SAMPLES; i++) {
+      const s = r + (i / SAMPLES);
+      const angle  = (s % 1 + 0.5/16) * 2 * Math.PI - Math.PI / 2;
+      const radius = R_outer - s * ringSpacing;
+      const x = cx + radius * Math.cos(angle);
+      const y = cy + radius * Math.sin(angle);
+      if (i === 0) spiralCtx.moveTo(x, y); else spiralCtx.lineTo(x, y);
+    }
+    spiralCtx.strokeStyle = 'rgba(255,255,255,0.22)';
+    spiralCtx.lineWidth = 2.0;
+    spiralCtx.shadowColor = '#fff';
+    spiralCtx.shadowBlur = 4;
+    spiralCtx.stroke();
+    spiralCtx.shadowBlur = 0;
+  }
+
+  // playhead arm -> rotating mute bars
+  if (S.step >= 0) {
+    const phAngle = ((S.step + 0.5) / 16) * 2 * Math.PI - Math.PI / 2;
+    const barW = 2;
+    const barH = ringSpacing * 0.75;
+
+    spiralCtx.save();
+    spiralCtx.globalAlpha = 0.5;
+    spiralCtx.fillStyle = accent;
+    for (let r = 0; r < ROWS; r++) {
+      const radius = R_outer - (r + (S.step + 0.5) / 16) * ringSpacing;
+      const x = cx + radius * Math.cos(phAngle);
+      const y = cy + radius * Math.sin(phAngle);
+
+      spiralCtx.save();
+      spiralCtx.translate(x, y);
+      spiralCtx.rotate(phAngle + Math.PI / 2);
+      spiralCtx.fillRect(-barW / 2, -barH / 2, barW, barH);
+      spiralCtx.restore();
+    }
+    spiralCtx.restore();
+  }
+
+  spiralCtx.restore();
+  spiralRaf = requestAnimationFrame(drawSpiral);
+}
+
+let spiralObs = null;
+
+function applySpiralSize() {
+  if (!spiralCv || !spiralCtx) return;
+  const w = spiralCv.offsetWidth;
+  if (!w) return;
+  const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 38;
+  const h = Math.round(16 * cell + 63);
+  const dpx = window.devicePixelRatio || 1;
+  spiralCv.style.height = h + 'px';
+  spiralCv.width  = w * dpx;
+  spiralCv.height = h * dpx;
+  spiralCtx.setTransform(dpx, 0, 0, dpx, 0, 0);
+}
+
+function toggleSpiralView() {
+  spiralCv = document.getElementById('ig-spiral-cv');
+  const gridWrap = document.getElementById('ig-grid-wrap');
+  spiralView = !spiralView;
+
+  if (spiralView) {
+    // measure while gridWrap is still in the layout
+    const w = gridWrap.offsetWidth;
+    const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 38;
+    const h = Math.round(16 * cell + 63);
+    const dpx = window.devicePixelRatio || 1;
+    spiralCv.style.width  = '100%';   // responsive — ResizeObserver will track this
+    spiralCv.style.height = h + 'px';
+    spiralCv.width  = w * dpx;        // initial pixel resolution from measured gridWrap
+    spiralCv.height = h * dpx;
+    spiralCtx = spiralCv.getContext('2d');
+    spiralCtx.setTransform(dpx, 0, 0, dpx, 0, 0);
+    gridWrap.style.display = 'none';
+    spiralCv.style.display = 'block';
+    drawSpiral();
+    spiralObs = new ResizeObserver(() => { applySpiralSize(); });
+    spiralObs.observe(spiralCv);
+    spiralBtn.textContent = '□';
+  } else {
+    gridWrap.style.display = '';
+    spiralCv.style.display = 'none';
+    spiralCv.style.width  = '';
+    spiralCv.style.height = '';
+    if (spiralRaf) { cancelAnimationFrame(spiralRaf); spiralRaf = null; }
+    if (spiralObs) { spiralObs.disconnect(); spiralObs = null; }
+    spiralBtn.textContent = '◯';
+  }
+
+  spiralBtn.classList.toggle('has-copy', spiralView);
+}
+
+// Spiral pointer interaction
+function spiralPointerPos(e) {
+  const rect = spiralCv.getBoundingClientRect();
+  return { px: e.clientX - rect.left, py: e.clientY - rect.top };
+}
+
+document.getElementById('ig-spiral-cv').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  const { px, py } = spiralPointerPos(e);
+  const hit = spiralHitTest(px, py);
+  if (!hit) return;
+  const { r, c } = hit;
+  
+  if (c === 16) {
+    spiralToggleMute(r);
+  } else {
+    const seqC = c;
+    if (S.cells[r][seqC]) {
+      if (selR === r && selC === seqC) { deactivateCell(r, seqC); spiralDragPaint = 0; }
+      else                             { selectNote(r, seqC);     spiralDragPaint = null; }
+    } else {
+      activateCell(r, seqC); spiralDragPaint = 1;
+    }
+  }
+  spiralCv.setPointerCapture(e.pointerId);
+}, { passive: false });
+
+document.getElementById('ig-spiral-cv').addEventListener('pointermove', e => {
+  const { px, py } = spiralPointerPos(e);
+  spiralMouseX = px; spiralMouseY = py;
+  if (spiralDragPaint === null || spiralDragPaint === undefined) return;
+  const hit = spiralHitTest(px, py);
+  if (!hit || hit.c === 16) return; 
+  const { r, c } = hit;
+  const seqC = c;
+  if (spiralDragPaint === 1 && !S.cells[r][seqC]) activateCell(r, seqC);
+  if (spiralDragPaint === 0 &&  S.cells[r][seqC]) deactivateCell(r, seqC);
+}, { passive: false });
+
+document.getElementById('ig-spiral-cv').addEventListener('pointerleave', () => {
+  spiralMouseX = -1; spiralMouseY = -1;
+});
+
+document.getElementById('ig-spiral-cv').addEventListener('pointerup', () => {
+  spiralDragPaint = null;
 });
 
 /* ── Init ───────────────────────────────────────────── */
