@@ -177,16 +177,25 @@
       #bm-panel { padding: 16px 8px 12px; }
       .bm-body {
         grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1.2fr) auto;
-        height: calc(100dvh - 76px);
+        grid-template-rows: auto auto auto auto auto;
+        height: auto;
         min-height: 400px;
         margin-bottom: 0;
+        row-gap: 8px;
       }
-      .bm-overlay-left  { grid-column: 1; grid-row: 1; overflow: hidden; }
-      #bm-canvas-wrap   { grid-column: 1; grid-row: 2; }
+      #bm-canvas-wrap {
+        grid-column: 1; grid-row: 2;
+        aspect-ratio: 1 / 1;
+        width: 100%;
+      }
+      .bm-overlay-left  { grid-column: 1; grid-row: 1; overflow: hidden; padding-bottom: 4px; }
       #bm-color-box     { display: none; }
-      .bm-overlay-right { grid-column: 1; grid-row: 3; }
-      #bm-touch-wrap    { grid-column: 1; grid-row: 4; }
+      .bm-overlay-right { grid-column: 1; grid-row: 3; padding-bottom: 0; }
+      #bm-touch-wrap    {
+        grid-column: 1; grid-row: 4;
+        aspect-ratio: 1 / 1;
+        width: 100%;
+      }
       .bm-ctrl-strip    { grid-column: 1; grid-row: 5; padding-top: 8px; border-left: none; border-right: none; }
     }
 
@@ -198,7 +207,10 @@
       margin-bottom: 22px;
       gap: 20px;
     }
+    @media (max-width: 600px) {
+      .hdr { margin-bottom: 12px; }
     }
+
     .panel-rule { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
     .ctrl-row { display: flex; align-items: flex-start; gap: 10px; min-height: 26px; }
     .ctrl-row.slider { align-items: center; }
@@ -476,7 +488,7 @@
     #ig-poem-dismiss { position:absolute;top:10px;right:0;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px; }
     /* IG01 Responsive */
     @media (max-width: 1080px) {
-      #ig-panel .main-layout { flex-direction: column; }
+      #ig-panel .main-layout { flex-direction: column; gap: 12px; }
       #ig-panel .ctrl-panel { width: 100%; gap: 4px; }
       #ig-viz-cv { flex: none; height: 140px; }
       #ig-panel .ctrl-row.slider { min-height: 44px; }
@@ -5798,7 +5810,9 @@ function applySpiralSize() {
   const w = spiralCv.offsetWidth;
   if (!w) return;
   const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 38;
-  const h = Math.round(16 * cell + 63);
+  const h_calc = Math.round(16 * cell + 63);
+  // On mobile/narrow screens, use a square aspect ratio to avoid empty space above/below the circle
+  const h = (w < 500) ? w : h_calc;
   const dpx = window.devicePixelRatio || 1;
   spiralCv.style.height = h + 'px';
   spiralCv.width  = w * dpx;
@@ -5815,7 +5829,8 @@ function toggleSpiralView() {
     // measure while gridWrap is still in the layout
     const w = gridWrap.offsetWidth;
     const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 38;
-    const h = Math.round(16 * cell + 63);
+    const h_calc = Math.round(16 * cell + 63);
+    const h = (w < 500) ? w : h_calc;
     const dpx = window.devicePixelRatio || 1;
     spiralCv.style.width  = '100%';   // responsive — ResizeObserver will track this
     spiralCv.style.height = h + 'px';
