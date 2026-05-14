@@ -5859,12 +5859,22 @@ let spiralObs = null;
 
 function applySpiralSize() {
   if (!spiralCv || !spiralCtx) return;
-  const w = (spiralCv.parentElement || spiralCv).offsetWidth;
+  const gridWrap = document.getElementById('ig-grid-wrap');
+  if (!gridWrap) return;
+  // Swap visibility synchronously to measure gridWrap's natural width
+  // without the canvas influencing the layout. No visual flicker because
+  // both changes happen before the browser paints.
+  spiralCv.style.display = 'none';
+  gridWrap.style.display = '';
+  const w = gridWrap.offsetWidth;
+  gridWrap.style.display = 'none';
+  spiralCv.style.display = 'block';
   if (!w) return;
   const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 38;
   const h_calc = Math.round(16 * cell + 63);
   const h = (w < 500) ? w : h_calc;
   const dpx = window.devicePixelRatio || 1;
+  if (spiralCv.width === Math.round(w * dpx) && spiralCv.height === Math.round(h * dpx)) return;
   spiralCv.style.width  = w + 'px';
   spiralCv.style.height = h + 'px';
   spiralCv.width  = w * dpx;
@@ -5893,8 +5903,8 @@ function toggleSpiralView() {
     gridWrap.style.display = 'none';
     spiralCv.style.display = 'block';
     drawSpiral();
-    spiralObs = new ResizeObserver(() => { applySpiralSize(); });
-    spiralObs.observe(spiralCv.parentElement);
+    spiralObs = () => applySpiralSize();
+    window.addEventListener('resize', spiralObs);
     spiralBtn.textContent = '□';
   } else {
     gridWrap.style.display = '';
@@ -5902,7 +5912,7 @@ function toggleSpiralView() {
     spiralCv.style.width  = '';
     spiralCv.style.height = '';
     if (spiralRaf) { cancelAnimationFrame(spiralRaf); spiralRaf = null; }
-    if (spiralObs) { spiralObs.disconnect(); spiralObs = null; }
+    if (spiralObs) { window.removeEventListener('resize', spiralObs); spiralObs = null; }
     spiralBtn.textContent = '◯';
   }
 
