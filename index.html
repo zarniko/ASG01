@@ -82,15 +82,15 @@
     .bm-body {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto 1fr auto;
-      column-gap: 8px; row-gap: 0;
-      height: 60vh; min-height: 340px; margin-bottom: 20px;
+      grid-template-rows: auto auto auto;
+      column-gap: 12px; row-gap: 0;
+      height: auto; margin-bottom: 24px;
     }
     .bm-left  { display: contents; }
     .bm-right { display: contents; }
     #bm-canvas-wrap {
       grid-column: 1; grid-row: 2;
-      position: relative; min-height: 0;
+      position: relative; aspect-ratio: 1 / 1; width: 100%;
       overflow: hidden; border: 1px solid rgba(255,255,255,0.14);
       cursor: default;
     }
@@ -104,7 +104,7 @@
     }
     #bm-touch-wrap {
       grid-column: 2; grid-row: 2;
-      position: relative; min-width: 0; min-height: 0;
+      position: relative; aspect-ratio: 1 / 1; width: 100%;
       border: 1px solid rgba(255,255,255,0.06); cursor: crosshair;
     }
     #bm-touch-cv {
@@ -112,7 +112,14 @@
       width: 100%; height: 100%; touch-action: none;
     }
     .bm-ctrl-strip { grid-column: 2; grid-row: 3; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.06); border-top: none; padding: 8px; }
-    #bm-color-box  { grid-column: 1; grid-row: 3; position: relative; }
+    #bm-color-box  { 
+      position: absolute; bottom: 0; left: 0; 
+      width: 38px; height: 28px; 
+      border-right: 1px solid rgba(255,255,255,0.15);
+      border-top: 1px solid rgba(255,255,255,0.15);
+      z-index: 10;
+      background: rgba(0,0,0,0.4);
+    }
     .bm-overlay-left {
       grid-column: 1; grid-row: 1;
       display: flex; align-items: center; gap: 8px;
@@ -124,7 +131,8 @@
       padding: 0 0 12px;
     }
     #bm-pattern-num {
-      position: absolute; top: 6px; left: 8px;
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
       font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px;
     }
     #bm-scaleSelect {
@@ -172,12 +180,12 @@
     }
     #bm-recBtn.active { color: #f55; text-shadow: 0 0 6px #f55; }
     #bm-playBtn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
-    /* Mobile — stack vertically */
-    @media (max-width: 600px) {
+    /* Mobile & Portrait Tablet — stack vertically */
+    @media (max-width: 900px) {
       #bm-panel { padding: 16px 8px 12px; }
       .bm-body {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto auto;
+        grid-template-rows: auto auto auto auto auto auto;
         height: auto;
         min-height: 400px;
         margin-bottom: 0;
@@ -189,14 +197,26 @@
         width: 100%;
       }
       .bm-overlay-left  { grid-column: 1; grid-row: 1; overflow: hidden; padding-bottom: 4px; }
-      #bm-color-box     { display: none; }
-      .bm-overlay-right { grid-column: 1; grid-row: 3; padding-bottom: 0; }
+      #bm-color-box     { position: absolute; bottom: 0; left: 0; margin-bottom: 0; }
+      .bm-overlay-right { grid-column: 1; grid-row: 3; padding-bottom: 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
       #bm-touch-wrap    {
         grid-column: 1; grid-row: 4;
         aspect-ratio: 1 / 1;
         width: 100%;
       }
-      .bm-ctrl-strip    { grid-column: 1; grid-row: 5; padding-top: 8px; border-left: none; border-right: none; }
+      .bm-ctrl-strip    { grid-column: 1; grid-row: 5; display: flex; flex-direction: column; padding-top: 8px; border-left: none; border-right: none; }
+    }
+    @media (min-width: 901px) {
+      .bm-ctrl-strip {
+        grid-column: 1 / -1;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(4, auto);
+        grid-auto-flow: column;
+        column-gap: 24px;
+        row-gap: 4px;
+      }
     }
 
     /* ── Shared component styles (identical in both apps) ── */
@@ -450,7 +470,7 @@
     .page-btn { background: none; border: none; font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; line-height: 1; color: rgba(255,255,255,0.25); cursor: pointer; padding: 0; vertical-align: middle; transition: color .1s, text-shadow .1s; }
     .page-btn:hover { color: rgba(255,255,255,0.6); }
     .page-btn.active { color: var(--accent); text-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); }
-    .page-sep { color: rgba(255,255,255,0.12); letter-spacing: 0; margin: 0 2px; }
+    .page-sep { color: var(--dim); letter-spacing: 0; margin: 0 2px; }
     .copy-btn { background: none; border: none; font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; line-height: 1; color: rgba(255,255,255,0.25); cursor: pointer; padding: 0; vertical-align: middle; transition: color .1s, text-shadow .1s; }
     .copy-btn:hover { color: rgba(255,255,255,0.6); }
     .copy-btn.has-copy { color: var(--accent); text-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); }
@@ -488,9 +508,11 @@
     #ig-poem-dismiss { position:absolute;top:10px;right:0;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px; }
     /* IG01 Responsive */
     @media (max-width: 1080px) {
+      :root { --cell: clamp(16px, calc((100vw - 103px) / 16), 52px); }
       #ig-panel .main-layout { flex-direction: column; gap: 12px; }
       #ig-panel .ctrl-panel { width: 100%; gap: 4px; }
       #ig-viz-cv { flex: none; height: 140px; }
+      #ig-panel .ctrl-row { align-items: center; }
       #ig-panel .ctrl-row.slider { min-height: 44px; }
       #ig-panel .tui-btn { min-height: 44px; }
       #ig-panel .ctrl-gap { height: 18px; }
@@ -1058,10 +1080,9 @@
       <div class="bm-overlay-left">
         <button class="btn-action" id="bm-bpmSync">bpm sync</button>
         <span style="color:var(--dim);">|</span>
-        <button id="bm-hbtn" tabindex="-1">help</button>
-        <span style="color:var(--dim);">|</span>
-        <span class="ctrl-key">scale</span>
-        <button class="btn-action active" id="bm-scaleLink">link</button>
+        <span style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
+        <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;">[o]</button>
+        <span class="ctrl-key" style="width:auto;">scale</span>
         <select id="bm-scaleSelect">
             <option value="chromatic">chromatic</option>
             <option value="ionian">ionian</option>
@@ -1099,12 +1120,15 @@
             <option value="fifth">5th interval</option>
             <option value="octave">octave</option>
         </select>
+        <span style="color:var(--dim);">|</span>
+        <button id="bm-hbtn" tabindex="-1">help</button>
+        </span>
       </div>
       <div id="bm-canvas-wrap">
         <canvas id="bm-cv"></canvas>
         <canvas id="bm-grain"></canvas>
+        <div id="bm-color-box"><span id="bm-pattern-num">00</span></div>
       </div>
-      <div id="bm-color-box"><span id="bm-pattern-num">00</span></div>
     </div>
     <div class="bm-right">
       <div class="bm-overlay-right">
@@ -1182,11 +1206,26 @@ function _showPanel(activePanel) {
     document.getElementById(panel).style.display = panel === activePanel ? '' : 'none';
     document.getElementById(btn).classList.toggle('active', panel === activePanel);
   });
-  if (activePanel === 'bm-panel') window.asgBmResize?.();
+  window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
+  if (activePanel === 'gs-panel') window._gsAnimStart?.();
+  if (activePanel === 'ig-panel') window._igDrawStart?.();
+  if (activePanel === 'bm-panel') { window._bmFrameStart?.(); window.asgBmResize?.(); }
 }
 document.getElementById('toggleGs').addEventListener('click', () => _showPanel('gs-panel'));
 document.getElementById('toggleIg').addEventListener('click', () => _showPanel('ig-panel'));
 document.getElementById('toggleBm').addEventListener('click', () => _showPanel('bm-panel'));
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
+    window._gsAudioSuspend?.(); window._igAudioSuspend?.(); window._bmAudioSuspend?.();
+  } else {
+    window._gsAudioResume?.(); window._igAudioResume?.(); window._bmAudioResume?.();
+    const active = _panels.find(p => document.getElementById(p.panel).style.display !== 'none');
+    if (active?.panel === 'gs-panel') window._gsAnimStart?.();
+    else if (active?.panel === 'ig-panel') window._igDrawStart?.();
+    else if (active?.panel === 'bm-panel') window._bmFrameStart?.();
+  }
+});
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const tag = e.target.tagName;
@@ -1942,7 +1981,14 @@ function drawGrainNoise() {
 }
 
 // ─── Main loop ─────────────────────────────────────────────────────────────────
+let _animActive = true;
+window._gsAnimStop  = () => { _animActive = false; };
+window._gsAnimStart = () => { if (!_animActive) { _animActive = true; requestAnimationFrame(animate); } };
+window._gsAudioSuspend = () => { if (audioCtx) audioCtx.suspend(); };
+window._gsAudioResume  = () => { if (audioCtx) audioCtx.resume(); };
+
 function animate(ts) {
+  if (!_animActive) return;
   const t = ts / 1000;
   ghostT = t;
 
@@ -2138,7 +2184,8 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
     return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
   }
 
-  const N = 6000, DISK_INNER = 1.6, DISK_OUTER = 5.5, SHADOW_R = 1.0, INCL = 1.35;
+  const _gsMobile = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+  const N = _gsMobile ? 1500 : 6000, DISK_INNER = 1.6, DISK_OUTER = 5.5, SHADOW_R = 1.0, INCL = 1.35;
   let orbitPhase = 0, pulseGlow = 0;
   let diskPts = [];
 
@@ -2663,6 +2710,8 @@ function setAccent(col) {
 
 /* ── Audio (module-level so viz can read analyser) ──── */
 let audioCtx = null, master = null, analyser = null;
+window._igAudioSuspend = () => { if (audioCtx) audioCtx.suspend(); };
+window._igAudioResume  = () => { if (audioCtx) audioCtx.resume(); };
 let tremoloGain = null, tremoloLFO = null, tremoloDepthNode = null;
 let delayNode = null, delayFeedbackNode = null;
 let reverbNode = null, reverbOutGain = null;
@@ -2787,6 +2836,7 @@ window.asgGetGridState = () => ({ playing: S.playing, bpm: S.bpm });
 (function () {
   const cv   = $$('viz-cv');
   const vx   = cv.getContext('2d');
+  let _topoActive = false;
 
   const GRID   = 50;
   const L_STEP = 0.10;
@@ -2852,6 +2902,7 @@ window.asgGetGridState = () => ({ playing: S.playing, bpm: S.bpm });
 
   let lastT = 0;
   function draw(now) {
+    if (!_topoActive) return;
     const dt = Math.min((now - lastT) / 1000, 0.05);
     lastT = now;
 
@@ -2930,7 +2981,8 @@ window.asgGetGridState = () => ({ playing: S.playing, bpm: S.bpm });
     vx.shadowBlur  = 0;
     requestAnimationFrame(draw);
   }
-  requestAnimationFrame(ts => { lastT = ts; requestAnimationFrame(draw); });
+  window._igDrawStop  = () => { _topoActive = false; };
+  window._igDrawStart = () => { if (!_topoActive) { _topoActive = true; lastT = performance.now(); requestAnimationFrame(draw); } };
 })();
 
 /* ── Sequencer state ────────────────────────────────── */
@@ -6029,7 +6081,8 @@ const PATTERNS = [
 ];
 
 /* ── Field grid ──────────────────────────────────────── */
-const GRID    = 150;
+const _bmMobile = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+const GRID    = _bmMobile ? 100 : 150;
 const N_CELLS = (GRID + 1) * (GRID + 1);
 const sumField = new Float32Array(N_CELLS);
 
@@ -6126,7 +6179,10 @@ function edgePt(i, j, e, vTL, vTR, vBL, vBR) {
 }
 
 function drawContour(buf, alphaScale) {
-  const passes = [
+  const passes = _bmMobile ? [
+    { blur: 7,  alpha: 0.55, lw: 1.6 },
+    { blur: 0,  alpha: 0.94, lw: 0.65 },
+  ] : [
     { blur: 20, alpha: 0.16, lw: 3.0 },
     { blur: 7,  alpha: 0.48, lw: 1.4 },
     { blur: 0,  alpha: 0.94, lw: 0.65 },
@@ -6650,7 +6706,17 @@ function cleanupDead() {
 }
 
 /* ── Animation loop ──────────────────────────────────── */
-function frame() {
+let _bmActive = false;
+let _bmLastTs = 0;
+window._bmFrameStop  = () => { _bmActive = false; };
+window._bmFrameStart = () => { if (!_bmActive) { _bmActive = true; requestAnimationFrame(frame); } };
+window._bmAudioSuspend = () => { if (audioCtx) audioCtx.suspend(); };
+window._bmAudioResume  = () => { if (audioCtx) audioCtx.resume(); };
+
+function frame(ts) {
+  if (!_bmActive) return;
+  if (_bmMobile && ts && ts - _bmLastTs < 30) { requestAnimationFrame(frame); return; }
+  if (ts) _bmLastTs = ts;
   timePh += 0.018;
   cleanupDead();
   buildSumField();
@@ -6702,18 +6768,31 @@ document.getElementById('bm-panel').querySelectorAll('input[type=range]').forEac
 });
 
 /* ── Scale link ──────────────────────────────────────── */
+function sizeScaleSelect() {
+  const sel = $$('scaleSelect');
+  const sp = document.createElement('span');
+  sp.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;font:14px "Share Tech Mono",monospace;letter-spacing:2px;padding-right:14px;white-space:nowrap;';
+  sp.textContent = sel.options[sel.selectedIndex]?.text || '';
+  document.body.appendChild(sp);
+  sel.style.width = (sp.offsetWidth + 1) + 'px';
+  sp.remove();
+}
+
 let scaleLinked = true;
 $$('scaleSelect').value   = document.getElementById('ig-scaleSelect').value;
 $$('scaleSelect').disabled = true;
 $$('scaleSelect').style.opacity = '0.4';
 $$('scaleLink').classList.add('active');
+sizeScaleSelect();
 
 $$('scaleLink').addEventListener('click', function () {
   scaleLinked = !scaleLinked;
+  this.textContent = scaleLinked ? '[o]' : '[-]';
   this.classList.toggle('active', scaleLinked);
   $$('scaleSelect').disabled = scaleLinked;
   $$('scaleSelect').style.opacity = scaleLinked ? '0.4' : '';
   if (scaleLinked) { $$('scaleSelect').value = document.getElementById('ig-scaleSelect').value; retuneVoices(); }
+  sizeScaleSelect();
 });
 function retuneVoices() {
   if (!audioCtx) return;
@@ -6726,10 +6805,10 @@ function retuneVoices() {
   }
 }
 
-$$('scaleSelect').addEventListener('change', retuneVoices);
+$$('scaleSelect').addEventListener('change', () => { retuneVoices(); sizeScaleSelect(); });
 
 document.getElementById('ig-scaleSelect').addEventListener('change', e => {
-  if (scaleLinked) { $$('scaleSelect').value = e.target.value; retuneVoices(); }
+  if (scaleLinked) { $$('scaleSelect').value = e.target.value; retuneVoices(); sizeScaleSelect(); }
 });
 
 /* ── Color legend ────────────────────────────────────── */
@@ -6905,7 +6984,7 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
 /* ── Boot ────────────────────────────────────────────── */
 setColorBox(lineColor);
 resize();
-frame();
+// frame() starts when the bloom tab is first shown via _bmFrameStart
 
 })();
 </script>
