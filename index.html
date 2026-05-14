@@ -4289,8 +4289,8 @@ const MOOD_PROFILES = {
     lfoParams: ['cut','det','rev'], lfoChance: 0.55, lfoRateRange: [0.08, 0.40],
     dstShapes: ['soft'], dstShapeChance: 0,
     ratchetChance: 0,
-    voiceCountRange: [2, 3],
-    bassDroneChance: 0.80, ghostChance: 0.60,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.70, ghostChance: 0.45,
     transposeRange: [-3, 5],
   },
   // sparse, slow pulse — gentle and grounded
@@ -4298,8 +4298,8 @@ const MOOD_PROFILES = {
     scales: ['minor_pentatonic','major_pentatonic','dorian','aeolian'],
     bpmRange: [56, 76],
     strategies: ['euclidean','anchor-scatter'],
-    atkRange: [0.04, 0.16], cutoffRange: [2000, 6500],
-    lpfRange: [4000, 10000],
+    atkRange: [0.06, 0.20], cutoffRange: [1800, 5000],
+    lpfRange: [3500, 7500],
     delayRange: [0.22, 0.42], reverbRange: [0.50, 0.72],
     distChance: 0, distRange: [0, 0],
     tremoloChance: 0.20, tremoloRange: [0.25, 0.80],
@@ -4307,8 +4307,8 @@ const MOOD_PROFILES = {
     lfoParams: ['pan','cut','det'], lfoChance: 0.40, lfoRateRange: [0.10, 0.50],
     dstShapes: ['soft'], dstShapeChance: 0,
     ratchetChance: 0,
-    voiceCountRange: [2, 3],
-    bassDroneChance: 0.75, ghostChance: 0.35,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.60, ghostChance: 0.25,
     transposeRange: [-3, 3],
   },
   // deep, meditative, minor tonalities
@@ -4334,8 +4334,8 @@ const MOOD_PROFILES = {
     scales: ['major_pentatonic','major_pentatonic','hawaiian','chinese','whole_tone'],
     bpmRange: [58, 76],
     strategies: ['anchor-scatter','euclidean'],
-    atkRange: [0.06, 0.20], cutoffRange: [3500, 9000],
-    lpfRange: [6000, 14000],
+    atkRange: [0.06, 0.20], cutoffRange: [2000, 5500],
+    lpfRange: [4000, 8000],
     delayRange: [0.18, 0.36], reverbRange: [0.45, 0.68],
     distChance: 0, distRange: [0, 0],
     tremoloChance: 0.20, tremoloRange: [0.20, 0.70],
@@ -4343,8 +4343,8 @@ const MOOD_PROFILES = {
     lfoParams: ['pan','cut','rev'], lfoChance: 0.40, lfoRateRange: [0.12, 0.55],
     dstShapes: ['soft'], dstShapeChance: 0,
     ratchetChance: 0,
-    voiceCountRange: [2, 3],
-    bassDroneChance: 0.60, ghostChance: 0.65,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.50, ghostChance: 0.50,
     transposeRange: [4, 12],
   },
   // slow drift, evolving texture
@@ -4361,8 +4361,8 @@ const MOOD_PROFILES = {
     lfoParams: ['cut','pan','det','rev'], lfoChance: 0.65, lfoRateRange: [0.08, 0.45],
     dstShapes: ['soft'], dstShapeChance: 0,
     ratchetChance: 0,
-    voiceCountRange: [2, 3],
-    bassDroneChance: 0.78, ghostChance: 0.52,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.65, ghostChance: 0.40,
     transposeRange: [-5, 8],
   },
   // sparse percussive pings — windchime and kalimba textures
@@ -4577,10 +4577,10 @@ $$('randRefresh').addEventListener('click', (e) => {
       attack:     rngR(0.005, 0.005 + t * 0.14),
       detune:     Math.round(rngR(0, 3 + t * 5)),
       cutoff:     (() => {
-        const base = Math.round(rngR(3000 + (1 - t) * 8000, 6000 + (1 - t) * 12000));
+        const base = Math.round(rngR(1800 + (1 - t) * 3500, 4000 + (1 - t) * 5500));
         return pageCtx ? Math.round(base * 0.6 + pageCtx.cutoff * 0.4) : base;
       })(),
-      resonance:  rngR(0.5, 2.0 + (1 - t) * 2),
+      resonance:  rngR(0.5, 1.3),
       distortion: gDist,
       delaySend:  rng() < 0.18 ? rngR(0.05, 0.18) : gDelay,
       reverbSend: (() => {
@@ -4783,7 +4783,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       let r;
       do { r = Math.random() * ROWS | 0; } while (usedRows.has(r));
       usedRows.add(r);
-      const density = r >= 12 ? (1 + (rng() * 3 | 0)) : (2 + (rng() * 5 | 0));
+      const density = r >= 12 ? (1 + (rng() * 2 | 0)) : (1 + (rng() * 3 | 0));
       const rhythm = euclidean(COLS, density);
       const rotation = Math.random() * COLS | 0;
       for (let c = 0; c < COLS; c++) {
@@ -4810,7 +4810,7 @@ $$('randRefresh').addEventListener('click', (e) => {
         colCount[c]++;
       }
     }
-    const nScatter = 4 + (rng() * 10 | 0);
+    const nScatter = 2 + (rng() * 6 | 0);
     for (let i = 0; i < nScatter; i++) {
       const r = rng() * 12 | 0;
       const c = rng() * COLS | 0;
@@ -4871,7 +4871,7 @@ $$('randRefresh').addEventListener('click', (e) => {
 
   // ── Optional ghost layer — quiet scattered highs ────
   if (rng() < prof.ghostChance) {
-    const ghostN = 2 + (rng() * 5 | 0);
+    const ghostN = 1 + (rng() * 3 | 0);
     for (let i = 0; i < ghostN; i++) {
       const r = rng() * 5 | 0;
       const c = rng() * COLS | 0;
