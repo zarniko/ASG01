@@ -5859,13 +5859,13 @@ let spiralObs = null;
 
 function applySpiralSize() {
   if (!spiralCv || !spiralCtx) return;
-  const w = spiralCv.offsetWidth;
+  const w = (spiralCv.parentElement || spiralCv).offsetWidth;
   if (!w) return;
   const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 38;
   const h_calc = Math.round(16 * cell + 63);
-  // On mobile/narrow screens, use a square aspect ratio to avoid empty space above/below the circle
   const h = (w < 500) ? w : h_calc;
   const dpx = window.devicePixelRatio || 1;
+  spiralCv.style.width  = w + 'px';
   spiralCv.style.height = h + 'px';
   spiralCv.width  = w * dpx;
   spiralCv.height = h * dpx;
@@ -5884,9 +5884,9 @@ function toggleSpiralView() {
     const h_calc = Math.round(16 * cell + 63);
     const h = (w < 500) ? w : h_calc;
     const dpx = window.devicePixelRatio || 1;
-    spiralCv.style.width  = '100%';   // responsive — ResizeObserver will track this
+    spiralCv.style.width  = w + 'px';
     spiralCv.style.height = h + 'px';
-    spiralCv.width  = w * dpx;        // initial pixel resolution from measured gridWrap
+    spiralCv.width  = w * dpx;
     spiralCv.height = h * dpx;
     spiralCtx = spiralCv.getContext('2d');
     spiralCtx.setTransform(dpx, 0, 0, dpx, 0, 0);
@@ -5894,7 +5894,7 @@ function toggleSpiralView() {
     spiralCv.style.display = 'block';
     drawSpiral();
     spiralObs = new ResizeObserver(() => { applySpiralSize(); });
-    spiralObs.observe(spiralCv);
+    spiralObs.observe(spiralCv.parentElement);
     spiralBtn.textContent = '□';
   } else {
     gridWrap.style.display = '';
