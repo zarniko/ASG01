@@ -617,6 +617,85 @@
           <button class="btn-action active" id="gs-waveViewInput" style="font-size:11px;">input</button>
         </span>
       </div>
+      <div id="gs-controlsView" style="width:100%;margin-top:12px;">
+        <div class="ctrl-grid">
+
+          <div class="ctrl-group">
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">dens</span>
+              <input type="range" id="gs-densSlider" min="1" max="100" value="20" step="1">
+              <span class="ctrl-val" id="gs-densVal">20</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">size</span>
+              <input type="range" id="gs-sizeSlider" min="10" max="500" value="100" step="5">
+              <span class="ctrl-val" id="gs-sizeVal">100ms</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">pos</span>
+              <input type="range" id="gs-posSlider" min="0" max="100" value="50" step="1">
+              <span class="ctrl-val" id="gs-posVal">0.50</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">ptch</span>
+              <input type="range" id="gs-pitchSlider" min="25" max="400" value="100" step="1">
+              <span class="ctrl-val" id="gs-pitchVal">1.00×</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">sprd</span>
+              <input type="range" id="gs-spreadSlider" min="0" max="100" value="50" step="1">
+              <span class="ctrl-val" id="gs-spreadVal">0.50</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">p.dft</span>
+              <input type="range" id="gs-pitchDriftSlider" min="0" max="100" value="0" step="1">
+              <span class="ctrl-val" id="gs-pitchDriftVal">0.00</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">p.jmp</span>
+              <input type="range" id="gs-headJumpSlider" min="0" max="100" value="0" step="1">
+              <span class="ctrl-val" id="gs-headJumpVal">0.00</span>
+            </div>
+          </div>
+
+          <div class="ctrl-group">
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">revb</span>
+              <input type="range" id="gs-reverbSlider" min="0" max="100" value="30" step="1">
+              <span class="ctrl-val" id="gs-reverbVal">0.30</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">vol</span>
+              <input type="range" id="gs-volSlider" min="0" max="1000" value="160" step="5">
+              <span class="ctrl-val" id="gs-volVal">1.50×</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key">prsv</span>
+              <input type="range" id="gs-preserveSlider" min="0" max="95" value="0" step="1">
+              <span class="ctrl-val" id="gs-preserveVal">0.00</span>
+            </div>
+            <div class="panel-rule"></div>
+            <div class="ctrl-row">
+              <span class="ctrl-key">head</span>
+              <div class="tui-group">
+                <button class="tui-btn sel" id="gs-head1Btn">h1</button>
+                <button class="tui-btn sel" id="gs-head2Btn">h2</button>
+              </div>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key sm">h1 rt</span>
+              <input type="range" id="gs-head1Rate" min="-200" max="200" value="100" step="5">
+              <span class="ctrl-val" id="gs-head1RateVal">+1.0×</span>
+            </div>
+            <div class="ctrl-row slider">
+              <span class="ctrl-key sm">h2 rt</span>
+              <input type="range" id="gs-head2Rate" min="-200" max="200" value="-50" step="5">
+              <span class="ctrl-val" id="gs-head2RateVal">−0.5×</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
       <div id="gs-legend"></div>
     </div>
 
@@ -631,8 +710,6 @@
     <button class="view-toggle-btn active" id="gs-showVisual">visual</button>
     <span class="view-toggle-sep">/</span>
     <button class="view-toggle-btn" id="gs-showGlossary">glossary</button>
-    <span class="view-toggle-sep">/</span>
-    <button class="view-toggle-btn" id="gs-showControls">controls</button>
   </div>
 
   <div style="min-height:500px;width:100%;">
@@ -693,86 +770,6 @@
   <div id="gs-visualView" style="position:relative;width:100%;">
     <canvas id="gs-bh-cv"    style="width:100%;height:500px;display:block;border-radius:4px;"></canvas>
     <canvas id="gs-bh-grain" style="width:100%;height:500px;display:block;border-radius:4px;position:absolute;top:0;left:0;opacity:0.04;pointer-events:none;"></canvas>
-  </div>
-
-  <div id="gs-controlsView" style="display:none;width:100%;">
-    <div class="ctrl-grid">
-
-      <div class="ctrl-group">
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">dens</span>
-          <input type="range" id="gs-densSlider" min="1" max="100" value="20" step="1">
-          <span class="ctrl-val" id="gs-densVal">20</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">size</span>
-          <input type="range" id="gs-sizeSlider" min="10" max="500" value="100" step="5">
-          <span class="ctrl-val" id="gs-sizeVal">100ms</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">pos</span>
-          <input type="range" id="gs-posSlider" min="0" max="100" value="50" step="1">
-          <span class="ctrl-val" id="gs-posVal">0.50</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">ptch</span>
-          <input type="range" id="gs-pitchSlider" min="25" max="400" value="100" step="1">
-          <span class="ctrl-val" id="gs-pitchVal">1.00×</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">sprd</span>
-          <input type="range" id="gs-spreadSlider" min="0" max="100" value="50" step="1">
-          <span class="ctrl-val" id="gs-spreadVal">0.50</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">p.dft</span>
-          <input type="range" id="gs-pitchDriftSlider" min="0" max="100" value="0" step="1">
-          <span class="ctrl-val" id="gs-pitchDriftVal">0.00</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">p.jmp</span>
-          <input type="range" id="gs-headJumpSlider" min="0" max="100" value="0" step="1">
-          <span class="ctrl-val" id="gs-headJumpVal">0.00</span>
-        </div>
-      </div>
-
-      <div class="ctrl-group">
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">revb</span>
-          <input type="range" id="gs-reverbSlider" min="0" max="100" value="30" step="1">
-          <span class="ctrl-val" id="gs-reverbVal">0.30</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">vol</span>
-          <input type="range" id="gs-volSlider" min="0" max="1000" value="160" step="5">
-          <span class="ctrl-val" id="gs-volVal">1.50×</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key">prsv</span>
-          <input type="range" id="gs-preserveSlider" min="0" max="95" value="0" step="1">
-          <span class="ctrl-val" id="gs-preserveVal">0.00</span>
-        </div>
-        <div class="panel-rule"></div>
-        <div class="ctrl-row">
-          <span class="ctrl-key">head</span>
-          <div class="tui-group">
-            <button class="tui-btn sel" id="gs-head1Btn">h1</button>
-            <button class="tui-btn sel" id="gs-head2Btn">h2</button>
-          </div>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key sm">h1 rt</span>
-          <input type="range" id="gs-head1Rate" min="-200" max="200" value="100" step="5">
-          <span class="ctrl-val" id="gs-head1RateVal">+1.0×</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key sm">h2 rt</span>
-          <input type="range" id="gs-head2Rate" min="-200" max="200" value="-50" step="5">
-          <span class="ctrl-val" id="gs-head2RateVal">−0.5×</span>
-        </div>
-      </div>
-
-    </div>
   </div>
 
   </div><!-- min-height wrapper -->
@@ -2347,8 +2344,8 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
 
 // ─── Bottom section toggle ──────────────────────────────────────────────────────
 function showTab(active) {
-  const tabs = ['showVisual', 'showGlossary', 'showControls'];
-  const views = { showVisual: 'visualView', showGlossary: 'glossaryView', showControls: 'controlsView' };
+  const tabs = ['showVisual', 'showGlossary'];
+  const views = { showVisual: 'visualView', showGlossary: 'glossaryView' };
   tabs.forEach(id => {
     $$(id).classList.toggle('active', id === active);
     $$(views[id]).style.display = id === active ? '' : 'none';
@@ -2359,7 +2356,6 @@ function showTab(active) {
 
 $$('showVisual').addEventListener('click',   () => showTab('showVisual'));
 $$('showGlossary').addEventListener('click', () => showTab('showGlossary'));
-$$('showControls').addEventListener('click', () => showTab('showControls'));
 
 requestAnimationFrame(() => window._gsBhStart?.());
 
