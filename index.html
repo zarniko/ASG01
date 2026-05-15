@@ -3842,6 +3842,13 @@ function deactivateCell(r, c) {
 let dragging = false, paintVal = null;
 
 document.addEventListener('mouseup', () => { dragging = false; paintVal = null; });
+document.addEventListener('mousedown', e => {
+  if (selR < 0) return;
+  if (document.getElementById('ig-panel').style.display === 'none') return;
+  const gridEl = document.getElementById('ig-grid');
+  const ctrlEl = document.querySelector('#ig-panel .ctrl-panel');
+  if (!gridEl?.contains(e.target) && !ctrlEl?.contains(e.target)) clearSel();
+});
 
 $$('grid').addEventListener('mousedown', e => {
   const el = e.target.closest('.cell'); if (!el) return;
@@ -5954,9 +5961,9 @@ document.getElementById('ig-spiral-cv').addEventListener('pointerdown', e => {
   e.preventDefault();
   const { px, py } = spiralPointerPos(e);
   const hit = spiralHitTest(px, py);
-  if (!hit) return;
+  if (!hit) { if (selR >= 0) clearSel(); return; }
   const { r, c } = hit;
-  
+
   if (c === 16) {
     spiralToggleMute(r);
   } else {
@@ -5965,6 +5972,7 @@ document.getElementById('ig-spiral-cv').addEventListener('pointerdown', e => {
       if (selR === r && selC === seqC) { deactivateCell(r, seqC); spiralDragPaint = 0; }
       else                             { selectNote(r, seqC);     spiralDragPaint = null; }
     } else {
+      if (selR >= 0) clearSel();
       activateCell(r, seqC); spiralDragPaint = 1;
     }
   }
