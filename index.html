@@ -1214,9 +1214,7 @@ document.getElementById('toggleBm').addEventListener('click', () => _showPanel('
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
-    window._gsAudioSuspend?.(); window._igAudioSuspend?.(); window._bmAudioSuspend?.();
   } else {
-    window._gsAudioResume?.(); window._igAudioResume?.(); window._bmAudioResume?.();
     const active = _panels.find(p => document.getElementById(p.panel).style.display !== 'none');
     if (active?.panel === 'gs-panel') window._gsAnimStart?.();
     else if (active?.panel === 'ig-panel') window._igDrawStart?.();
@@ -3770,12 +3768,15 @@ function tick() {
 
 function advancePlayhead(step) {
   S.step = step;
+  let hasNote = false;
   for (let r = 0; r < ROWS; r++) {
     if (S.cells[r][step]) {
       const el = cellEls[r][step];
       el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      hasNote = true;
     }
   }
+  if (spiralView && hasNote) spiralCrossPulse = 1;
   renderAll();
 }
 
@@ -3955,6 +3956,7 @@ let spiralCv = null;
 let spiralCtx = null;
 let spiralDragPaint = null;
 let spiralMouseX = -1, spiralMouseY = -1;
+let spiralCrossAngle = 0, spiralCrossTarget = 0, spiralCrossPulse = 0;
 
 function buildPageBar() {
   const bar = $$('pageBar');
@@ -4606,14 +4608,14 @@ $$('randRefresh').addEventListener('click', (e) => {
     //
     const ARC = [
       // { d=density, rv=reverbMult, dl=delayMult, cf=cutoffScale, ch=chordIdx }
-      { d: 0.22, rv: 1.40, dl: 1.35, cf: 0.50, ch: 0 },  // 0 intro
-      { d: 0.42, rv: 1.15, dl: 1.12, cf: 0.70, ch: 0 },  // 1 build 1
-      { d: 0.62, rv: 0.92, dl: 0.88, cf: 0.85, ch: 1 },  // 2 build 2
-      { d: 0.85, rv: 0.76, dl: 0.70, cf: 1.00, ch: 1 },  // 3 peak 1
-      { d: 0.90, rv: 0.72, dl: 0.66, cf: 1.00, ch: 2 },  // 4 peak 2
-      { d: 0.65, rv: 0.88, dl: 0.84, cf: 0.88, ch: 2 },  // 5 develop
-      { d: 0.40, rv: 1.10, dl: 1.08, cf: 0.70, ch: 3 },  // 6 breakdown
-      { d: 0.22, rv: 1.35, dl: 1.30, cf: 0.52, ch: 3 },  // 7 outro
+      { d: 0.14, rv: 1.55, dl: 1.45, cf: 0.42, ch: 0 },  // 0 intro
+      { d: 0.24, rv: 1.30, dl: 1.22, cf: 0.56, ch: 0 },  // 1 build 1
+      { d: 0.33, rv: 1.10, dl: 1.00, cf: 0.68, ch: 1 },  // 2 build 2
+      { d: 0.43, rv: 0.94, dl: 0.86, cf: 0.78, ch: 1 },  // 3 peak 1
+      { d: 0.46, rv: 0.90, dl: 0.82, cf: 0.80, ch: 2 },  // 4 peak 2
+      { d: 0.34, rv: 1.04, dl: 0.96, cf: 0.68, ch: 2 },  // 5 develop
+      { d: 0.22, rv: 1.28, dl: 1.20, cf: 0.54, ch: 3 },  // 6 breakdown
+      { d: 0.14, rv: 1.50, dl: 1.42, cf: 0.42, ch: 3 },  // 7 outro
     ];
 
     // 4 harmonic gravity centers — row clusters that feel "in tune" for each chord
@@ -5846,6 +5848,33 @@ function drawSpiral() {
     }
     spiralCtx.restore();
   }
+
+  // center cross — tracks the playhead arm angle, pulses on note hits
+  if (S.step >= 0) {
+    spiralCrossTarget = ((S.step + 0.5) / 16) * 2 * Math.PI - Math.PI / 2;
+  }
+  let _cDiff = spiralCrossTarget - spiralCrossAngle;
+  while (_cDiff >  Math.PI) _cDiff -= 2 * Math.PI;
+  while (_cDiff < -Math.PI) _cDiff += 2 * Math.PI;
+  spiralCrossAngle += _cDiff * 0.18;
+  spiralCrossPulse *= 0.82;
+  const crossR = Math.min(cw, ch) * 0.022;
+  const crossAlpha = 0.55 + spiralCrossPulse * 0.45;
+  spiralCtx.save();
+  spiralCtx.translate(cx, cy);
+  spiralCtx.rotate(spiralCrossAngle);
+  if (spiralCrossPulse > 0.05) {
+    spiralCtx.shadowColor = accent;
+    spiralCtx.shadowBlur  = spiralCrossPulse * 10;
+  }
+  spiralCtx.strokeStyle = `rgba(255,255,255,${crossAlpha.toFixed(3)})`;
+  spiralCtx.lineWidth = 1.5;
+  spiralCtx.lineCap = 'round';
+  spiralCtx.beginPath();
+  spiralCtx.moveTo(-crossR, 0); spiralCtx.lineTo(crossR, 0);
+  spiralCtx.moveTo(0, -crossR); spiralCtx.lineTo(0, crossR);
+  spiralCtx.stroke();
+  spiralCtx.restore();
 
   spiralCtx.restore();
   spiralRaf = requestAnimationFrame(drawSpiral);
