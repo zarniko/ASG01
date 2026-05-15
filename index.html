@@ -852,7 +852,7 @@
       </div>
 
       <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;">generate</button>
+        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
             <option value="auto" selected>random</option>
@@ -866,7 +866,7 @@
         </div>
       </div>
       <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;">clear-grid</button>
+        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;">clear-grid<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
       </div>
 
       <div class="panel-rule"></div>
@@ -5938,6 +5938,7 @@ function toggleSpiralView() {
     spiralObs = () => applySpiralSize();
     window.addEventListener('resize', spiralObs);
     spiralBtn.textContent = '□';
+    $$('clearRefresh').innerHTML = 'clear-spiral<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span>';
   } else {
     gridWrap.style.display = '';
     spiralCv.style.display = 'none';
@@ -5946,6 +5947,7 @@ function toggleSpiralView() {
     if (spiralRaf) { cancelAnimationFrame(spiralRaf); spiralRaf = null; }
     if (spiralObs) { window.removeEventListener('resize', spiralObs); spiralObs = null; }
     spiralBtn.textContent = '◯';
+    $$('clearRefresh').innerHTML = 'clear-grid<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span>';
   }
 
   spiralBtn.classList.toggle('has-copy', spiralView);
