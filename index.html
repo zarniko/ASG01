@@ -60,8 +60,11 @@
       padding: 12px 16px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.07);
       display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; row-gap: 6px;
       letter-spacing: 2px; font-size: 13px;
     }
+    .atb-tabs { display: flex; align-items: center; gap: 8px; }
+    .atb-right { display: flex; align-items: center; margin-left: auto; }
     .app-toggle-btn {
       all: unset; cursor: pointer;
       font-family: 'Share Tech Mono', monospace;
@@ -422,6 +425,7 @@
     #ig-panel .ctrl-gap { height: 10px; }
     #ig-panel .ctrl-gap.lg { height: 18px; }
     #ig-panel .hdr-left { color: rgba(255,255,255,0.45); }
+    #ig-panel .hdr > #ig-hbtn { align-self: flex-start; }
     #ig-panel .main-layout { display: flex; flex-direction: row; gap: 20px; align-items: stretch; }
     #ig-panel .hdr-mid { display: flex; align-items: center; gap: 8px; letter-spacing: 0; }
     .hdr-lbl { color: rgba(255,255,255,0.45); letter-spacing: 2px; }
@@ -561,14 +565,17 @@
 <div id="vignette"></div>
 
 <div class="app-toggle-bar">
-  <button class="app-toggle-btn active" id="toggleGs">granular<span class="tab-key">(Q)</span></button>
-  <span class="app-toggle-sep"> / </span>
-  <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(W)</span></button>
-  <span class="app-toggle-sep"> / </span>
-  <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
-  <span style="flex:1;"></span>
-  <div id="app-legend"></div>
-  <a id="app-zko" href="https://zko.io" target="_blank" rel="noopener" style="margin-left:10px;"></a>
+  <div class="atb-tabs">
+    <button class="app-toggle-btn active" id="toggleGs">granular<span class="tab-key">(Q)</span></button>
+    <span class="app-toggle-sep"> / </span>
+    <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(W)</span></button>
+    <span class="app-toggle-sep"> / </span>
+    <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
+  </div>
+  <div class="atb-right">
+    <div id="app-legend"></div>
+    <a id="app-zko" href="https://zko.io" target="_blank" rel="noopener" style="margin-left:10px;"></a>
+  </div>
 </div>
 
 <div id="gs-panel">
@@ -686,7 +693,7 @@
               <span class="ctrl-val" id="gs-preserveVal">0.00</span>
             </div>
             <div class="panel-rule"></div>
-            <div class="ctrl-row">
+            <div class="ctrl-row slider">
               <span class="ctrl-key">head</span>
               <div class="tui-group">
                 <button class="tui-btn sel" id="gs-head1Btn">h1</button>
@@ -888,7 +895,7 @@
       </div>
       <div class="ctrl-gap"></div>
 
-      <div class="ctrl-row">
+      <div class="ctrl-row slider">
         <span class="ctrl-key">wave</span>
         <div class="tui-group" id="ig-waveGroup">
           <button class="tui-btn sel" data-wave="sine"     tabindex="-1">sine</button>
@@ -2044,34 +2051,34 @@ document.addEventListener('keydown', e => {
 let helpVisible = false;
 
 const HELP_ROWS = [
-  ['head', 'getting started', ''],
+  ['head', 'GETTING STARTED', ''],
   ['row',  'capture audio',    'start / stop audio capture'],
   ['row',  'source',          'select mic or system audio (BlackHole/Loopback on Mac)'],
   ['row',  'freeze',          'lock buffer — grains keep playing'],
   ['gap'],
-  ['head', 'keys', ''],
+  ['head', 'KEYS', ''],
   ['row',  'R',               'toggle capture audio'],
   ['row',  'space',           'toggle freeze'],
   ['row',  'H',               'toggle this help'],
   ['gap'],
-  ['head', 'waveform', ''],
+  ['head', 'WAVEFORM', ''],
   ['row',  'shift + click',   'add splice marker'],
   ['row',  'click marker',    'jump read position to marker'],
   ['row',  'clr',             'clear all splice markers'],
   ['gap'],
-  ['head', 'grain controls', ''],
+  ['head', 'GRAIN CONTROLS', ''],
   ['row',  'dens',            'grains spawned per second'],
   ['row',  'size',            'grain duration in ms'],
   ['row',  'pos',             'read position in buffer (0–1)'],
   ['row',  'ptch',            'playback pitch multiplier'],
   ['row',  'sprd',            'position + stereo randomness'],
   ['gap'],
-  ['head', 'buffer', ''],
+  ['head', 'BUFFER', ''],
   ['row',  'revb',            'reverb wet amount'],
   ['row',  'prsv',            'buffer feedback — old audio bleeds in'],
   ['row',  'bar at top',      'shows write-head position in 4s buffer'],
   ['gap'],
-  ['head', 'read heads', ''],
+  ['head', 'READ HEADS', ''],
   ['row',  'h1 / h2',         'toggle each head on or off'],
   ['row',  'h1 rt / h2 rt',   'scan rate — negative = reverse'],
   ['row',  '0×',              'head is parked (no movement)'],
@@ -2086,6 +2093,7 @@ function showHelp() {
   const w      = window.innerWidth;
   const narrow = w <= 580;
   const cols   = narrow ? 1 : 2;
+  const helpColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
 
   const ov = document.createElement('div');
   ov.id = 'gs-help-ov';
@@ -2120,12 +2128,12 @@ function showHelp() {
   const grid = document.createElement('div');
   Object.assign(grid.style, {
     position: 'relative', zIndex: '10',
-    fontFamily: "'Share Tech Mono', monospace", fontSize: '13px',
+    fontFamily: "'Share Tech Mono', monospace", fontSize: '14px',
     lineHeight: '1.5', letterSpacing: '2px',
-    userSelect: 'none', color: '#fff',
+    userSelect: 'none', color: helpColor,
     maxWidth: cols === 1 ? '95vw' : '640px',
     width: cols === 1 ? '100%' : '90vw',
-    textShadow: '0 0 8px rgba(255,255,255,0.35)',
+    textShadow: `0 0 8px ${helpColor}60`,
     columnCount: String(cols),
     columnGap: '48px',
   });
@@ -2134,7 +2142,7 @@ function showHelp() {
     if (item[0] === 'head') {
       const h = document.createElement('div');
       h.textContent = item[1];
-      h.style.cssText = 'grid-column:1/-1; opacity:0.55; margin-bottom:6px; letter-spacing:3px;';
+      h.style.cssText = `grid-column:1/-1; color:${helpColor}; opacity:0.55; margin-bottom:6px; letter-spacing:3px;`;
       container.appendChild(h);
       return;
     }
