@@ -168,7 +168,7 @@
     }
     #bm-panel .ctrl-key { width: 56px; letter-spacing: 2px; color: rgba(255,255,255,0.45); flex-shrink: 0; }
     #bm-panel .ctrl-val { letter-spacing: 2px; color: rgba(255,255,255,0.45); min-width: 50px; text-align: right; }
-    #bm-panel .instrument { max-width: 920px; margin: 0 auto; }
+    #bm-panel .instrument { max-width: 1000px; width: 100%; margin: 0 auto; }
     #bm-panel .hdr-left, #bm-panel .hdr-mid, #bm-panel .hdr-right { color: rgba(255,255,255,0.45); }
     #bm-panel .hdr { display: none; }
     #bm-panel .footer { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; letter-spacing: 0; }
@@ -267,11 +267,11 @@
       display: flex; justify-content: space-between; align-items: baseline;
       margin-top: 6px; letter-spacing: 0;
     }
-    #gs-zko, #ig-zko {
+    #gs-zko, #ig-zko, #app-zko {
       letter-spacing: 2px;
       color: rgba(255,255,255,0.45); text-decoration: none; cursor: pointer; transition: color .1s;
     }
-    #gs-zko:hover, #ig-zko:hover { color: rgba(255,255,255,0.75); }
+    #gs-zko:hover, #ig-zko:hover, #app-zko:hover { color: rgba(255,255,255,0.75); }
     #gs-hbtn, #ig-hbtn, #bm-hbtn {
       all: unset;
       font-family: 'Share Tech Mono', monospace;
@@ -290,7 +290,7 @@
       input[type=range]::-webkit-slider-thumb { width: 24px !important; height: 24px !important; }
       input[type=range]::-moz-range-thumb     { width: 24px !important; height: 24px !important; border-radius: 50%; border: none; background: var(--accent); }
       input[type=range]::-moz-range-track     { height: 4px !important; background: rgba(255,255,255,0.22); border-radius: 2px; }
-      .btn-action, .tui-btn, .app-toggle-btn, .page-btn, .copy-btn, .btn-play, #gs-hbtn, #ig-hbtn, #bm-hbtn, #gs-zko, #ig-zko, #bm-zko, #bm-zko2 { min-height: 44px; display: inline-flex; align-items: center; }
+      .btn-action, .tui-btn, .app-toggle-btn, .page-btn, .copy-btn, .btn-play, #gs-hbtn, #ig-hbtn, #bm-hbtn, #gs-zko, #ig-zko, #bm-zko, #bm-zko2, #app-zko { min-height: 44px; display: inline-flex; align-items: center; }
       .s-brk { padding: 10px 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 32px; }
     }
 
@@ -298,7 +298,7 @@
     /* ── GS01 scoped styles ── */
     #gs-panel .instrument {
       display: flex; flex-direction: column; align-items: stretch;
-      max-width: 920px; margin: 0 auto;
+      max-width: 1000px; width: 100%; margin: 0 auto;
     }
     #gs-panel .ctrl-panel { display: none; }
     #gs-panel input[type=range] {
@@ -339,6 +339,9 @@
     #gs-legend { display: flex; gap: 0; letter-spacing: 0; align-items: center; margin-top: 5px; }
     #gs-legend span { cursor: pointer; transition: opacity .1s; font-size: 13px; padding: 6px 5px; }
     #gs-legend span:hover { opacity: 0.7; }
+    #app-legend { display: flex; gap: 0; letter-spacing: 0; align-items: center; }
+    #app-legend span { cursor: pointer; transition: opacity .1s; font-size: 13px; padding: 6px 5px; }
+    #app-legend span:hover { opacity: 0.7; }
     #gs-grainCount { font-size: inherit; color: var(--dim); letter-spacing: 2px; }
     .src-wrap { position: relative; display: flex; align-items: center; }
     .src-wrap::after { content: '▾'; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.25); font-size: 10px; pointer-events: none; letter-spacing: 0; }
@@ -392,7 +395,7 @@
     }
     .btn-action, #gs-hbtn, .tui-btn, .view-toggle-btn, .splice-chip { touch-action: manipulation; }
     .app-toggle-btn, .tui-btn, .btn-action, .btn-play, .view-toggle-btn, .splice-chip,
-    .lfo-toggle, .page-btn, .copy-btn, #gs-legend span, #ig-legend span, #bm-legend span {
+    .lfo-toggle, .page-btn, .copy-btn, #gs-legend span, #ig-legend span, #bm-legend span, #app-legend span {
       text-decoration: underline dashed;
       text-decoration-color: rgba(255,255,255,0.18);
       text-underline-offset: 3px;
@@ -400,8 +403,8 @@
 
 
     /* ── IG01 scoped styles ── */
-    #ig-panel .instrument { display: flex; flex-direction: column; align-items: stretch; width: fit-content; margin: 0 auto; }
-    #ig-panel .ctrl-panel { display: flex; flex-direction: column; gap: 2px; letter-spacing: 0; width: 280px; flex-shrink: 0; }
+    #ig-panel .instrument { display: flex; flex-direction: column; align-items: stretch; width: 100%; max-width: 1000px; margin: 0 auto; }
+    #ig-panel .ctrl-panel { display: flex; flex-direction: column; gap: 2px; letter-spacing: 0; flex: 1; min-width: 220px; }
     #ig-panel .panel-rule { height: 1px; background: #111; margin: 4px 0; }
     #ig-panel input[type=range] {
       -webkit-appearance: none; appearance: none;
@@ -466,7 +469,11 @@
     .tui-action { background: none; border: 1px solid rgba(255,255,255,0.45); color: rgba(255,255,255,0.45); font-family: inherit; letter-spacing: 2px; padding: 2px 10px; cursor: pointer; transition: all .1s; }
     .tui-action:hover { border-color: rgba(255,255,255,0.75); color: rgba(255,255,255,0.85); }
     /* Page bar */
-    #ig-pageBar { display: inline-flex; gap: 14px; align-items: center; letter-spacing: 2px; margin-right: 14px; }
+    #ig-pageBar { display: flex; flex-wrap: wrap; gap: 14px; row-gap: 6px; align-items: center; letter-spacing: 2px; margin-right: 14px; }
+    #ig-bpm-group { display: flex; align-items: center; gap: 14px; }
+    #ig-bpm-group input[type=range] { flex: none; width: 80px; min-width: 80px; }
+    #ig-bpm-group .ctrl-val { min-width: auto; text-align: left; }
+    #ig-bpm-break { display: none; }
     .page-btn { background: none; border: none; font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; line-height: 1; color: rgba(255,255,255,0.25); cursor: pointer; padding: 0; vertical-align: middle; transition: color .1s, text-shadow .1s; }
     .page-btn:hover { color: rgba(255,255,255,0.6); }
     .page-btn.active { color: var(--accent); text-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); }
@@ -525,6 +532,8 @@
       #ig-panel .hdr-mid { order: 3; width: 100%; }
       #ig-panel .hdr-mid input[type=range] { flex: 1; width: auto; min-width: 0; }
       #ig-pageBar { gap: 9px; margin-right: 8px; }
+      #ig-bpm-break { display: block; flex-basis: 100%; height: 0; margin: 0; padding: 0; }
+      #ig-bpm-group #ig-bpmSlider { width: 100px; flex: 0 0 100px; }
     }
     @media (max-width: 580px) {
       #ig-panel .hdr-mid { row-gap: 10px; }
@@ -538,7 +547,7 @@
       #ig-fxTab1Btn, #ig-fxTab2Btn { padding: 10px 14px; margin: -10px -6px; }
       #ig-panel .hdr-mid .s-brk { padding: 10px 6px; cursor: pointer; }
     }
-    .btn-play, .tui-btn, .tui-action, .page-btn, .copy-btn, #ig-hbtn, #ig-zko { touch-action: manipulation; }
+    .btn-play, .tui-btn, .tui-action, .page-btn, .copy-btn, #ig-hbtn, #ig-zko, #app-zko { touch-action: manipulation; }
     #ig-randRefresh, #ig-clearRefresh { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
     .grid { touch-action: none; }
     #ig-spiral-cv { display: none; touch-action: none; cursor: pointer; background: #000; border: 1px solid #111; border-radius: 4px; align-self: flex-start; }
@@ -557,6 +566,9 @@
   <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(W)</span></button>
   <span class="app-toggle-sep"> / </span>
   <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
+  <span style="flex:1;"></span>
+  <div id="app-legend"></div>
+  <a id="app-zko" href="https://zko.io" target="_blank" rel="noopener" style="margin-left:10px;"></a>
 </div>
 
 <div id="gs-panel">
@@ -565,7 +577,6 @@
   <!-- Header -->
   <div class="hdr">
     <div class="hdr-left">
-      <a id="gs-zko" href="https://zko.io" target="_blank" rel="noopener"></a>
       <div class="src-wrap">
         <select id="gs-srcSelect">
           <option value="tab" selected>system audio</option>
@@ -696,7 +707,6 @@
 
         </div>
       </div>
-      <div id="gs-legend"></div>
     </div>
 
   </div>
@@ -782,15 +792,13 @@
 
   <div class="hdr">
     <div class="hdr-left"><div id="ig-pageBar"></div><span id="ig-selLabel"></span></div>
-    <div class="hdr-mid">
-      <span class="hdr-lbl">bpm</span>
+    <div class="hdr-mid" style="display:none;">
       <span class="s-brk" id="ig-bpmDec">◄</span>
       <input type="range" id="ig-bpmSlider" min="40" max="240" value="120" step="1">
       <span class="s-brk" id="ig-bpmInc">►</span>
       <span class="ctrl-val" id="ig-bpmVal">120</span>
-      <button class="btn-play" id="ig-playBtn" tabindex="-1" style="margin-left:6px;">play</button>
+      <button class="btn-play" id="ig-playBtn" tabindex="-1">play</button>
     </div>
-    <a id="ig-zko" href="https://zko.io" target="_blank" rel="noopener"></a>
   </div>
 
   <div class="main-layout">
@@ -1044,8 +1052,7 @@
       </div>
 
       <div class="panel-rule"></div>
-      <div class="footer">
-        <div id="ig-legend"></div>
+      <div class="footer" style="display:none;">
         <button id="ig-hbtn" tabindex="-1">help</button>
       </div>
 
@@ -1064,10 +1071,8 @@
 <div id="bm-panel" style="display:none">
 <div class="instrument">
 
-  <div class="hdr">
-    <div class="hdr-left">
-      <a id="bm-zko" href="https://zko.io" target="_blank" rel="noopener"></a>
-    </div>
+  <div class="hdr" style="display:none;">
+    <div class="hdr-left"></div>
     <div class="hdr-mid"></div>
     <div class="hdr-right"></div>
   </div>
@@ -1117,8 +1122,6 @@
             <option value="fifth">5th interval</option>
             <option value="octave">octave</option>
         </select>
-        <span style="color:var(--dim);">|</span>
-        <button id="bm-hbtn" tabindex="-1">help</button>
         </span>
       </div>
       <div id="bm-canvas-wrap">
@@ -1139,6 +1142,8 @@
         <button class="btn-action" id="bm-refreshBtn">refresh</button>
         <span style="color:var(--dim);">|</span>
         <button class="btn-action" id="bm-autoBtn">auto</button>
+        <span style="flex:1;"></span>
+        <button id="bm-hbtn" tabindex="-1">help</button>
       </div>
       <div id="bm-touch-wrap">
         <canvas id="bm-touch-cv"></canvas>
@@ -1183,10 +1188,6 @@
     </div>
   </div>
 
-  <div class="footer">
-    <a id="bm-zko2" href="https://zko.io" target="_blank" rel="noopener" style="letter-spacing:2px; color:rgba(255,255,255,0.45); text-decoration:none;"></a>
-    <div id="bm-legend" style="display:flex; gap:2px;"></div>
-  </div>
 
 </div><!-- /instrument -->
 </div><!-- /bm-panel -->
@@ -1229,6 +1230,39 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'w' || e.key === 'W') _showPanel('ig-panel');
   else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
 });
+
+// ─── Shared color legend + ZKO ──────────────────────────────────────────────────
+(function () {
+  const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
+  const POOL = '.,:;+*#@0123456789';
+  const rc = () => POOL[Math.random() * POOL.length | 0];
+  const legendEl = document.getElementById('app-legend');
+  const spans = COLORS.map(col => {
+    const s = document.createElement('span');
+    s.style.color = col;
+    s.textContent = rc();
+    s.addEventListener('click', (e) => {
+      if (e.shiftKey) {
+        window._gsBhSetColor?.(col);
+        window.asgIg01SetLineColor?.(col);
+        window.asgBmSetLineColor?.(col);
+      } else {
+        document.documentElement.style.setProperty('--accent', col);
+        window._gsBhSetColor?.(col);
+        window.asgIg01SetLineColor?.(col);
+        window.asgBmSetLineColor?.(col);
+      }
+    });
+    legendEl.appendChild(s);
+    return s;
+  });
+  setInterval(() => spans.forEach(s => s.textContent = rc()), 140);
+  const zkoEl = document.getElementById('app-zko');
+  if (zkoEl) {
+    zkoEl.textContent = rc()+rc()+rc()+rc();
+    setInterval(() => { zkoEl.textContent = rc()+rc()+rc()+rc(); }, 140);
+  }
+})();
 
 </script>
 
@@ -2365,43 +2399,6 @@ function setAccent(col) {
   window.asgBmSetLineColor?.(col);
 }
 
-// ─── Color legend ────────────────────────────────────────────────────────────────
-(function () {
-  const COLORS = [
-    '#FFFFFF','#AAAAAA','#55FFFF','#55FF55',
-    '#FFFF55','#FF55FF','#FF5555','#5555FF',
-  ];
-  const POOL = '.,:;+*#@0123456789';
-  const rc   = () => POOL[Math.random() * POOL.length | 0];
-  const legendEl = $$('legend');
-  const spans = COLORS.map(col => {
-    const s = document.createElement('span');
-    s.style.color = col;
-    s.textContent = rc();
-    s.addEventListener('click', (e) => {
-      if (e.shiftKey) {
-        window._gsBhSetColor?.(col);
-        window.asgIg01SetLineColor?.(col);
-        window.asgBmSetLineColor?.(col);
-      } else {
-        setAccent(col);
-      }
-    });
-    legendEl.appendChild(s);
-    return s;
-  });
-  setInterval(() => spans.forEach(s => s.textContent = rc()), 140);
-})();
-
-// ─── ZKO cycling chars ──────────────────────────────────────────────────────────
-(function () {
-  const CHARS = '.,:;+*#@0123456789';
-  const rc    = () => CHARS[Math.random() * CHARS.length | 0];
-  const el    = $$('zko');
-  if (el) el.textContent = rc()+rc()+rc()+rc();
-  setInterval(() => { if (el) el.textContent = rc()+rc()+rc()+rc(); }, 140);
-})();
-
 // ─── Export ─────────────────────────────────────────────────────────────────────
 let _exportFmt = 'wav';
 let _exportDur = 30;
@@ -2664,43 +2661,6 @@ function setAccent(col) {
   window._gsBhSetColor?.(col);
   window.asgBmSetLineColor?.(col);
 }
-
-/* ── Color legend ───────────────────────────────────── */
-(function () {
-  const COLORS = [
-    '#FFFFFF','#AAAAAA','#55FFFF','#55FF55',
-    '#FFFF55','#FF55FF','#FF5555','#5555FF',
-  ];
-  const POOL = '.,:;+*#@0123456789';
-  const rc   = () => POOL[Math.random() * POOL.length | 0];
-  const legendEl = $$('legend');
-  const spans = COLORS.map(col => {
-    const s = document.createElement('span');
-    s.style.color = col;
-    s.textContent = rc();
-    s.addEventListener('click', (e) => {
-      if (e.shiftKey) {
-        lineColor = col;
-        window._gsBhSetColor?.(col);
-        window.asgBmSetLineColor?.(col);
-      } else {
-        setAccent(col);
-      }
-    });
-    legendEl.appendChild(s);
-    return s;
-  });
-  setInterval(() => spans.forEach(s => s.textContent = rc()), 140);
-})();
-
-/* ── ZKO cycling chars ──────────────────────────────── */
-(function () {
-  const CHARS = '.,:;+*#@0123456789';
-  const rc    = () => CHARS[Math.random() * CHARS.length | 0];
-  const el    = $$('zko');
-  if (el) el.textContent = rc()+rc()+rc()+rc();
-  setInterval(() => { if (el) el.textContent = rc()+rc()+rc()+rc(); }, 140);
-})();
 
 /* ── Audio (module-level so viz can read analyser) ──── */
 let audioCtx = null, master = null, analyser = null;
@@ -4057,6 +4017,38 @@ function buildPageBar() {
   spiralBtn.title = 'toggle spiral sequencer view';
   spiralBtn.addEventListener('click', toggleSpiralView);
   bar.appendChild(spiralBtn);
+
+  // flex-break — hidden on desktop, full-width on small screens to push bpm to new line
+  const bpmBreak = document.createElement('span');
+  bpmBreak.id = 'ig-bpm-break';
+  bar.appendChild(bpmBreak);
+
+  // bpm group — keeps all controls together on both lines
+  const bpmGroup = document.createElement('div');
+  bpmGroup.id = 'ig-bpm-group';
+  bar.appendChild(bpmGroup);
+
+  const sep4 = document.createElement('span');
+  sep4.className = 'page-sep';
+  sep4.textContent = '|';
+  bpmGroup.appendChild(sep4);
+
+  const bpmLblEl = document.createElement('span');
+  bpmLblEl.className = 'hdr-lbl';
+  bpmLblEl.textContent = 'bpm';
+  bpmGroup.appendChild(bpmLblEl);
+
+  bpmGroup.appendChild($$('bpmDec'));
+  const bpmSl = $$('bpmSlider');
+  bpmSl.style.width = '80px';
+  bpmSl.style.flex  = '0 0 80px';
+  bpmGroup.appendChild(bpmSl);
+  bpmGroup.appendChild($$('bpmInc'));
+  bpmGroup.appendChild($$('bpmVal'));
+  const pbtn = $$('playBtn');
+  pbtn.style.marginLeft = '0';
+  bpmGroup.appendChild(pbtn);
+  document.getElementById('ig-panel').querySelector('.hdr').appendChild($$('hbtn'));
 }
 
 // Build a per-run progression: 8 page durations (in pattern loops) summing to ~3-8 min
@@ -6855,36 +6847,6 @@ $$('scaleSelect').addEventListener('change', () => { retuneVoices(); sizeScaleSe
 document.getElementById('ig-scaleSelect').addEventListener('change', e => {
   if (scaleLinked) { $$('scaleSelect').value = e.target.value; retuneVoices(); sizeScaleSelect(); }
 });
-
-/* ── Color legend ────────────────────────────────────── */
-const COLORS = [
-  '#FFFFFF','#AAAAAA','#55FFFF','#55FF55',
-  '#FFFF55','#FF55FF','#FF5555','#5555FF',
-];
-const POOL     = '.,:;+*#@0123456789';
-const rc       = () => POOL[Math.random() * POOL.length | 0];
-const legendEl = $$('legend');
-const spans = COLORS.map(col => {
-  const s = document.createElement('span');
-  s.style.color = col;
-  s.textContent = rc();
-  s.addEventListener('click', e => {
-    if (e.shiftKey) {
-      lineColor = col;
-      window._gsBhSetColor?.(col);
-      window.asgIg01SetLineColor?.(col);
-    } else {
-      setAccent(col);
-    }
-  });
-  legendEl.appendChild(s);
-  return s;
-});
-setInterval(() => spans.forEach(s => s.textContent = rc()), 140);
-
-/* ── ZKO ─────────────────────────────────────────────── */
-const zkoEl = document.getElementById('bm-zko2');
-if (zkoEl) { zkoEl.textContent = rc()+rc()+rc()+rc(); setInterval(() => { zkoEl.textContent = rc()+rc()+rc()+rc(); }, 140); }
 
 /* ── Help ────────────────────────────────────────────── */
 let helpVisible = false;
