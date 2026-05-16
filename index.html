@@ -168,7 +168,7 @@
     }
     #bm-panel .ctrl-key { width: 56px; letter-spacing: 2px; color: rgba(255,255,255,0.45); flex-shrink: 0; }
     #bm-panel .ctrl-val { letter-spacing: 2px; color: rgba(255,255,255,0.45); min-width: 50px; text-align: right; }
-    #bm-panel .instrument { max-width: 1000px; width: 100%; margin: 0 auto; }
+    #bm-panel .instrument { display: flex; flex-direction: column; align-items: stretch; max-width: 1000px; width: 100%; margin: 0 auto; }
     #bm-panel .hdr-left, #bm-panel .hdr-mid, #bm-panel .hdr-right { color: rgba(255,255,255,0.45); }
     #bm-panel .hdr { display: none; }
     #bm-panel .footer { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; letter-spacing: 0; }
@@ -275,7 +275,7 @@
     #gs-hbtn, #ig-hbtn, #bm-hbtn {
       all: unset;
       font-family: 'Share Tech Mono', monospace;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       color: rgba(255,255,255,0.45);
       cursor: pointer;
       transition: color .1s, text-shadow .1s;
