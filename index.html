@@ -578,6 +578,7 @@
   </div>
   <div class="atb-right">
     <div id="app-legend"></div>
+    <span class="app-toggle-sep" style="margin-left:10px;">|</span>
     <a id="app-zko" href="https://zko.io" target="_blank" rel="noopener" style="margin-left:10px;"></a>
   </div>
 </div>
@@ -1237,6 +1238,15 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const tag = e.target.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  const helpOpen = document.querySelector('#gs-help-ov, #ig-help-ov, #bm-help-ov');
+  if (helpOpen) {
+    const closeAll = () => { window._gsHideHelp?.(); window._igHideHelp?.(); window._bmHideHelp?.(); };
+    if (e.key === 'q' || e.key === 'Q') { e.stopImmediatePropagation(); closeAll(); window._gsShowHelp?.(); }
+    else if (e.key === 'w' || e.key === 'W') { e.stopImmediatePropagation(); closeAll(); window._igShowHelp?.(); }
+    else if (e.key === 'e' || e.key === 'E') { e.stopImmediatePropagation(); closeAll(); window._bmShowHelp?.(); }
+    else if (e.key === 'h' || e.key === 'H') { e.stopImmediatePropagation(); closeAll(); }
+    return;
+  }
   if (e.key === 'q' || e.key === 'Q') _showPanel('gs-panel');
   else if (e.key === 'w' || e.key === 'W') _showPanel('ig-panel');
   else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
@@ -1275,6 +1285,98 @@ document.addEventListener('keydown', e => {
   }
 })();
 
+</script>
+<script>
+function _asgMakeHelpTabs(activeKey, onClose) {
+  if (window._asgHelpIntervals) window._asgHelpIntervals.forEach(clearInterval);
+  window._asgHelpIntervals = [];
+
+  const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
+  const POOL = '.,:;+*#@0123456789';
+  const rc = () => POOL[Math.random() * POOL.length | 0];
+
+  const bar = document.createElement('div');
+  Object.assign(bar.style, {
+    position: 'absolute', top: '0', left: '0', right: '0',
+    padding: '12px 16px 10px',
+    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    background: 'rgba(0,0,0,0.92)',
+    zIndex: '20',
+    display: 'flex', alignItems: 'center', gap: '8px',
+    flexWrap: 'wrap', rowGap: '6px',
+    letterSpacing: '2px', fontSize: '13px',
+  });
+  // Left: tabs
+  const tabsEl = document.createElement('div');
+  tabsEl.className = 'atb-tabs';
+  [['granular','gs','Q'], null, ['grid','ig','W'], null, ['bloom','bm','E']].forEach(item => {
+    if (!item) {
+      const sep = document.createElement('span');
+      sep.className = 'app-toggle-sep';
+      sep.textContent = ' / ';
+      tabsEl.appendChild(sep);
+      return;
+    }
+    const [label, key, kb] = item;
+    const isActive = key === activeKey;
+    const btn = document.createElement('button');
+    btn.className = 'app-toggle-btn' + (isActive ? ' active' : '');
+    btn.innerHTML = label + `<span class="tab-key">(${kb})</span>`;
+    if (!isActive) {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        onClose();
+        window['_' + key + 'ShowHelp']?.();
+      });
+    }
+    tabsEl.appendChild(btn);
+  });
+  bar.appendChild(tabsEl);
+
+  // Right: color legend + separator + zko link
+  const right = document.createElement('div');
+  right.className = 'atb-right';
+
+  const legendEl = document.createElement('div');
+  legendEl.style.cssText = 'display:flex;align-items:center;';
+  const legendSpans = COLORS.map(col => {
+    const s = document.createElement('span');
+    s.style.cssText = `color:${col};cursor:pointer;transition:opacity .1s;font-size:13px;padding:6px 5px;`;
+    s.textContent = rc();
+    s.addEventListener('click', e => {
+      if (e.shiftKey) {
+        window._gsBhSetColor?.(col); window.asgIg01SetLineColor?.(col); window.asgBmSetLineColor?.(col);
+      } else {
+        document.documentElement.style.setProperty('--accent', col);
+        window._gsBhSetColor?.(col); window.asgIg01SetLineColor?.(col); window.asgBmSetLineColor?.(col);
+      }
+      onClose();
+      window['_' + activeKey + 'ShowHelp']?.();
+    });
+    legendEl.appendChild(s);
+    return s;
+  });
+  window._asgHelpIntervals.push(setInterval(() => legendSpans.forEach(s => s.textContent = rc()), 140));
+  right.appendChild(legendEl);
+
+  const sep = document.createElement('span');
+  sep.className = 'app-toggle-sep';
+  sep.style.marginLeft = '10px';
+  sep.textContent = '|';
+  right.appendChild(sep);
+
+  const zko = document.createElement('a');
+  zko.href = 'https://zko.io'; zko.target = '_blank'; zko.rel = 'noopener';
+  zko.style.cssText = 'margin-left:10px;letter-spacing:2px;color:rgba(255,255,255,0.45);text-decoration:none;cursor:pointer;transition:color .1s;';
+  zko.textContent = rc()+rc()+rc()+rc();
+  zko.addEventListener('mouseover', () => { zko.style.color = 'rgba(255,255,255,0.75)'; });
+  zko.addEventListener('mouseout',  () => { zko.style.color = 'rgba(255,255,255,0.45)'; });
+  window._asgHelpIntervals.push(setInterval(() => { zko.textContent = rc()+rc()+rc()+rc(); }, 140));
+  right.appendChild(zko);
+
+  bar.appendChild(right);
+  return bar;
+}
 </script>
 
 <script>
@@ -2105,9 +2207,9 @@ function showHelp() {
     position: 'fixed', inset: '0', zIndex: '9999',
     background: 'rgba(0,0,0,0.92)',
     display: 'flex',
-    alignItems: narrow ? 'flex-start' : 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    overflow: narrow ? 'auto' : 'hidden',
+    overflow: 'auto',
     paddingTop: narrow ? '48px' : '0',
     paddingBottom: narrow ? '32px' : '0',
     paddingLeft: narrow ? '20px' : '0',
@@ -2184,8 +2286,14 @@ function showHelp() {
   });
   flushSection();
 
-  ov.appendChild(grid);
-  ov.addEventListener('click', hideHelp);
+  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
+  ov.appendChild(_asgMakeHelpTabs('gs', hideHelp));
+  const _hw = document.createElement('div');
+  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
+  _hw.appendChild(grid);
+  _hw.addEventListener('click', e => e.stopPropagation());
+  ov.appendChild(_hw);
+  ov.addEventListener('click', e => { if (e.target === ov) hideHelp(); });
   document.body.appendChild(ov);
 
   function onResize() { if (!helpVisible) return; hideHelp(); showHelp(); }
@@ -2203,6 +2311,8 @@ function hideHelp() {
   }
 }
 
+window._gsShowHelp = showHelp;
+window._gsHideHelp = hideHelp;
 $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp());
 
 // ─── Blackhole visual ───────────────────────────────────────────────────────────
@@ -5011,8 +5121,8 @@ function showHelp() {
   Object.assign(ov.style, {
     position: 'fixed', inset: '0', zIndex: '9999',
     background: 'rgba(0,0,0,0.92)',
-    display: 'flex', alignItems: narrow ? 'flex-start' : 'center', justifyContent: 'center',
-    overflow: narrow ? 'auto' : 'hidden',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+    overflow: 'auto',
     paddingTop: narrow ? '48px' : '0',
     paddingBottom: narrow ? '32px' : '0',
     paddingLeft: narrow ? '20px' : '0',
@@ -5100,9 +5210,15 @@ function showHelp() {
   });
   flushSection();
 
-  ov.appendChild(grid);
+  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
+  ov.appendChild(_asgMakeHelpTabs('ig', hideHelp));
+  const _hw = document.createElement('div');
+  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
+  _hw.appendChild(grid);
+  _hw.addEventListener('click', e => e.stopPropagation());
+  ov.appendChild(_hw);
 
-  ov.addEventListener('click', hideHelp);
+  ov.addEventListener('click', e => { if (e.target === ov) hideHelp(); });
   document.body.appendChild(ov);
 
   function onResize() {
@@ -5124,6 +5240,8 @@ function hideHelp() {
   }
 }
 
+window._igShowHelp = showHelp;
+window._igHideHelp = hideHelp;
 $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp());
 
 /* ── Oscilloscope ───────────────────────────────────── */
@@ -6908,8 +7026,8 @@ function showHelp() {
   Object.assign(ov.style, {
     position: 'fixed', inset: '0', zIndex: '9999',
     background: 'rgba(0,0,0,0.92)',
-    display: 'flex', alignItems: narrow ? 'flex-start' : 'center', justifyContent: 'center',
-    overflow: narrow ? 'auto' : 'hidden',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+    overflow: 'auto',
     paddingTop: narrow ? '48px' : '0',
     paddingBottom: narrow ? '32px' : '0',
     paddingLeft: narrow ? '20px' : '0',
@@ -6979,8 +7097,14 @@ function showHelp() {
   BM_HELP.forEach(item => { if (item[0] === 'gap') flushSection(); else sectionItems.push(item); });
   flushSection();
 
-  ov.appendChild(grid);
-  ov.addEventListener('click', hideHelp);
+  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
+  ov.appendChild(_asgMakeHelpTabs('bm', hideHelp));
+  const _hw = document.createElement('div');
+  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
+  _hw.appendChild(grid);
+  _hw.addEventListener('click', e => e.stopPropagation());
+  ov.appendChild(_hw);
+  ov.addEventListener('click', e => { if (e.target === ov) hideHelp(); });
   document.body.appendChild(ov);
 
   function onResize() { if (!helpVisible) return; hideHelp(); showHelp(); }
@@ -6998,7 +7122,16 @@ function hideHelp() {
   }
 }
 
+window._bmShowHelp = showHelp;
+window._bmHideHelp = hideHelp;
 $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp());
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('bm-panel').style.display === 'none') return;
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'SELECT') return;
+  if (e.key === 'h' || e.key === 'H') { helpVisible ? hideHelp() : showHelp(); }
+});
 
 /* ── Boot ────────────────────────────────────────────── */
 setColorBox(lineColor);
