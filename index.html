@@ -190,28 +190,16 @@
     /* Mobile & Portrait Tablet — stack vertically */
     @media (max-width: 900px) {
       #bm-panel { padding: 16px 8px 12px; }
-      .bm-body {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto auto auto;
-        height: auto;
-        min-height: 400px;
-        margin-bottom: 0;
-        row-gap: 8px;
-      }
-      #bm-canvas-wrap {
-        grid-column: 1; grid-row: 2;
-        aspect-ratio: 1 / 1;
-        width: 100%;
-      }
-      .bm-overlay-left  { grid-column: 1; grid-row: 1; overflow: hidden; padding-bottom: 4px; }
-      #bm-color-box     { position: absolute; bottom: 0; left: 0; margin-bottom: 0; }
-      .bm-overlay-right { grid-column: 1; grid-row: 3; padding-bottom: 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
-      #bm-touch-wrap    {
-        grid-column: 1; grid-row: 4;
-        aspect-ratio: 1 / 1;
-        width: 100%;
-      }
-      .bm-ctrl-strip    { grid-column: 1; grid-row: 5; display: flex; flex-direction: column; padding-top: 8px; border-left: none; border-right: none; }
+      /* Switch from grid (which breaks on iOS Safari with display:contents) to flexbox */
+      .bm-body  { display: flex; flex-direction: column; gap: 8px; height: auto; min-height: 0; margin-bottom: 0; }
+      .bm-left  { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .bm-right { display: flex; flex-direction: column; gap: 8px; }
+      .bm-overlay-left  { align-self: stretch; overflow: hidden; padding-bottom: 4px; }
+      #bm-color-box     { position: absolute; bottom: 0; left: 0; }
+      .bm-overlay-right { padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+      #bm-canvas-wrap   { width: 42vw; height: 42vw; }
+      #bm-touch-wrap    { width: 82vw; height: 82vw; align-self: center; }
+      .bm-ctrl-strip    { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border: none; }
     }
     @media (min-width: 901px) {
       .bm-ctrl-strip {
