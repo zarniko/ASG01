@@ -558,9 +558,9 @@
 
 <div class="app-toggle-bar">
   <div class="atb-tabs">
-    <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(Q)</span></button>
+    <button class="app-toggle-btn active" id="toggleIg">grid<span class="tab-key">(Q)</span></button>
     <span class="app-toggle-sep"> / </span>
-    <button class="app-toggle-btn active" id="toggleGs">granular<span class="tab-key">(W)</span></button>
+    <button class="app-toggle-btn" id="toggleGs">granular<span class="tab-key">(W)</span></button>
     <span class="app-toggle-sep"> / </span>
     <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
   </div>
@@ -571,7 +571,7 @@
   </div>
 </div>
 
-<div id="gs-panel">
+<div id="gs-panel" style="display:none">
 <div class="instrument">
 
   <!-- Header -->
@@ -787,7 +787,7 @@
 </div>
 </div><!-- /gs-panel -->
 
-<div id="ig-panel" style="display:none">
+<div id="ig-panel">
 <div class="instrument">
 
   <div class="hdr">
@@ -2746,7 +2746,7 @@ document.getElementById('gs-panel').querySelectorAll('input[type=range]').forEac
 });
 
 renderSplices();
-requestAnimationFrame(animate);
+if (document.getElementById('gs-panel').style.display !== 'none') requestAnimationFrame(animate);
 
 
 })();
@@ -6131,6 +6131,8 @@ updateSelLabel();
     console.error('URL session restore failed', err);
   }
 })();
+
+if (document.getElementById('ig-panel').style.display !== 'none') window._igDrawStart?.();
 
 
 })();
