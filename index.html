@@ -558,9 +558,9 @@
 
 <div class="app-toggle-bar">
   <div class="atb-tabs">
-    <button class="app-toggle-btn active" id="toggleGs">granular<span class="tab-key">(Q)</span></button>
+    <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(Q)</span></button>
     <span class="app-toggle-sep"> / </span>
-    <button class="app-toggle-btn" id="toggleIg">grid<span class="tab-key">(W)</span></button>
+    <button class="app-toggle-btn active" id="toggleGs">granular<span class="tab-key">(W)</span></button>
     <span class="app-toggle-sep"> / </span>
     <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
   </div>
@@ -1229,14 +1229,14 @@ document.addEventListener('keydown', e => {
   const helpOpen = document.querySelector('#gs-help-ov, #ig-help-ov, #bm-help-ov');
   if (helpOpen) {
     const closeAll = () => { window._gsHideHelp?.(); window._igHideHelp?.(); window._bmHideHelp?.(); };
-    if (e.key === 'q' || e.key === 'Q') { e.stopImmediatePropagation(); closeAll(); window._gsShowHelp?.(); }
-    else if (e.key === 'w' || e.key === 'W') { e.stopImmediatePropagation(); closeAll(); window._igShowHelp?.(); }
+    if (e.key === 'q' || e.key === 'Q') { e.stopImmediatePropagation(); closeAll(); window._igShowHelp?.(); }
+    else if (e.key === 'w' || e.key === 'W') { e.stopImmediatePropagation(); closeAll(); window._gsShowHelp?.(); }
     else if (e.key === 'e' || e.key === 'E') { e.stopImmediatePropagation(); closeAll(); window._bmShowHelp?.(); }
     else if (e.key === 'h' || e.key === 'H') { e.stopImmediatePropagation(); closeAll(); }
     return;
   }
-  if (e.key === 'q' || e.key === 'Q') _showPanel('gs-panel');
-  else if (e.key === 'w' || e.key === 'W') _showPanel('ig-panel');
+  if (e.key === 'q' || e.key === 'Q') _showPanel('ig-panel');
+  else if (e.key === 'w' || e.key === 'W') _showPanel('gs-panel');
   else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
 });
 
@@ -1297,7 +1297,7 @@ function _asgMakeHelpTabs(activeKey, onClose) {
   // Left: tabs
   const tabsEl = document.createElement('div');
   tabsEl.className = 'atb-tabs';
-  [['granular','gs','Q'], null, ['grid','ig','W'], null, ['bloom','bm','E']].forEach(item => {
+  [['grid','ig','Q'], null, ['granular','gs','W'], null, ['bloom','bm','E']].forEach(item => {
     if (!item) {
       const sep = document.createElement('span');
       sep.className = 'app-toggle-sep';
@@ -4124,7 +4124,7 @@ function buildPageBar() {
   spiralBtn.className = 'copy-btn';
   spiralBtn.textContent = '◯';
   spiralBtn.tabIndex = -1;
-  spiralBtn.title = 'toggle spiral sequencer view';
+  spiralBtn.title = 'toggle sequencer view';
   spiralBtn.addEventListener('click', toggleSpiralView);
   bar.appendChild(spiralBtn);
 
