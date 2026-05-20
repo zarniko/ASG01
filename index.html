@@ -83,7 +83,11 @@
     .app-toggle-btn.active .tab-key { color: rgba(255,255,255,0.4); }
 
     /* ── Panel containers ── */
-    #gs-panel, #ig-panel, #bm-panel { padding: 12px 8px 48px; }
+    #gs-panel, #ig-panel, #bm-panel, #midi-panel { padding: 12px 8px 48px; }
+    #midi-panel-content {
+      display: flex; flex-direction: column; align-items: stretch;
+      max-width: 1000px; width: 100%; margin: 0 auto;
+    }
 
     /* ── Bloom tab ── */
     .bm-body {
@@ -1194,12 +1198,17 @@
 </div><!-- /instrument -->
 </div><!-- /bm-panel -->
 
+<div id="midi-panel" style="display:none">
+  <div id="midi-panel-content" style="font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:2px;color:#fff;"></div>
+</div>
+
 <script>
 
 const _panels = [
-  { panel: 'gs-panel', btn: 'toggleGs' },
-  { panel: 'ig-panel', btn: 'toggleIg' },
-  { panel: 'bm-panel', btn: 'toggleBm' },
+  { panel: 'gs-panel',   btn: 'toggleGs' },
+  { panel: 'ig-panel',   btn: 'toggleIg' },
+  { panel: 'bm-panel',   btn: 'toggleBm' },
+  { panel: 'midi-panel', btn: 'app-midi-btn' },
 ];
 function _showPanel(activePanel) {
   _panels.forEach(({ panel, btn }) => {
@@ -1240,7 +1249,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'q' || e.key === 'Q') _showPanel('ig-panel');
   else if (e.key === 'w' || e.key === 'W') _showPanel('gs-panel');
   else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
-  else if (e.key === 'm' || e.key === 'M') window._showMidiOverlay?.();
 });
 
 // ─── Shared color legend + ZKO ──────────────────────────────────────────────────
@@ -1421,56 +1429,11 @@ function _asgMakeHelpTabs(activeKey, onClose) {
 })();
 
 // ─── MIDI Overlay ─────────────────────────────────────────────────────────────
-let _midiOvVisible = false;
-
-function _showMidiOverlay() {
-  if (_midiOvVisible) { _hideMidiOverlay(); return; }
-  _midiOvVisible = true;
-  document.getElementById('app-midi-btn').classList.add('active');
-
-  const ov = document.createElement('div');
-  ov.id = 'app-midi-ov';
-  Object.assign(ov.style, {
-    position: 'fixed', inset: '0', zIndex: '9999',
-    background: 'rgba(0,0,0,0.92)',
-    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-    overflow: 'auto', boxSizing: 'border-box',
-  });
-
-  [
-    'repeating-linear-gradient(to bottom,transparent 0px,transparent 1px,rgba(0,0,0,0.07) 1px,rgba(0,0,0,0.07) 2px)',
-    'radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%)',
-  ].forEach((bg, zi) => {
-    const d = document.createElement('div');
-    Object.assign(d.style, { position:'absolute', inset:'0', pointerEvents:'none', zIndex: String(zi + 1), background: bg });
-    ov.appendChild(d);
-  });
-
-  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
-  ov.appendChild(_asgMakeHelpTabs(null, _hideMidiOverlay));
-
-  const wrap = document.createElement('div');
-  Object.assign(wrap.style, {
-    position: 'relative', zIndex: '10',
-    fontFamily: "'Share Tech Mono', monospace",
-    fontSize: '14px', letterSpacing: '2px', color: '#fff',
-    width: '90vw', maxWidth: '500px', paddingBottom: '48px',
-  });
-  wrap.addEventListener('click', e => e.stopPropagation());
-  _buildMidiContent(wrap);
-
-  ov.appendChild(wrap);
-  ov.addEventListener('click', e => { if (e.target === ov) _hideMidiOverlay(); });
-  document.body.appendChild(ov);
-  window._asgMidiRefreshUI = () => { _hideMidiOverlay(); _showMidiOverlay(); };
-}
-
-function _hideMidiOverlay() {
-  if (!_midiOvVisible) return;
-  _midiOvVisible = false;
-  document.getElementById('app-midi-btn')?.classList.remove('active');
-  document.getElementById('app-midi-ov')?.remove();
-  window._asgMidiRefreshUI = null;
+function _refreshMidiPanel() {
+  const c = document.getElementById('midi-panel-content');
+  if (!c) return;
+  c.innerHTML = '';
+  _buildMidiContent(c);
 }
 
 function _buildMidiContent(container) {
@@ -1579,8 +1542,7 @@ function _buildMidiContent(container) {
         cBtn.textContent = 'connecting...';
         const result = await m.connect();
         if (result === 'ok') {
-          _hideMidiOverlay();
-          setTimeout(_showMidiOverlay, 50);
+          _refreshMidiPanel();
         } else {
           cStat.textContent = 'access denied';
           cBtn.textContent = 'retry';
@@ -1641,9 +1603,9 @@ function _buildMidiContent(container) {
   container.appendChild(note);
 }
 
-window._showMidiOverlay = _showMidiOverlay;
-window._hideMidiOverlay = _hideMidiOverlay;
-document.getElementById('app-midi-btn').addEventListener('click', _showMidiOverlay);
+window._asgMidiRefreshUI = _refreshMidiPanel;
+document.getElementById('app-midi-btn').addEventListener('click', () => _showPanel('midi-panel'));
+_buildMidiContent(document.getElementById('midi-panel-content'));
 </script>
 
 <script>
