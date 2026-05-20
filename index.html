@@ -497,6 +497,7 @@
     .lfo-chev { display: inline-block; font-size: 14px; letter-spacing: 0; color: rgba(255,255,255,0.22); margin-left: 2px; transition: transform 0.12s; vertical-align: middle; }
     .lfo-toggle.open .lfo-chev { transform: rotate(90deg); }
     #ig-fx-panel-1.tab-a-disabled { opacity: 0.35; pointer-events: none; }
+    #ig-fx-panel-1.tab-a-disabled #ig-fx-panel-1-lbl::after { content: ' (select note to enable)'; color: #fff; font-size: 10px; letter-spacing: 1px; }
     .lfo-panel { display: none; flex-direction: column; gap: 3px; border: 1px solid rgba(255,255,255,0.12); padding: 5px 6px; margin: 1px 0 3px; }
     .lfo-panel.open { display: flex; }
     .lfo-sub-key { font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,0.35); width: 28px; flex-shrink: 0; }
@@ -2292,6 +2293,13 @@ function drawWaveform(t) {
     if (frozen) { ctx.shadowBlur = 8; ctx.shadowColor = '#fff'; }
     ctx.fillText(_statusText, 8, h - 8);
     ctx.shadowBlur = 0;
+    // hint line shown only in the uninitialised no-input state
+    if (!S.isRecording && !S.statusMsg) {
+      ctx.font = '10px Share Tech Mono, monospace';
+      ctx.letterSpacing = '1px';
+      ctx.fillStyle = 'rgba(255,255,255,0.28)';
+      ctx.fillText('select a source above · click capture audio to begin', 8, h - 22);
+    }
     ctx.letterSpacing = '0px';
   }
 
