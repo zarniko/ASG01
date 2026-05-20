@@ -565,6 +565,8 @@
     <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
   </div>
   <div class="atb-right">
+    <button id="app-midi-btn" class="app-toggle-btn">midi</button>
+    <span class="app-toggle-sep" style="margin-left:10px;">|</span>
     <div id="app-legend"></div>
     <span class="app-toggle-sep" style="margin-left:10px;">|</span>
     <a id="app-zko" href="https://zko.io" target="_blank" rel="noopener" style="margin-left:10px;"></a>
@@ -607,17 +609,17 @@
       <canvas id="gs-cloud-cv"></canvas>
       <div class="splice-bar">
         <span class="splice-label">splice</span>
-        <button class="btn-action" id="gs-clearSplicesBtn" style="letter-spacing:2px">clear</button>
+        <button class="btn-action" id="gs-clearSplicesBtn" style="letter-spacing:2px" title="Clear splices — removes all splice markers from the waveform">clear</button>
         <div id="gs-spliceList"><span class="splice-empty"></span></div>
         <span class="splice-label">|</span>
         <span style="display:flex; align-items:center; gap:4px;">
           <span class="splice-label">bpm</span>
-          <button class="btn-action" id="gs-bpmDens" style="margin-left:4px;">density</button>
+          <button class="btn-action" id="gs-bpmDens" style="margin-left:4px;" title="Density sync — links grain spawn rate to the global BPM for rhythmic pulsing">density</button>
           <span class="splice-label">-</span>
-          <button class="btn-action" id="gs-bpmLfo">lfo</button>
+          <button class="btn-action" id="gs-bpmLfo" title="LFO sync — locks the granular LFO rate to a musical division of the global BPM">lfo</button>
         </span>
         <span id="gs-grainCount" style="margin-left:auto">0 grains</span>
-        <button class="btn-action" id="gs-freezeBtn">freeze</button>
+        <button class="btn-action" id="gs-freezeBtn" title="Freeze — pauses buffer writing. Grains keep reading from the captured moment indefinitely">freeze</button>
       </div>
       <div class="splice-hint" id="gs-spliceHint" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <span>shift+click waveform to add splice marker &nbsp; click marker to jump</span>
@@ -632,37 +634,37 @@
         <div class="ctrl-grid">
 
           <div class="ctrl-group">
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Grain density — grains spawned per second. Higher = denser, more continuous texture">
               <span class="ctrl-key">dens</span>
               <input type="range" id="gs-densSlider" min="1" max="100" value="20" step="1">
               <span class="ctrl-val" id="gs-densVal">20</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Grain size — duration of each grain in milliseconds">
               <span class="ctrl-key">size</span>
               <input type="range" id="gs-sizeSlider" min="10" max="500" value="100" step="5">
               <span class="ctrl-val" id="gs-sizeVal">100ms</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Read position — location in the 4-second buffer where grains are sampled from">
               <span class="ctrl-key">pos</span>
               <input type="range" id="gs-posSlider" min="0" max="100" value="50" step="1">
               <span class="ctrl-val" id="gs-posVal">0.50</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Pitch — grain playback rate. 1× = original pitch, 2× = one octave up, 0.5× = one octave down">
               <span class="ctrl-key">ptch</span>
               <input type="range" id="gs-pitchSlider" min="25" max="400" value="100" step="1">
               <span class="ctrl-val" id="gs-pitchVal">1.00×</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Spread — randomizes each grain's buffer position and stereo placement around the read head">
               <span class="ctrl-key">sprd</span>
               <input type="range" id="gs-spreadSlider" min="0" max="100" value="50" step="1">
               <span class="ctrl-val" id="gs-spreadVal">0.50</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Pitch drift — random pitch variation added to each grain. Creates an organic, fluctuating texture">
               <span class="ctrl-key">p.dft</span>
               <input type="range" id="gs-pitchDriftSlider" min="0" max="100" value="0" step="1">
               <span class="ctrl-val" id="gs-pitchDriftVal">0.00</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Position jump — chance each grain skips to a random point in the buffer instead of the read head">
               <span class="ctrl-key">p.jmp</span>
               <input type="range" id="gs-headJumpSlider" min="0" max="100" value="0" step="1">
               <span class="ctrl-val" id="gs-headJumpVal">0.00</span>
@@ -670,35 +672,35 @@
           </div>
 
           <div class="ctrl-group">
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Reverb — wet mix of the reverb effect">
               <span class="ctrl-key">revb</span>
               <input type="range" id="gs-reverbSlider" min="0" max="100" value="30" step="1">
               <span class="ctrl-val" id="gs-reverbVal">0.30</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Volume — output gain of the granular engine">
               <span class="ctrl-key">vol</span>
               <input type="range" id="gs-volSlider" min="0" max="1000" value="160" step="5">
               <span class="ctrl-val" id="gs-volVal">1.50×</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Preservation — buffer feedback. At 0, incoming audio overwrites the buffer; at 1, old audio never erases and layers accumulate indefinitely">
               <span class="ctrl-key">prsv</span>
               <input type="range" id="gs-preserveSlider" min="0" max="95" value="0" step="1">
               <span class="ctrl-val" id="gs-preserveVal">0.00</span>
             </div>
             <div class="panel-rule"></div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Read head — toggle H1 and H2 independent scan heads on or off. Each head scans the buffer at its own rate">
               <span class="ctrl-key">head</span>
               <div class="tui-group">
                 <button class="tui-btn sel" id="gs-head1Btn">h1</button>
                 <button class="tui-btn sel" id="gs-head2Btn">h2</button>
               </div>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Head 1 rate — scan speed and direction for read head 1. Positive = forward, negative = backward, zero = parked">
               <span class="ctrl-key sm">h1 rt</span>
               <input type="range" id="gs-head1Rate" min="-200" max="200" value="100" step="5">
               <span class="ctrl-val" id="gs-head1RateVal">+1.0×</span>
             </div>
-            <div class="ctrl-row slider">
+            <div class="ctrl-row slider" title="Head 2 rate — scan speed and direction for read head 2. Positive = forward, negative = backward, zero = parked">
               <span class="ctrl-key sm">h2 rt</span>
               <input type="range" id="gs-head2Rate" min="-200" max="200" value="-50" step="5">
               <span class="ctrl-val" id="gs-head2RateVal">−0.5×</span>
@@ -816,7 +818,7 @@
 
     <div class="ctrl-panel">
 
-      <div class="ctrl-row slider" style="margin-bottom: 10px;">
+      <div class="ctrl-row slider" style="margin-bottom: 10px;" title="Scale — constrains note pitches to the selected musical scale">
         <span class="ctrl-key">scale</span>
         <div class="scale-wrap">
           <select id="ig-scaleSelect">
@@ -860,7 +862,7 @@
       </div>
 
       <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
+        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
             <option value="auto" selected>random</option>
@@ -874,12 +876,12 @@
         </div>
       </div>
       <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;">clear-grid<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
+        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;" title="Clear — resets the current page to an empty grid. Key: C · Shift+C (or Shift+click / long-press) to clear all 8 pages at once">clear-grid<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
       </div>
 
       <div class="panel-rule"></div>
 
-      <div class="ctrl-row slider">
+      <div class="ctrl-row slider" title="Master volume — overall output level of the sequencer">
         <span class="ctrl-key">mvol</span>
         <span class="s-brk">◄</span>
         <input type="range" id="ig-mvolSlider" min="0" max="100" value="80" step="1">
@@ -888,7 +890,7 @@
       </div>
       <div class="ctrl-gap"></div>
 
-      <div class="ctrl-row slider">
+      <div class="ctrl-row slider" title="Waveform — oscillator shape. Sine is smooth; triangle adds warmth; square and saw are brighter and buzzier; chime uses bell-like synthesis">
         <span class="ctrl-key">wave</span>
         <div class="tui-group" id="ig-waveGroup">
           <button class="tui-btn sel" data-wave="sine"     tabindex="-1">sine</button>
@@ -899,7 +901,7 @@
         </div>
       </div>
 
-      <div class="ctrl-row slider" style="margin-top:6px;">
+      <div class="ctrl-row slider" style="margin-top:6px;" title="Transpose — shifts all note pitches up or down in semitones (±24 = ±2 octaves)">
         <span class="ctrl-key">xpose</span>
         <span class="s-brk">◄</span>
         <input type="range" id="ig-transposeSlider" min="-24" max="24" value="0" step="1">
@@ -910,10 +912,10 @@
       <div class="panel-rule" style="margin-top: 8px;"></div>
 
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-        <button id="ig-shift-hint" class="tui-btn" tabindex="-1" style="letter-spacing:2px; color:rgba(255,255,255,0.38); font-size:14px;">fx</button>
+        <button id="ig-shift-hint" class="tui-btn" tabindex="-1" style="letter-spacing:2px; color:rgba(255,255,255,0.38); font-size:14px;" title="FX — expand the effects panel. Hold Shift to peek, click to lock open · Key: A (per-note) or B (global)">fx</button>
         <div style="display:flex; gap:12px; letter-spacing:2px;">
-          <button class="tui-btn" id="ig-fxTab1Btn" tabindex="-1">A</button>
-          <button class="tui-btn" id="ig-fxTab2Btn" tabindex="-1">B</button>
+          <button class="tui-btn" id="ig-fxTab1Btn" tabindex="-1" title="FX panel A — per-note effects applied individually to each note. Hold A to peek, click to lock open">A</button>
+          <button class="tui-btn" id="ig-fxTab2Btn" tabindex="-1" title="FX panel B — global effects applied to the entire sequencer output. Hold B to peek, click to lock open">B</button>
         </div>
       </div>
       <canvas id="ig-viz-cv"></canvas>
@@ -932,70 +934,70 @@
         <!-- Tab 1: per-note controls -->
         <div id="ig-fx-panel-1" class="tab-a-disabled" style="display:flex; flex-direction:column; gap:2px;">
           <div id="ig-fx-panel-1-lbl" style="letter-spacing:2px; color:rgba(255,255,255,0.25); font-size:11px; margin-bottom:4px;">per note</div>
-          <div class="ctrl-row slider">
+          <div class="ctrl-row slider" title="Volume — loudness of this note relative to others">
             <span class="ctrl-key">vol</span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-volSlider" min="0" max="100" value="70" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-volVal">70%</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="atk">
+          <div class="ctrl-row slider" data-lfo="atk" title="Attack — how quickly the note fades in from silence, in milliseconds">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-atk" data-param="atk">atk<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-atkSlider" min="0" max="300" value="6" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-atkVal">6ms</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="det">
+          <div class="ctrl-row slider" data-lfo="det" title="Detune — pitch offset in cents (100¢ = 1 semitone). Adds subtle pitch variation per note">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-det" data-param="det">det<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-detSlider" min="0" max="50" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-detVal">0¢</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="pan">
+          <div class="ctrl-row slider" data-lfo="pan" title="Panning — stereo position from far left (L) to far right (R)">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-pan" data-param="pan">pan<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-panSlider" min="-50" max="50" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-panVal">C</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="cut">
+          <div class="ctrl-row slider" data-lfo="cut" title="Cutoff — low-pass filter cutoff frequency. Reduces high-frequency content when lowered">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-cut" data-param="cut">cut<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-cutSlider" min="0" max="100" value="100" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-cutVal">open</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="res">
+          <div class="ctrl-row slider" data-lfo="res" title="Resonance — filter Q factor. Boosts frequencies near the cutoff point for a resonant peak">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-res" data-param="res">res<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-resSlider" min="0" max="100" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-resVal">1.0</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="dst">
+          <div class="ctrl-row slider" data-lfo="dst" title="Distortion — waveshaper overdrive. Adds harmonic saturation and grit to the note">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-dst" data-param="dst">dst<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-dstSlider" min="0" max="100" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-dstVal">0%</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="dly">
+          <div class="ctrl-row slider" data-lfo="dly" title="Delay — send level to the delay effect. Creates echoing repetitions">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-dly" data-param="dly">dly<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-dlySlider" min="0" max="100" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-dlyVal">0%</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="rev">
+          <div class="ctrl-row slider" data-lfo="rev" title="Reverb — send level to the reverb effect. Adds spatial depth and tail to the note">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-rev" data-param="rev">rev<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-revSlider" min="0" max="100" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-revVal">0%</span>
           </div>
-          <div class="ctrl-row slider" data-lfo="prb">
+          <div class="ctrl-row slider" data-lfo="prb" title="Probability — chance (0–100%) that this note fires on each sequencer pass. Creates generative variation">
             <span class="ctrl-key lfo-toggle" id="ig-lfo-lbl-prb" data-param="prb">prb<span class="lfo-chev">›</span></span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-probSlider" min="0" max="100" value="100" step="1">
@@ -1010,35 +1012,35 @@
         <!-- Tab 2: global controls -->
         <div id="ig-fx-panel-2" style="display:none; flex-direction:column; gap:2px;">
           <div style="letter-spacing:2px; color:rgba(255,255,255,0.25); font-size:11px; margin-bottom:4px;">global</div>
-          <div class="ctrl-row slider">
+          <div class="ctrl-row slider" title="Reverb level — global reverb wet mix applied across all notes">
             <span class="ctrl-key">rvl</span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-rvlSlider" min="0" max="100" value="70" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-rvlVal">70%</span>
           </div>
-          <div class="ctrl-row slider">
+          <div class="ctrl-row slider" title="High-pass filter — removes frequencies below the cutoff. Thins out low-end content">
             <span class="ctrl-key">hpf</span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-hpfSlider" min="0" max="100" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-hpfVal">open</span>
           </div>
-          <div class="ctrl-row slider">
+          <div class="ctrl-row slider" title="Low-pass filter — removes frequencies above the cutoff. Darkens and softens the sound">
             <span class="ctrl-key">lpf</span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-lpfSlider" min="0" max="100" value="100" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-lpfVal">open</span>
           </div>
-          <div class="ctrl-row slider">
+          <div class="ctrl-row slider" title="Tremolo — amplitude modulation rate. Creates a rhythmic volume pulsing effect across all notes">
             <span class="ctrl-key">trm</span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-trmSlider" min="0" max="80" value="0" step="1">
             <span class="s-brk">►</span>
             <span class="ctrl-val" id="ig-trmVal">off</span>
           </div>
-          <div class="ctrl-row slider">
+          <div class="ctrl-row slider" title="Feedback — delay feedback percentage. Higher values create longer, more sustained echo trails">
             <span class="ctrl-key">fdb</span>
             <span class="s-brk">◄</span>
             <input type="range" id="ig-fdbSlider" min="0" max="90" value="35" step="1">
@@ -1080,10 +1082,10 @@
   <div class="bm-body">
     <div class="bm-left">
       <div class="bm-overlay-left">
-        <button class="btn-action" id="bm-bpmSync">bpm sync</button>
+        <button class="btn-action" id="bm-bpmSync" title="BPM sync — locks Chladni resonance frequency to a harmonic of the current grid BPM">bpm sync</button>
         <span style="color:var(--dim);">|</span>
         <span style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
-        <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;">[o]</button>
+        <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;" title="Scale link — when active [o], bloom uses the same scale as the grid. Toggle off for an independent bloom scale">[o]</button>
         <span class="ctrl-key" style="width:auto;">scale</span>
         <select id="bm-scaleSelect">
             <option value="chromatic">chromatic</option>
@@ -1132,16 +1134,16 @@
     </div>
     <div class="bm-right">
       <div class="bm-overlay-right">
-        <button class="btn-action" id="bm-holdBtn">hold</button>
+        <button class="btn-action" id="bm-holdBtn" title="Hold — sustains all current voices after touches are lifted. New touches add to the held cluster">hold</button>
         <span id="bm-voiceCount" style="color:var(--dim); letter-spacing:1px;">0/24</span>
         <span style="color:var(--dim);">|</span>
-        <button class="btn-action" id="bm-recBtn">rec</button>
+        <button class="btn-action" id="bm-recBtn" title="Record — captures your touch gesture for later replay">rec</button>
         <span style="color:var(--dim);">-</span>
-        <button class="btn-action" id="bm-playBtn" disabled>replay</button>
+        <button class="btn-action" id="bm-playBtn" disabled title="Replay — plays back the last recorded touch gesture">replay</button>
         <span style="color:var(--dim);">|</span>
-        <button class="btn-action" id="bm-refreshBtn">refresh</button>
+        <button class="btn-action" id="bm-refreshBtn" title="Clear — kills all active voices and stops replay. Use this if voices get stuck">clear</button>
         <span style="color:var(--dim);">|</span>
-        <button class="btn-action" id="bm-autoBtn">auto</button>
+        <button class="btn-action" id="bm-autoBtn" title="Auto — automatically cycles through Chladni patterns at a slow interval">auto</button>
         <span style="flex:1;"></span>
         <button id="bm-hbtn" tabindex="-1">help</button>
       </div>
@@ -1150,37 +1152,37 @@
       </div>
       <div class="bm-ctrl-strip">
         <div class="ctrl-row slider">
-          <span class="ctrl-key">cut</span>
+          <span class="ctrl-key" title="Cutoff — low-pass filter cutoff for all bloom voices. Controls overall brightness">cut</span>
           <input type="range" id="bm-cutSlider" min="0" max="100" value="5">
           <span class="ctrl-val" id="bm-cutVal">0.05</span>
         </div>
         <div class="ctrl-row slider">
-          <span class="ctrl-key">det</span>
+          <span class="ctrl-key" title="Detune — pitch spread in cents across voices for a chorus-like ensemble effect">det</span>
           <input type="range" id="bm-detSlider" min="0" max="50" value="5">
           <span class="ctrl-val" id="bm-detVal">5¢</span>
         </div>
         <div class="ctrl-row slider">
-          <span class="ctrl-key">oct</span>
+          <span class="ctrl-key" title="Octave — transposes all voices up or down in full octave steps">oct</span>
           <input type="range" id="bm-octSlider" min="-2" max="2" value="0" step="1">
           <span class="ctrl-val" id="bm-octVal">0</span>
         </div>
         <div class="ctrl-row slider">
-          <span class="ctrl-key">atk</span>
+          <span class="ctrl-key" title="Attack — how long each voice fades in when a touch begins">atk</span>
           <input type="range" id="bm-atkSlider" min="100" max="4000" value="800" step="50">
           <span class="ctrl-val" id="bm-atkVal">0.8s</span>
         </div>
         <div class="ctrl-row slider">
-          <span class="ctrl-key">rel</span>
+          <span class="ctrl-key" title="Release — how long each voice fades out after a touch ends">rel</span>
           <input type="range" id="bm-relSlider" min="500" max="12000" value="4000" step="100">
           <span class="ctrl-val" id="bm-relVal">4.0s</span>
         </div>
         <div class="ctrl-row slider">
-          <span class="ctrl-key">revb</span>
+          <span class="ctrl-key" title="Reverb — wet mix of the reverb effect on all bloom voices">revb</span>
           <input type="range" id="bm-revbSlider" min="0" max="100" value="60">
           <span class="ctrl-val" id="bm-revbVal">0.60</span>
         </div>
         <div class="ctrl-row slider">
-          <span class="ctrl-key">vol</span>
+          <span class="ctrl-key" title="Volume — overall output level of the bloom engine">vol</span>
           <input type="range" id="bm-volSlider" min="0" max="100" value="20">
           <span class="ctrl-val" id="bm-volVal">0.20</span>
         </div>
@@ -1238,6 +1240,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'q' || e.key === 'Q') _showPanel('ig-panel');
   else if (e.key === 'w' || e.key === 'W') _showPanel('gs-panel');
   else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
+  else if (e.key === 'm' || e.key === 'M') window._showMidiOverlay?.();
 });
 
 // ─── Shared color legend + ZKO ──────────────────────────────────────────────────
@@ -1365,6 +1368,282 @@ function _asgMakeHelpTabs(activeKey, onClose) {
   bar.appendChild(right);
   return bar;
 }
+</script>
+
+<script>
+// ─── MIDI Manager ─────────────────────────────────────────────────────────────
+(function () {
+  let _access = null, _outId = null, _inId = null;
+  let _clockOn = false, _clockTimer = null;
+  const _ch = { grid: 0, bloom: 1 };
+
+  function _send(data, ts) {
+    if (!_access || !_outId) return;
+    const out = _access.outputs.get(_outId);
+    if (!out) return;
+    ts != null ? out.send(data, ts) : out.send(data);
+  }
+
+  window._asgMidi = {
+    ready:    () => !!_access,
+    sendRaw:  (data, ts) => _send(data, ts),
+    noteOn:   (mn, vel, ch, ts) => _send([0x90 | (ch & 0xF), mn & 0x7F, vel & 0x7F], ts),
+    noteOff:  (mn, ch, ts)      => _send([0x80 | (ch & 0xF), mn & 0x7F, 0], ts),
+    ch:       (inst) => _ch[inst] ?? 0,
+    setCh:    (inst, v) => { _ch[inst] = v; },
+    outputs:  () => _access ? [..._access.outputs.values()] : [],
+    inputs:   () => _access ? [..._access.inputs.values()] : [],
+    outId:    () => _outId,
+    inId:     () => _inId,
+    setOut:   (id) => { _outId = id; },
+    setIn:    (id) => { _inId = id; },
+    clockOn:  () => _clockOn,
+    setClock: (bpm, on) => {
+      _clockOn = on;
+      if (_clockTimer) { clearInterval(_clockTimer); _clockTimer = null; }
+      if (on) _clockTimer = setInterval(() => _send([0xF8]), (60 / bpm / 24) * 1000);
+    },
+    updateClockBpm: (bpm) => {
+      if (_clockOn && _clockTimer) {
+        clearInterval(_clockTimer);
+        _clockTimer = setInterval(() => _send([0xF8]), (60 / bpm / 24) * 1000);
+      }
+    },
+    connect: async () => {
+      if (!navigator.requestMIDIAccess) return 'unsupported';
+      try {
+        _access = await navigator.requestMIDIAccess({ sysex: false });
+        _access.onstatechange = () => window._asgMidiRefreshUI?.();
+        return 'ok';
+      } catch (_) { return 'denied'; }
+    },
+  };
+})();
+
+// ─── MIDI Overlay ─────────────────────────────────────────────────────────────
+let _midiOvVisible = false;
+
+function _showMidiOverlay() {
+  if (_midiOvVisible) { _hideMidiOverlay(); return; }
+  _midiOvVisible = true;
+  document.getElementById('app-midi-btn').classList.add('active');
+
+  const ov = document.createElement('div');
+  ov.id = 'app-midi-ov';
+  Object.assign(ov.style, {
+    position: 'fixed', inset: '0', zIndex: '9999',
+    background: 'rgba(0,0,0,0.92)',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+    overflow: 'auto', boxSizing: 'border-box',
+  });
+
+  [
+    'repeating-linear-gradient(to bottom,transparent 0px,transparent 1px,rgba(0,0,0,0.07) 1px,rgba(0,0,0,0.07) 2px)',
+    'radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%)',
+  ].forEach((bg, zi) => {
+    const d = document.createElement('div');
+    Object.assign(d.style, { position:'absolute', inset:'0', pointerEvents:'none', zIndex: String(zi + 1), background: bg });
+    ov.appendChild(d);
+  });
+
+  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
+  ov.appendChild(_asgMakeHelpTabs(null, _hideMidiOverlay));
+
+  const wrap = document.createElement('div');
+  Object.assign(wrap.style, {
+    position: 'relative', zIndex: '10',
+    fontFamily: "'Share Tech Mono', monospace",
+    fontSize: '14px', letterSpacing: '2px', color: '#fff',
+    width: '90vw', maxWidth: '500px', paddingBottom: '48px',
+  });
+  wrap.addEventListener('click', e => e.stopPropagation());
+  _buildMidiContent(wrap);
+
+  ov.appendChild(wrap);
+  ov.addEventListener('click', e => { if (e.target === ov) _hideMidiOverlay(); });
+  document.body.appendChild(ov);
+  window._asgMidiRefreshUI = () => { _hideMidiOverlay(); _showMidiOverlay(); };
+}
+
+function _hideMidiOverlay() {
+  if (!_midiOvVisible) return;
+  _midiOvVisible = false;
+  document.getElementById('app-midi-btn')?.classList.remove('active');
+  document.getElementById('app-midi-ov')?.remove();
+  window._asgMidiRefreshUI = null;
+}
+
+function _buildMidiContent(container) {
+  const m = window._asgMidi;
+  const DIM = 'rgba(255,255,255,0.45)';
+  const DIMMER = 'rgba(255,255,255,0.18)';
+
+  function section(title) {
+    const h = document.createElement('div');
+    h.textContent = title;
+    Object.assign(h.style, {
+      color: DIM, letterSpacing: '3px', fontSize: '11px',
+      marginTop: '28px', marginBottom: '10px',
+    });
+    container.appendChild(h);
+  }
+
+  function row(label, valueEl) {
+    const r = document.createElement('div');
+    Object.assign(r.style, {
+      display: 'grid', gridTemplateColumns: '120px 1fr',
+      columnGap: '20px', marginBottom: '10px', alignItems: 'center',
+    });
+    const k = document.createElement('div');
+    k.textContent = label;
+    k.style.color = DIM;
+    r.appendChild(k);
+    if (typeof valueEl === 'string') {
+      const v = document.createElement('div');
+      v.textContent = valueEl;
+      r.appendChild(v);
+    } else {
+      r.appendChild(valueEl);
+    }
+    container.appendChild(r);
+  }
+
+  function makeBtn(label) {
+    const b = document.createElement('button');
+    b.className = 'btn-action';
+    b.textContent = label;
+    return b;
+  }
+
+  function makeDeviceSelect(devices, currentId, onChange) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;max-width:280px;width:100%;';
+    const arr = document.createElement('div');
+    arr.textContent = '▾';
+    arr.style.cssText = `position:absolute;right:0;top:50%;transform:translateY(-50%);color:${DIMMER};font-size:10px;pointer-events:none;`;
+    const sel = document.createElement('select');
+    Object.assign(sel.style, {
+      appearance: 'none', WebkitAppearance: 'none',
+      background: 'none', border: 'none',
+      borderBottom: '1px solid rgba(255,255,255,0.15)',
+      color: 'rgba(255,255,255,0.75)',
+      fontFamily: "'Share Tech Mono', monospace",
+      fontSize: '14px', letterSpacing: '2px',
+      cursor: 'pointer', outline: 'none',
+      width: '100%', paddingRight: '14px',
+    });
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = devices.length ? 'select device' : 'no devices found';
+    ph.style.background = '#000';
+    sel.appendChild(ph);
+    devices.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id; o.textContent = d.name;
+      o.style.background = '#000';
+      if (d.id === currentId) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => onChange(sel.value || null));
+    wrap.append(sel, arr);
+    return wrap;
+  }
+
+  function makeChSelector(inst) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:10px;';
+    const dec = makeBtn('◄');
+    const val = document.createElement('span');
+    val.textContent = String(m.ch(inst) + 1);
+    val.style.cssText = 'min-width:24px;text-align:center;';
+    const inc = makeBtn('►');
+    dec.addEventListener('click', () => { m.setCh(inst, Math.max(0, m.ch(inst) - 1)); val.textContent = String(m.ch(inst) + 1); });
+    inc.addEventListener('click', () => { m.setCh(inst, Math.min(15, m.ch(inst) + 1)); val.textContent = String(m.ch(inst) + 1); });
+    wrap.append(dec, val, inc);
+    return wrap;
+  }
+
+  // ── STATUS ───────────────────────────────────────────
+  section('STATUS');
+  const supported = !!navigator.requestMIDIAccess;
+  row('browser', supported ? 'chrome / edge' : 'not supported — use chrome or edge');
+
+  if (supported) {
+    if (!m.ready()) {
+      const cWrap = document.createElement('div');
+      cWrap.style.cssText = 'display:flex;align-items:center;gap:16px;';
+      const cBtn = makeBtn('connect');
+      const cStat = document.createElement('span');
+      cStat.style.color = DIM;
+      cBtn.addEventListener('click', async () => {
+        cBtn.textContent = 'connecting...';
+        const result = await m.connect();
+        if (result === 'ok') {
+          _hideMidiOverlay();
+          setTimeout(_showMidiOverlay, 50);
+        } else {
+          cStat.textContent = 'access denied';
+          cBtn.textContent = 'retry';
+        }
+      });
+      cWrap.append(cBtn, cStat);
+      row('access', cWrap);
+    } else {
+      row('access', 'connected ✓');
+
+      // ── OUTPUT ─────────────────────────────────────────
+      section('OUTPUT');
+      row('device', makeDeviceSelect(
+        m.outputs().map(o => ({ id: o.id, name: o.name })),
+        m.outId(),
+        id => m.setOut(id)
+      ));
+
+      // ── INPUT ──────────────────────────────────────────
+      section('INPUT');
+      row('device', makeDeviceSelect(
+        m.inputs().map(i => ({ id: i.id, name: i.name })),
+        m.inId(),
+        id => m.setIn(id)
+      ));
+
+      // ── CHANNELS ───────────────────────────────────────
+      section('CHANNELS');
+      row('grid out', makeChSelector('grid'));
+      row('bloom out', makeChSelector('bloom'));
+
+      // ── OPTIONS ────────────────────────────────────────
+      section('OPTIONS');
+      const clkWrap = document.createElement('div');
+      clkWrap.style.cssText = 'display:flex;align-items:center;gap:12px;';
+      const clkBtn = makeBtn(m.clockOn() ? 'on' : 'off');
+      if (m.clockOn()) clkBtn.classList.add('active');
+      clkBtn.addEventListener('click', () => {
+        const bpm = window.asgGetGridState?.().bpm ?? 120;
+        const on = !m.clockOn();
+        m.setClock(bpm, on);
+        clkBtn.textContent = on ? 'on' : 'off';
+        clkBtn.classList.toggle('active', on);
+      });
+      const clkNote = document.createElement('span');
+      clkNote.textContent = 'follows grid bpm';
+      clkNote.style.color = DIM;
+      clkWrap.append(clkBtn, clkNote);
+      row('midi clock', clkWrap);
+    }
+  }
+
+  // ── NOTES ──────────────────────────────────────────────
+  section('NOTES');
+  const note = document.createElement('div');
+  note.style.cssText = `color:${DIMMER};font-size:11px;letter-spacing:1px;line-height:1.9;max-width:440px;margin-top:4px;`;
+  note.textContent = 'grid sends note on/off per sequencer step with velocity from note volume. bloom sends note on/off per touch with x-axis as pitch bend. midi clock sends 24 ppq when grid is playing.';
+  container.appendChild(note);
+}
+
+window._showMidiOverlay = _showMidiOverlay;
+window._hideMidiOverlay = _hideMidiOverlay;
+document.getElementById('app-midi-btn').addEventListener('click', _showMidiOverlay);
 </script>
 
 <script>
@@ -2537,6 +2816,7 @@ window.asgBpmSync = (bpm) => {
     _bhLfoMult = bpm / 60;
   }
   window._asgBpmSyncBm?.(bpm);
+  window._asgMidi?.updateClockBpm?.(bpm);
 };
 
 function showExportModal() {
@@ -3676,6 +3956,18 @@ function playTone(freq, note, when) {
   const dur   = adsr_ ? (adsr_.a + adsr_.d + adsr_.h + adsr_.r) : note.decay;
   const atk   = adsr_ ? Math.max(adsr_.a, 0.001) : Math.max(note.attack ?? FX.attack, 0.001);
   const det   = note.detune              ?? FX.detune;
+  // MIDI output
+  if (window._asgMidi?.ready()) {
+    const mn = Math.round(69 + 12 * Math.log2(freq / 440));
+    if (mn >= 0 && mn <= 127) {
+      const ch = window._asgMidi.ch('grid');
+      const vel = Math.min(127, Math.round((note.vol ?? 0.7) * 110));
+      const delayMs = Math.max(0, (when - audioCtx.currentTime) * 1000);
+      const ts = performance.now() + delayMs;
+      window._asgMidi.sendRaw([0x90 | ch, mn, vel], ts);
+      window._asgMidi.sendRaw([0x80 | ch, mn, 0], ts + dur * 1000 - 20);
+    }
+  }
   const cut   = note.cutoff              ?? FX.cutoff;
   const res   = note.resonance           ?? FX.resonance;
   const dst   = note.distortion          ?? FX.distortion;
@@ -4057,6 +4349,7 @@ function buildPageBar() {
     btn.className = 'page-btn' + (i === 0 ? ' active' : '');
     btn.textContent = String(i + 1);
     btn.tabIndex = -1;
+    btn.title = `Switch to page ${i + 1}. Key: ${i + 1}`;
     btn.addEventListener('click', () => switchPage(i));
     bar.appendChild(btn);
     pageBtns.push(btn);
@@ -4073,7 +4366,7 @@ function buildPageBar() {
   copyBtn.className = 'copy-btn';
   copyBtn.textContent = '↑';
   copyBtn.tabIndex = -1;
-  copyBtn.title = 'copy pattern';
+  copyBtn.title = 'Copy pattern — saves current page for pasting. Key: ↑ (arrow up)';
   copyBtn.addEventListener('click', () => {
     copiedPage = S.pages[S.page].map(row => row.map(n => n ? {...n} : null));
     pasteBtn.disabled = false;
@@ -4086,7 +4379,7 @@ function buildPageBar() {
   pasteBtn.className = 'copy-btn';
   pasteBtn.textContent = '↓';
   pasteBtn.tabIndex = -1;
-  pasteBtn.title = 'paste pattern';
+  pasteBtn.title = 'Paste pattern — restores copied pattern to current page. Key: ↓ (arrow down)';
   pasteBtn.disabled = true;
   pasteBtn.addEventListener('click', () => {
     if (!copiedPage) return;
@@ -4107,7 +4400,7 @@ function buildPageBar() {
   progressBtn.className = 'copy-btn';
   progressBtn.textContent = 'prg';
   progressBtn.tabIndex = -1;
-  progressBtn.title = 'auto-progress through pages (3-8 min cycle)';
+  progressBtn.title = 'Auto-progress — automatically advances through pages on a 3–8 minute cycle weighted by pattern arc';
   progressBtn.addEventListener('click', () => {
     progressActive ? stopProgression() : startProgression();
   });
@@ -5008,8 +5301,8 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); S.playing ? stopSeq() : startSeq();
   }
   if (e.key === 'h' || e.key === 'H') { helpVisible ? hideHelp() : showHelp(); }
-  if (e.key === 'c' || e.key === 'C') $$('clearRefresh').click();
-  if (e.key === 'g' || e.key === 'G') $$('randRefresh').click();
+  if (e.key === 'c' || e.key === 'C') $$('clearRefresh').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: e.shiftKey }));
+  if (e.key === 'g' || e.key === 'G') $$('randRefresh').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: e.shiftKey }));
   const pageNum = parseInt(e.key);
   if (pageNum >= 1 && pageNum <= 8) switchPage(pageNum - 1);
   if (e.code === 'ArrowUp') {
@@ -5034,8 +5327,10 @@ const HELP_COLS = [
   ['row',  'h',        'toggle help'],
   ['row',  'A (hold)', 'per-note fx panel'],
   ['row',  'B (hold)', 'global fx panel'],
-  ['row',  'G',        'single-page generate'],
-  ['row',  'C',        'clear pattern'],
+  ['row',  'G',        'generate current page'],
+  ['row',  'shift+G',  'generate all 8 pages'],
+  ['row',  'C',        'clear current page'],
+  ['row',  'shift+C',  'clear all 8 pages'],
   ['row',  '◄ ►',      'nudge bpm ±1'],
   ['gap'],
   ['head', 'GRID', ''],
@@ -6512,12 +6807,25 @@ function spawnVoice(pointerId, x, y) {
     spawnTime: performance.now(),
     peakEnv: 0, releaseTime: 0,
   });
+  // MIDI note-on
+  if (window._asgMidi?.ready()) {
+    const mn = Math.round(69 + 12 * Math.log2(freq / 440));
+    if (mn >= 0 && mn <= 127) {
+      const ch = window._asgMidi.ch('bloom');
+      window._asgMidi.sendRaw([0x90 | ch, mn, 80]);
+      voices.get(pointerId)._midiNote = mn;
+    }
+  }
   updateVoiceCount();
 }
 
 function releaseVoice(pointerId) {
   const v = voices.get(pointerId);
   if (!v || v.state === 'releasing') return;
+  // MIDI note-off
+  if (window._asgMidi?.ready() && v._midiNote != null) {
+    window._asgMidi.sendRaw([0x80 | window._asgMidi.ch('bloom'), v._midiNote, 0]);
+  }
   v.peakEnv    = getVisualEnv(v);
   v.releaseTime = performance.now();
   v.state      = 'releasing';
@@ -6997,7 +7305,7 @@ const BM_HELP = [
   ['gap'],
   ['head', 'AUTO', ''],
   ['row',  'auto on',          'sparse bursts when grid plays'],
-  ['row',  'refresh',          'kill all stuck voices'],
+  ['row',  'clear',            'kill all stuck voices'],
   ['gap'],
   ['head', 'COLORS', ''],
   ['row',  'click swatch',     'set accent color'],
