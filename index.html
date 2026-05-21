@@ -1383,7 +1383,7 @@ function _asgMakeHelpTabs(activeKey, onClose) {
 <script>
 // ─── MIDI Manager ─────────────────────────────────────────────────────────────
 (function () {
-  let _access = null, _outId = null, _inId = null;
+  let _access = null, _outId = null;
   let _clockOn = false, _clockTimer = null;
   const _ch = { grid: 0, bloom: 1 };
 
@@ -1402,11 +1402,8 @@ function _asgMakeHelpTabs(activeKey, onClose) {
     ch:       (inst) => _ch[inst] ?? 0,
     setCh:    (inst, v) => { _ch[inst] = v; },
     outputs:  () => _access ? [..._access.outputs.values()] : [],
-    inputs:   () => _access ? [..._access.inputs.values()] : [],
     outId:    () => _outId,
-    inId:     () => _inId,
     setOut:   (id) => { _outId = id; },
-    setIn:    (id) => { _inId = id; },
     clockOn:  () => _clockOn,
     setClock: (bpm, on) => {
       _clockOn = on;
@@ -1561,14 +1558,6 @@ function _buildMidiContent(container) {
         m.outputs().map(o => ({ id: o.id, name: o.name })),
         m.outId(),
         id => m.setOut(id)
-      ));
-
-      // ── INPUT ──────────────────────────────────────────
-      section('INPUT');
-      row('device', makeDeviceSelect(
-        m.inputs().map(i => ({ id: i.id, name: i.name })),
-        m.inId(),
-        id => m.setIn(id)
       ));
 
       // ── CHANNELS ───────────────────────────────────────
