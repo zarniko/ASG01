@@ -55,6 +55,7 @@
       position: fixed; inset: 0;
       width: 100%; height: 100%;
       pointer-events: none; z-index: 100;
+      image-rendering: pixelated;
     }
 
     /* ── App toggle bar ── */
@@ -123,14 +124,7 @@
       width: 100%; height: 100%; touch-action: none;
     }
     .bm-ctrl-strip { grid-column: 2; grid-row: 3; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.06); border-top: none; padding: 8px; }
-    #bm-color-box  { 
-      position: absolute; bottom: 0; left: 0; 
-      width: 38px; height: 28px; 
-      border-right: 1px solid rgba(255,255,255,0.15);
-      border-top: 1px solid rgba(255,255,255,0.15);
-      z-index: 10;
-      background: rgba(0,0,0,0.4);
-    }
+
     .bm-overlay-left {
       grid-column: 1; grid-row: 1;
       display: flex; align-items: center; gap: 8px;
@@ -142,9 +136,8 @@
       padding: 0 0 12px;
     }
     #bm-pattern-num {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
       font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px;
+      color: var(--dim);
     }
     #bm-scaleSelect {
       -webkit-appearance: none; appearance: none; background: none; border: none;
@@ -199,7 +192,7 @@
       .bm-left  { display: flex; flex-direction: column; align-items: center; gap: 8px; }
       .bm-right { display: flex; flex-direction: column; gap: 8px; }
       .bm-overlay-left  { align-self: stretch; overflow: hidden; padding-bottom: 4px; }
-      #bm-color-box     { position: absolute; bottom: 0; left: 0; }
+
       .bm-overlay-right { padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
       #bm-canvas-wrap   { width: 42vw; height: 42vw; }
       #bm-touch-wrap    { width: 82vw; height: 82vw; align-self: center; }
@@ -787,7 +780,7 @@
 
   <div id="gs-visualView" style="position:relative;width:100%;">
     <canvas id="gs-bh-cv"    style="width:100%;height:500px;display:block;border-radius:4px;"></canvas>
-    <canvas id="gs-bh-grain" style="width:100%;height:500px;display:block;border-radius:4px;position:absolute;top:0;left:0;opacity:0.04;pointer-events:none;"></canvas>
+    <canvas id="gs-bh-grain" style="width:100%;height:500px;display:block;border-radius:4px;position:absolute;top:0;left:0;opacity:0.04;pointer-events:none;image-rendering:pixelated;"></canvas>
   </div>
 
   </div><!-- min-height wrapper -->
@@ -1131,11 +1124,12 @@
             <option value="octave">octave</option>
         </select>
         </span>
+        <span style="color:var(--dim);">|</span>
+        <span id="bm-pattern-num">00</span>
       </div>
       <div id="bm-canvas-wrap">
         <canvas id="bm-cv"></canvas>
         <canvas id="bm-grain"></canvas>
-        <div id="bm-color-box"><span id="bm-pattern-num">00</span></div>
       </div>
     </div>
     <div class="bm-right">
@@ -2334,19 +2328,24 @@ const grainCV  = document.getElementById('grain');
 const grainCtx = grainCV.getContext('2d');
 let lastGrainT = 0;
 
-function drawGrainNoise() {
-  const w = window.innerWidth, h = window.innerHeight;
-  if (grainCV.width !== w || grainCV.height !== h) {
-    grainCV.width = w; grainCV.height = h;
-  }
-  const img  = grainCtx.createImageData(w, h);
-  const data = img.data;
-  for (let i = 0; i < data.length; i += 4) {
+// Pre-generate 12 noise frames at 256×256. CSS pixelated scaling fills the screen.
+const _GW = 256, _GH = 256, _GN = 12;
+grainCV.width = _GW; grainCV.height = _GH;
+const _grainPool = Array.from({ length: _GN }, () => {
+  const img = grainCtx.createImageData(_GW, _GH);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
     const v = (Math.random() * 18) | 0;
-    data[i] = data[i + 1] = data[i + 2] = v;
-    data[i + 3] = 20;
+    d[i] = d[i + 1] = d[i + 2] = v;
+    d[i + 3] = 20;
   }
-  grainCtx.putImageData(img, 0, 0);
+  return img;
+});
+let _grainFrame = 0;
+
+function drawGrainNoise() {
+  _grainFrame = (_grainFrame + 1) % _GN;
+  grainCtx.putImageData(_grainPool[_grainFrame], 0, 0);
 }
 
 // ─── Main loop ─────────────────────────────────────────────────────────────────
@@ -2674,23 +2673,28 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
     bhCtx.fill();
   }
 
-  let _grainImg = null;
-  function drawGrain() {
-    if (!_grainImg || _grainImg.width !== BW || _grainImg.height !== BH)
-      _grainImg = gCtx.createImageData(BW, BH);
-    const d = _grainImg.data;
+  // Pre-generate 8 noise frames at 256×256; element CSS scales to fill.
+  const _BH_GW = 256, _BH_GH = 256, _BH_GN = 8;
+  gCvs.width = _BH_GW; gCvs.height = _BH_GH;
+  const _bhGrainPool = Array.from({ length: _BH_GN }, () => {
+    const img = gCtx.createImageData(_BH_GW, _BH_GH);
+    const d = img.data;
     for (let i = 0; i < d.length; i += 4) {
       const v = (Math.random() * 255) | 0;
       d[i] = d[i+1] = d[i+2] = v; d[i+3] = 25;
     }
-    gCtx.putImageData(_grainImg, 0, 0);
+    return img;
+  });
+  let _bhGrainFrame = 0;
+  function drawGrain() {
+    _bhGrainFrame = (_bhGrainFrame + 1) % _BH_GN;
+    gCtx.putImageData(_bhGrainPool[_bhGrainFrame], 0, 0);
   }
 
   function bhResize() {
     const cssW = bhCanvas.offsetWidth, cssH = bhCanvas.offsetHeight;
     BW = cssW; BH = cssH;
     bhCanvas.width  = cssW * dpr; bhCanvas.height  = cssH * dpr;
-    gCvs.width      = cssW;       gCvs.height      = cssH;
   }
 
   let bhRunning = false;
@@ -5495,42 +5499,43 @@ $$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp()
 
 /* ── Oscilloscope ───────────────────────────────────── */
 let scopeActive = false;
+const _scopeCV  = $$('scope-cv');
+const _scopeCtx = _scopeCV ? _scopeCV.getContext('2d') : null;
+let _scopeBuf   = null;
+
 function drawScope() {
-  if (!scopeActive) return;
-  const cv = $$('scope-cv');
-  if (!cv) return;
-  const ctx2 = cv.getContext('2d');
-  const W = cv.offsetWidth || 220, H = 56;
-  if (cv.width !== W * dpr || cv.height !== H * dpr) {
-    cv.width = W * dpr; cv.height = H * dpr;
+  if (!scopeActive || !_scopeCV || !_scopeCtx) return;
+  const W = _scopeCV.offsetWidth || 220, H = 56;
+  if (_scopeCV.width !== W * dpr || _scopeCV.height !== H * dpr) {
+    _scopeCV.width = W * dpr; _scopeCV.height = H * dpr;
   }
-  ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx2.clearRect(0, 0, W, H);
+  _scopeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  _scopeCtx.clearRect(0, 0, W, H);
 
   if (analyser) {
-    const buf = new Uint8Array(analyser.fftSize);
-    analyser.getByteTimeDomainData(buf);
-    ctx2.strokeStyle = lineColor;
-    ctx2.shadowColor = lineColor;
-    ctx2.shadowBlur = 5;
-    ctx2.lineWidth = 1.2;
-    ctx2.globalAlpha = 0.9;
-    ctx2.beginPath();
-    for (let i = 0; i < buf.length; i++) {
-      const x = (i / (buf.length - 1)) * W;
-      const y = ((buf[i] / 128) - 1) * (H * 0.42) + H / 2;
-      i === 0 ? ctx2.moveTo(x, y) : ctx2.lineTo(x, y);
+    if (!_scopeBuf || _scopeBuf.length !== analyser.fftSize) _scopeBuf = new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(_scopeBuf);
+    _scopeCtx.strokeStyle = lineColor;
+    _scopeCtx.shadowColor = lineColor;
+    _scopeCtx.shadowBlur = 5;
+    _scopeCtx.lineWidth = 1.2;
+    _scopeCtx.globalAlpha = 0.9;
+    _scopeCtx.beginPath();
+    for (let i = 0; i < _scopeBuf.length; i++) {
+      const x = (i / (_scopeBuf.length - 1)) * W;
+      const y = ((_scopeBuf[i] / 128) - 1) * (H * 0.42) + H / 2;
+      i === 0 ? _scopeCtx.moveTo(x, y) : _scopeCtx.lineTo(x, y);
     }
-    ctx2.stroke();
+    _scopeCtx.stroke();
   } else {
-    ctx2.strokeStyle = lineColor;
-    ctx2.globalAlpha = 0.2;
-    ctx2.lineWidth = 1;
-    ctx2.beginPath();
-    ctx2.moveTo(0, H / 2); ctx2.lineTo(W, H / 2);
-    ctx2.stroke();
+    _scopeCtx.strokeStyle = lineColor;
+    _scopeCtx.globalAlpha = 0.2;
+    _scopeCtx.lineWidth = 1;
+    _scopeCtx.beginPath();
+    _scopeCtx.moveTo(0, H / 2); _scopeCtx.lineTo(W, H / 2);
+    _scopeCtx.stroke();
   }
-  ctx2.globalAlpha = 1; ctx2.shadowBlur = 0;
+  _scopeCtx.globalAlpha = 1; _scopeCtx.shadowBlur = 0;
   requestAnimationFrame(drawScope);
 }
 
@@ -6054,7 +6059,7 @@ function drawSpiral() {
   if (!geom) return;
   const { cw, ch, cx, cy, R_outer, R_inner, ringSpacing, dpx } = geom;
   const dotR = Math.max(2, ringSpacing * 0.24);
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffffff';
+  const accent = lineColor;
 
   spiralCtx.save();
   spiralCtx.setTransform(dpx, 0, 0, dpx, 0, 0); // Ensure transform is consistent
@@ -6540,7 +6545,6 @@ const canvas  = $$('cv');
 const ctx     = canvas.getContext('2d');
 const grainEl = $$('grain');
 const grainCx = grainEl.getContext('2d');
-let grainImg  = null;
 
 let touchW = 1, touchH = 1;
 const touchCv  = document.getElementById('bm-touch-cv');
@@ -6568,7 +6572,6 @@ function resize() {
   if (w === 0 || h === 0) return;
   cvW = w; cvH = h;
   canvas.width = w * dpr; canvas.height = h * dpr;
-  grainImg = null;
   const tw = document.getElementById('bm-touch-wrap');
   touchW = tw.clientWidth || 1; touchH = tw.clientHeight || 1;
   touchCv.width = touchW * dpr; touchCv.height = touchH * dpr;
@@ -6632,18 +6635,23 @@ function drawContour(buf, alphaScale) {
   }
 }
 
-function drawGrainFrame() {
-  const gW = Math.ceil(cvW / 2), gH = Math.ceil(cvH / 2); // half-res offscreen
-  if (!grainImg || grainEl.width !== gW || grainEl.height !== gH) {
-    grainEl.width = gW; grainEl.height = gH;
-    grainImg = grainCx.createImageData(gW, gH);
-  }
-  const d = grainImg.data;
+// Pre-generate 8 noise frames at 256×256; CSS pixelated scaling fills the canvas.
+const _BM_GW = 256, _BM_GH = 256, _BM_GN = 8;
+grainEl.width = _BM_GW; grainEl.height = _BM_GH;
+const _bmGrainPool = Array.from({ length: _BM_GN }, () => {
+  const img = grainCx.createImageData(_BM_GW, _BM_GH);
+  const d = img.data;
   for (let i = 0; i < d.length; i += 4) {
     const v = Math.random() * 255 | 0;
     d[i] = d[i+1] = d[i+2] = v; d[i+3] = Math.random() * 28 | 0;
   }
-  grainCx.putImageData(grainImg, 0, 0);
+  return img;
+});
+let _bmGrainFrame = 0;
+
+function drawGrainFrame() {
+  _bmGrainFrame = (_bmGrainFrame + 1) % _BM_GN;
+  grainCx.putImageData(_bmGrainPool[_bmGrainFrame], 0, 0);
 }
 
 /* ── Audio ───────────────────────────────────────────── */
@@ -7139,6 +7147,8 @@ function cleanupDead() {
 /* ── Animation loop ──────────────────────────────────── */
 let _bmActive = false;
 let _bmLastTs = 0;
+const _patNumEl   = $$('pattern-num');
+let   _lastPatIdx = -1;
 window._bmFrameStop  = () => { _bmActive = false; };
 window._bmFrameStart = () => { if (!_bmActive) { _bmActive = true; requestAnimationFrame(frame); } };
 window._bmAudioSuspend = () => { if (audioCtx) audioCtx.suspend(); };
@@ -7163,9 +7173,11 @@ function frame(ts) {
   if (dotsCv) touchCtx.drawImage(dotsCv, 0, 0);
   drawDots();
   drawGrainFrame();
-  // Pattern number
-  const numEl = $$('pattern-num');
-  if (numEl) numEl.textContent = String(displayPatIdx).padStart(2, '0');
+  // Pattern number — only write to DOM when value actually changes
+  if (_patNumEl && displayPatIdx !== _lastPatIdx) {
+    _lastPatIdx = displayPatIdx;
+    _patNumEl.textContent = String(displayPatIdx).padStart(2, '0');
+  }
   requestAnimationFrame(frame);
 }
 
