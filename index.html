@@ -4429,23 +4429,6 @@ function buildPageBar() {
   sep3.textContent = '|';
   bpmGroup.appendChild(sep3);
 
-  // separator before auto
-  const sep4 = document.createElement('span');
-  sep4.className = 'page-sep';
-  sep4.textContent = '|';
-  bar.appendChild(sep4);
-
-  // P — auto-progress through pages, 3-8 min cycle, page durations weighted by arc
-  progressBtn = document.createElement('button');
-  progressBtn.className = 'copy-btn';
-  progressBtn.textContent = 'auto';
-  progressBtn.tabIndex = -1;
-  progressBtn.title = 'Auto-progress — automatically advances through pages on a 3–8 minute cycle weighted by pattern arc';
-  progressBtn.addEventListener('click', () => {
-    progressActive ? stopProgression() : startProgression();
-  });
-  bar.appendChild(progressBtn);
-
   const bpmLblEl = document.createElement('span');
   bpmLblEl.className = 'hdr-lbl';
   bpmLblEl.textContent = 'bpm';
@@ -4465,6 +4448,23 @@ function buildPageBar() {
   const pbtn = $$('playBtn');
   pbtn.style.marginLeft = '0';
   bpmGroup.appendChild(pbtn);
+
+  // separator + auto after play (inside bpmGroup so it wraps atomically with bpm controls)
+  const sep4 = document.createElement('span');
+  sep4.className = 'page-sep';
+  sep4.textContent = '|';
+  bpmGroup.appendChild(sep4);
+
+  // P — auto-progress through pages, 3-8 min cycle, page durations weighted by arc
+  progressBtn = document.createElement('button');
+  progressBtn.className = 'copy-btn';
+  progressBtn.textContent = 'auto';
+  progressBtn.tabIndex = -1;
+  progressBtn.title = 'Auto-progress — automatically advances through pages on a 3–8 minute cycle weighted by pattern arc';
+  progressBtn.addEventListener('click', () => {
+    progressActive ? stopProgression() : startProgression();
+  });
+  bpmGroup.appendChild(progressBtn);
   document.getElementById('ig-panel').querySelector('.hdr').appendChild($$('hbtn'));
 }
 
