@@ -146,11 +146,6 @@
       cursor: pointer; outline: none; padding-right: 14px; vertical-align: middle;
     }
     #bm-scaleSelect option { background: #000; color: #fff; }
-#bm-zko {
-      letter-spacing: 2px; color: rgba(255,255,255,0.45);
-      text-decoration: none; cursor: pointer; transition: color .1s;
-    }
-    #bm-zko:hover { color: rgba(255,255,255,0.75); }
     #bm-legend span { cursor: pointer; transition: opacity .1s; font-size: 13px; padding: 6px 5px; }
     #bm-panel input[type=range] {
       -webkit-appearance: none; appearance: none;
@@ -259,11 +254,11 @@
       display: flex; justify-content: space-between; align-items: baseline;
       margin-top: 6px; letter-spacing: 0;
     }
-    #gs-zko, #ig-zko, #app-zko {
+    #app-zko {
       letter-spacing: 2px;
       color: rgba(255,255,255,0.45); text-decoration: none; cursor: pointer; transition: color .1s;
     }
-    #gs-zko:hover, #ig-zko:hover, #app-zko:hover { color: rgba(255,255,255,0.75); }
+    #app-zko:hover { color: rgba(255,255,255,0.75); }
     #gs-hbtn, #ig-hbtn, #bm-hbtn {
       all: unset;
       font-family: 'Share Tech Mono', monospace;
@@ -282,7 +277,7 @@
       input[type=range]::-webkit-slider-thumb { width: 24px !important; height: 24px !important; }
       input[type=range]::-moz-range-thumb     { width: 24px !important; height: 24px !important; border-radius: 50%; border: none; background: var(--accent); }
       input[type=range]::-moz-range-track     { height: 4px !important; background: rgba(255,255,255,0.22); border-radius: 2px; }
-      .btn-action, .tui-btn, .app-toggle-btn, .page-btn, .copy-btn, .btn-play, #gs-hbtn, #ig-hbtn, #bm-hbtn, #gs-zko, #ig-zko, #bm-zko, #bm-zko2, #app-zko { min-height: 44px; display: inline-flex; align-items: center; }
+      .btn-action, .tui-btn, .app-toggle-btn, .page-btn, .copy-btn, .btn-play, #gs-hbtn, #ig-hbtn, #bm-hbtn, #app-zko { min-height: 44px; display: inline-flex; align-items: center; }
       .s-brk { padding: 10px 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 32px; }
     }
 
@@ -292,7 +287,6 @@
       display: flex; flex-direction: column; align-items: stretch;
       max-width: 1000px; width: 100%; margin: 0 auto;
     }
-    #gs-panel .ctrl-panel { display: none; }
     #gs-panel input[type=range] {
       -webkit-appearance: none; appearance: none;
       flex: 1; min-width: 0;
@@ -419,7 +413,6 @@
     #ig-panel .hdr-mid { display: flex; align-items: center; gap: 8px; letter-spacing: 0; }
     .hdr-lbl { color: rgba(255,255,255,0.45); letter-spacing: 2px; }
     #ig-panel .hdr-mid input[type=range] { flex: 1; min-width: 70px; max-width: 140px; }
-    #ig-selLabel { display: none; }
     /* Step bar */
     .step-bar { display: grid; grid-template-columns: repeat(16, var(--cell)); gap: 3px; padding: 0 5px; margin-bottom: 6px; }
     .pip { height: 2px; border-radius: 1px; background: #1a1a1a; transition: background .08s, box-shadow .08s; }
@@ -542,7 +535,7 @@
       #ig-fxTab1Btn, #ig-fxTab2Btn { padding: 10px 14px; margin: -10px -6px; }
       #ig-panel .hdr-mid .s-brk { padding: 10px 6px; cursor: pointer; }
     }
-    .btn-play, .tui-btn, .tui-action, .page-btn, .copy-btn, #ig-hbtn, #ig-zko, #app-zko { touch-action: manipulation; }
+    .btn-play, .tui-btn, .tui-action, .page-btn, .copy-btn, #ig-hbtn, #app-zko { touch-action: manipulation; }
     #ig-randRefresh, #ig-clearRefresh { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
     .grid { touch-action: none; }
     #ig-spiral-cv { display: none; touch-action: none; cursor: pointer; background: #000; border: 1px solid #111; border-radius: 4px; align-self: flex-start; }
@@ -828,7 +821,7 @@
 <div class="instrument">
 
   <div class="hdr">
-    <div class="hdr-left"><div id="ig-pageBar"></div><span id="ig-selLabel"></span></div>
+    <div class="hdr-left"><div id="ig-pageBar"></div></div>
     <div class="hdr-mid" style="display:none;">
       <span class="s-brk" id="ig-bpmDec">◄</span>
       <input type="range" id="ig-bpmSlider" min="40" max="240" value="120" step="1">
@@ -900,13 +893,12 @@
         <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
-            <option value="auto" selected>random</option>
-            <option value="ambient">ambient</option>
-            <option value="rhythmic">rhythmic</option>
-            <option value="dark">dark</option>
-            <option value="bright">bright</option>
-            <option value="movement">movement</option>
-            <option value="chime">chime</option>
+            <option value="ambient">drift</option>
+            <option value="rhythmic">pulse</option>
+            <option value="dark">shadow</option>
+            <option value="bright">glow</option>
+            <option value="movement">flow</option>
+            <option value="chime" selected>crystal</option>
           </select>
         </div>
       </div>
@@ -1237,6 +1229,10 @@
 <script>
 // ── §SHARED:nav  _panels · _showPanel · keydown · color-legend ──────────────
 
+const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
+const POOL   = '.,:;+*#@0123456789';
+const rc     = () => POOL[Math.random() * POOL.length | 0];
+
 const _panels = [
   { panel: 'gs-panel',   btn: 'toggleGs' },
   { panel: 'ig-panel',   btn: 'toggleIg' },
@@ -1286,9 +1282,6 @@ document.addEventListener('keydown', e => {
 
 // ─── Shared color legend + ZKO ──────────────────────────────────────────────────
 (function () {
-  const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
-  const POOL = '.,:;+*#@0123456789';
-  const rc = () => POOL[Math.random() * POOL.length | 0];
   const legendEl = document.getElementById('app-legend');
   const spans = COLORS.map(col => {
     const s = document.createElement('span');
@@ -1323,10 +1316,6 @@ document.addEventListener('keydown', e => {
 function _asgMakeHelpTabs(activeKey, onClose) {
   if (window._asgHelpIntervals) window._asgHelpIntervals.forEach(clearInterval);
   window._asgHelpIntervals = [];
-
-  const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
-  const POOL = '.,:;+*#@0123456789';
-  const rc = () => POOL[Math.random() * POOL.length | 0];
 
   const bar = document.createElement('div');
   Object.assign(bar.style, {
@@ -4411,33 +4400,16 @@ function buildPageBar() {
   });
   bar.appendChild(pasteBtn);
 
-  // flex-break before auto-adv group — hidden on desktop, full-width on small screens
+  // flex-break before bpm group — hidden on desktop, full-width on small screens
   const advBreak = document.createElement('span');
   advBreak.id = 'ig-adv-break';
   bar.appendChild(advBreak);
 
-  // separator before progress button
+  // separator before spiral toggle
   const sep2 = document.createElement('span');
   sep2.className = 'page-sep';
   sep2.textContent = '|';
   bar.appendChild(sep2);
-
-  // P — auto-progress through pages, 3-8 min cycle, page durations weighted by arc
-  progressBtn = document.createElement('button');
-  progressBtn.className = 'copy-btn';
-  progressBtn.textContent = 'auto-adv';
-  progressBtn.tabIndex = -1;
-  progressBtn.title = 'Auto-progress — automatically advances through pages on a 3–8 minute cycle weighted by pattern arc';
-  progressBtn.addEventListener('click', () => {
-    progressActive ? stopProgression() : startProgression();
-  });
-  bar.appendChild(progressBtn);
-
-  // separator before spiral toggle
-  const sep3 = document.createElement('span');
-  sep3.className = 'page-sep';
-  sep3.textContent = '|';
-  bar.appendChild(sep3);
 
   // spiral view toggle
   spiralBtn = document.createElement('button');
@@ -4448,20 +4420,38 @@ function buildPageBar() {
   spiralBtn.addEventListener('click', toggleSpiralView);
   bar.appendChild(spiralBtn);
 
-  // flex-break — hidden on desktop, full-width on small screens to push bpm to new line
-  const bpmBreak = document.createElement('span');
-  bpmBreak.id = 'ig-bpm-break';
-  bar.appendChild(bpmBreak);
+  // separator before bpm group
+  const sep3 = document.createElement('span');
+  sep3.className = 'page-sep';
+  sep3.textContent = '|';
+  bar.appendChild(sep3);
 
-  // bpm group — keeps all controls together on both lines
+  // bpm group
   const bpmGroup = document.createElement('div');
   bpmGroup.id = 'ig-bpm-group';
   bar.appendChild(bpmGroup);
 
+  // flex-break before auto-adv — hidden on desktop, full-width on small screens
+  const bpmBreak = document.createElement('span');
+  bpmBreak.id = 'ig-bpm-break';
+  bar.appendChild(bpmBreak);
+
+  // separator before auto-adv
   const sep4 = document.createElement('span');
   sep4.className = 'page-sep';
   sep4.textContent = '|';
-  bpmGroup.appendChild(sep4);
+  bar.appendChild(sep4);
+
+  // P — auto-progress through pages, 3-8 min cycle, page durations weighted by arc
+  progressBtn = document.createElement('button');
+  progressBtn.className = 'copy-btn';
+  progressBtn.textContent = 'auto';
+  progressBtn.tabIndex = -1;
+  progressBtn.title = 'Auto-progress — automatically advances through pages on a 3–8 minute cycle weighted by pattern arc';
+  progressBtn.addEventListener('click', () => {
+    progressActive ? stopProgression() : startProgression();
+  });
+  bar.appendChild(progressBtn);
 
   const bpmLblEl = document.createElement('span');
   bpmLblEl.className = 'hdr-lbl';
@@ -4475,6 +4465,10 @@ function buildPageBar() {
   bpmGroup.appendChild(bpmSl);
   bpmGroup.appendChild($$('bpmInc'));
   bpmGroup.appendChild($$('bpmVal'));
+  const bpmPlaySep = document.createElement('span');
+  bpmPlaySep.className = 'page-sep';
+  bpmPlaySep.textContent = '|';
+  bpmGroup.appendChild(bpmPlaySep);
   const pbtn = $$('playBtn');
   pbtn.style.marginLeft = '0';
   bpmGroup.appendChild(pbtn);
@@ -4824,8 +4818,8 @@ $$('randRefresh').addEventListener('click', (e) => {
   // ── Resolve mood ────────────────────────────────────
   const moodSelectEl = $$('moodSelect');
   const moodKeys = Object.keys(MOOD_PROFILES);
-  const sel = moodSelectEl?.value || 'auto';
-  const mood = sel === 'auto' ? pick(moodKeys) : (MOOD_PROFILES[sel] ? sel : pick(moodKeys));
+  const sel = moodSelectEl?.value || 'chime';
+  const mood = MOOD_PROFILES[sel] ? sel : pick(moodKeys);
   const prof = MOOD_PROFILES[mood];
 
   // ── Scale from user selection, BPM from mood ────────
@@ -6541,13 +6535,6 @@ function setColorBox(col) {
   if (num) num.style.color = col;
 }
 window.asgBmSetLineColor = (col) => { lineColor = col; setColorBox(col); };
-function setAccent(col) {
-  lineColor = col;
-  setColorBox(col);
-  document.documentElement.style.setProperty('--accent', col);
-  window._gsBhSetColor?.(col);
-  window.asgIg01SetLineColor?.(col);
-}
 
 /* ── Scale data ───────────────────────────────────────── */
 const SCALE_IVLS = {
