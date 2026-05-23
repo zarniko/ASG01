@@ -520,7 +520,6 @@
       #ig-panel .hdr-mid input[type=range] { flex: 1; width: auto; min-width: 0; }
       #ig-pageBar { gap: 9px; margin-right: 8px; }
       #ig-bpm-break { display: block; flex-basis: 100%; height: 0; margin: 0; padding: 0; }
-      #ig-adv-break { display: block; flex-basis: 100%; height: 0; margin: 0; padding: 0; }
       #ig-bpm-group #ig-bpmSlider { width: 100px; flex: 0 0 100px; }
     }
     @media (max-width: 580px) {
@@ -4400,18 +4399,13 @@ function buildPageBar() {
   });
   bar.appendChild(pasteBtn);
 
-  // flex-break before bpm group — hidden on desktop, full-width on small screens
-  const advBreak = document.createElement('span');
-  advBreak.id = 'ig-adv-break';
-  bar.appendChild(advBreak);
-
   // separator before spiral toggle
   const sep2 = document.createElement('span');
   sep2.className = 'page-sep';
   sep2.textContent = '|';
   bar.appendChild(sep2);
 
-  // spiral view toggle
+  // spiral view toggle — stays on line 1 with page buttons on mobile
   spiralBtn = document.createElement('button');
   spiralBtn.className = 'copy-btn';
   spiralBtn.textContent = '◯';
@@ -4420,23 +4414,22 @@ function buildPageBar() {
   spiralBtn.addEventListener('click', toggleSpiralView);
   bar.appendChild(spiralBtn);
 
-  // separator before bpm group
-  const sep3 = document.createElement('span');
-  sep3.className = 'page-sep';
-  sep3.textContent = '|';
-  bar.appendChild(sep3);
-
-  // bpm group
-  const bpmGroup = document.createElement('div');
-  bpmGroup.id = 'ig-bpm-group';
-  bar.appendChild(bpmGroup);
-
-  // flex-break before auto-adv — hidden on desktop, full-width on small screens
+  // flex-break — pushes bpm + auto to line 2 on mobile
   const bpmBreak = document.createElement('span');
   bpmBreak.id = 'ig-bpm-break';
   bar.appendChild(bpmBreak);
 
-  // separator before auto-adv
+  // bpm group — separator is first child so it wraps with the group
+  const bpmGroup = document.createElement('div');
+  bpmGroup.id = 'ig-bpm-group';
+  bar.appendChild(bpmGroup);
+
+  const sep3 = document.createElement('span');
+  sep3.className = 'page-sep';
+  sep3.textContent = '|';
+  bpmGroup.appendChild(sep3);
+
+  // separator before auto
   const sep4 = document.createElement('span');
   sep4.className = 'page-sep';
   sep4.textContent = '|';
