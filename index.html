@@ -520,7 +520,8 @@
       #ig-panel .hdr-mid input[type=range] { flex: 1; width: auto; min-width: 0; }
       #ig-pageBar { gap: 9px; margin-right: 8px; }
       #ig-bpm-break { display: block; flex-basis: 100%; height: 0; margin: 0; padding: 0; }
-      #ig-bpm-group #ig-bpmSlider { width: 100px; flex: 0 0 100px; }
+      #ig-bpm-group { gap: 8px; }
+      #ig-bpm-group #ig-bpmSlider { width: 70px !important; flex: 0 0 70px !important; }
     }
     @media (max-width: 580px) {
       #ig-panel .hdr-mid { row-gap: 10px; }
@@ -897,7 +898,11 @@
             <option value="dark">shadow</option>
             <option value="bright">glow</option>
             <option value="movement">flow</option>
-            <option value="chime" selected>crystal</option>
+            <option value="chime" selected>chime</option>
+            <option value="bell">bell</option>
+            <option value="bowl">bowl</option>
+            <option value="wood">wood</option>
+            <option value="glass">glass</option>
           </select>
         </div>
       </div>
@@ -916,14 +921,24 @@
       </div>
       <div class="ctrl-gap"></div>
 
-      <div class="ctrl-row slider" title="Waveform — oscillator shape. Sine is smooth; triangle adds warmth; square and saw are brighter and buzzier; chime uses bell-like synthesis">
+      <div class="ctrl-row slider" title="Waveform — oscillator shape. Sine is smooth; triangle adds warmth; square and saw are brighter and buzzier.">
         <span class="ctrl-key">wave</span>
         <div class="tui-group" id="ig-waveGroup">
           <button class="tui-btn sel" data-wave="sine"     tabindex="-1">sine</button>
           <button class="tui-btn"     data-wave="triangle" tabindex="-1">tri</button>
           <button class="tui-btn"     data-wave="square"   tabindex="-1">sqr</button>
-          <button class="tui-btn"     data-wave="sawtooth"  tabindex="-1">saw</button>
-          <button class="tui-btn"     data-wave="chime"    tabindex="-1">chime</button>
+          <button class="tui-btn"     data-wave="sawtooth" tabindex="-1">saw</button>
+        </div>
+      </div>
+
+      <div class="ctrl-row slider" title="Voice — physical-model synthesis using inharmonic partials. Replaces the wave oscillator when selected.">
+        <span class="ctrl-key">voice</span>
+        <div class="tui-group" id="ig-voiceGroup">
+          <button class="tui-btn" data-wave="chime" tabindex="-1">chime</button>
+          <button class="tui-btn" data-wave="bell"  tabindex="-1">bell</button>
+          <button class="tui-btn" data-wave="bowl"  tabindex="-1">bowl</button>
+          <button class="tui-btn" data-wave="wood"  tabindex="-1">wood</button>
+          <button class="tui-btn" data-wave="glass" tabindex="-1">glass</button>
         </div>
       </div>
 
@@ -3892,7 +3907,7 @@ function buildLfoPanels() {
 function reflectNote(note) {
   $$('volSlider').value  = note.vol * 100;
   $$('volVal').textContent = `${Math.round(note.vol * 100)}%`;
-  document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b =>
+  document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b =>
     b.classList.toggle('sel', b.dataset.wave === note.wave));
   $$('scaleSelect').value = note.scale;
 
@@ -3957,7 +3972,17 @@ function reflectNote(note) {
 }
 
 /* ── Audio ──────────────────────────────────────────── */
-let _chimeWave = null; // cached PeriodicWave for 'chime' type
+// cached PeriodicWaves for physical-model voices
+const _physicalWaves = new Set(['chime', 'bell', 'bowl', 'wood', 'glass']);
+let _chimeWave = null, _bellWave = null, _bowlWave = null, _woodWave = null, _glassWave = null;
+function _getPhysWave(type) {
+  const mk = r => audioCtx.createPeriodicWave(new Float32Array(r), new Float32Array(r.length));
+  if (type === 'chime') return _chimeWave || (_chimeWave = mk([0, 1, 0.30, 0.10, 0.04, 0.01]));
+  if (type === 'bell')  return _bellWave  || (_bellWave  = mk([0, 1, 0.45, 0.20, 0.08, 0.03, 0.01]));
+  if (type === 'bowl')  return _bowlWave  || (_bowlWave  = mk([0, 1, 0.07, 0.02]));
+  if (type === 'wood')  return _woodWave  || (_woodWave  = mk([0, 1, 0.05, 0.02]));
+  if (type === 'glass') return _glassWave || (_glassWave = mk([0, 1, 0, 0.25, 0, 0.08, 0, 0.03]));
+}
 
 function playTone(freq, note, when) {
   const adsr_ = note.adsr ?? FX.adsr ?? null;
@@ -3990,13 +4015,8 @@ function playTone(freq, note, when) {
   const panner = audioCtx.createStereoPanner();
   panner.pan.value = Math.max(-1, Math.min(1, pan));
 
-  if (note.wave === 'chime') {
-    if (!_chimeWave) {
-      const real = new Float32Array([0, 1, 0.30, 0.10, 0.04, 0.01]);
-      const imag = new Float32Array(real.length);
-      _chimeWave = audioCtx.createPeriodicWave(real, imag);
-    }
-    osc.setPeriodicWave(_chimeWave);
+  if (_physicalWaves.has(note.wave)) {
+    osc.setPeriodicWave(_getPhysWave(note.wave));
   } else {
     osc.type = note.wave;
   }
@@ -4064,19 +4084,28 @@ function playTone(freq, note, when) {
   osc.start(when);
   osc.stop(when + dur + 0.02);
 
-  // inharmonic partial for chime — windchime bar mode at 2.756× fundamental
-  if (note.wave === 'chime') {
-    const oscH  = audioCtx.createOscillator();
-    const gainH = audioCtx.createGain();
-    oscH.frequency.value = freq * 2.756;
-    const hDur = Math.min(dur * 0.45, 1.0);
-    gainH.gain.setValueAtTime(0, when);
-    gainH.gain.linearRampToValueAtTime(pk * 0.10, when + atk);
-    gainH.gain.exponentialRampToValueAtTime(0.001, when + Math.max(atk + 0.01, hDur));
-    oscH.connect(gainH);
-    gainH.connect(filt);
-    oscH.start(when);
-    oscH.stop(when + Math.max(atk + 0.02, hDur) + 0.02);
+  // inharmonic partials for physical-model voices — [ratio, level, durFactor, maxDur]
+  if (_physicalWaves.has(note.wave)) {
+    const _inharm = {
+      chime: [[2.756, 0.10, 0.45, 1.0]],
+      bell:  [[2.756, 0.20, 0.70, 2.0], [5.405, 0.08, 0.30, 0.8]],
+      bowl:  [[2.010, 0.05, 0.80, 3.0]],
+      wood:  [[3.932, 0.25, 0.25, 0.4]],
+      glass: [[1.500, 0.07, 0.50, 1.2]],
+    };
+    for (const [ratio, level, factor, max] of _inharm[note.wave]) {
+      const oscH  = audioCtx.createOscillator();
+      const gainH = audioCtx.createGain();
+      oscH.frequency.value = freq * ratio;
+      const hDur = Math.min(dur * factor, max);
+      gainH.gain.setValueAtTime(0, when);
+      gainH.gain.linearRampToValueAtTime(pk * level, when + atk);
+      gainH.gain.exponentialRampToValueAtTime(0.001, when + Math.max(atk + 0.01, hDur));
+      oscH.connect(gainH);
+      gainH.connect(filt);
+      oscH.start(when);
+      oscH.stop(when + Math.max(atk + 0.02, hDur) + 0.02);
+    }
   }
 
   spawnLfo('cut', filt.frequency, cut);
@@ -4084,7 +4113,7 @@ function playTone(freq, note, when) {
   spawnLfo('pan', panner.pan,     1);
   spawnLfo('det', osc.detune,     50);
 
-  if (det > 0 && note.wave !== 'chime') {
+  if (det > 0 && !_physicalWaves.has(note.wave)) {
     const osc2  = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
     osc2.type = note.wave;
@@ -4588,7 +4617,13 @@ $$('scaleSelect').addEventListener('change', function () {
 $$('waveGroup').addEventListener('click', e => {
   const btn = e.target.closest('[data-wave]'); if (!btn) return;
   S.wave = btn.dataset.wave;
-  document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b => b.classList.toggle('sel', b === btn));
+  document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b === btn));
+  if (selR >= 0 && S.cells[selR][selC]) S.cells[selR][selC].wave = S.wave;
+});
+$$('voiceGroup').addEventListener('click', e => {
+  const btn = e.target.closest('[data-wave]'); if (!btn) return;
+  S.wave = btn.dataset.wave;
+  document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b === btn));
   if (selR >= 0 && S.cells[selR][selC]) S.cells[selR][selC].wave = S.wave;
 });
 /* ── Poem footnote ──────────────────────────────────── */
@@ -4795,8 +4830,84 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.0, ghostChance: 0.72,
-    chimeWave: true,
+    physWave: 'chime',
     transposeRange: [12, 19],
+  },
+  // deep carillon — longer ring, richer harmonics than chime
+  bell: {
+    scales: ['major_pentatonic','hawaiian','whole_tone','balinese_pelog'],
+    bpmRange: [36, 52],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.001, 0.004], cutoffRange: [4000, 12000],
+    lpfRange: [7000, 18000],
+    delayRange: [0.22, 0.40], reverbRange: [0.80, 0.94],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0, tremoloRange: [0, 0],
+    adsrChance: 1.0, adsrStyle: 'bell',
+    lfoParams: ['pan','rev'], lfoChance: 0.15, lfoRateRange: [0.03, 0.12],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.0, ghostChance: 0.60,
+    physWave: 'bell',
+    transposeRange: [5, 12],
+  },
+  // meditative singing bowl — slow attack, very long sustain
+  bowl: {
+    scales: ['major_pentatonic','minor_pentatonic','balinese_pelog','raga_bhairav'],
+    bpmRange: [30, 44],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.30, 0.80], cutoffRange: [600, 2500],
+    lpfRange: [800, 2500],
+    delayRange: [0.35, 0.55], reverbRange: [0.85, 0.98],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.15, tremoloRange: [0.05, 0.20],
+    adsrChance: 1.0, adsrStyle: 'bowl',
+    lfoParams: ['cut','rev'], lfoChance: 0.30, lfoRateRange: [0.03, 0.10],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.85, ghostChance: 0.15,
+    physWave: 'bowl',
+    transposeRange: [-5, 5],
+  },
+  // warm marimba — percussive, fast decay, mid-register
+  wood: {
+    scales: ['major_pentatonic','minor_pentatonic','dorian','hawaiian'],
+    bpmRange: [52, 70],
+    strategies: ['euclidean','anchor-scatter'],
+    atkRange: [0.001, 0.004], cutoffRange: [2000, 6000],
+    lpfRange: [3000, 8000],
+    delayRange: [0.15, 0.30], reverbRange: [0.55, 0.75],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0, tremoloRange: [0, 0],
+    adsrChance: 1.0, adsrStyle: 'wood',
+    lfoParams: ['pan'], lfoChance: 0.20, lfoRateRange: [0.10, 0.40],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.0, ghostChance: 0.50,
+    physWave: 'wood',
+    transposeRange: [0, 7],
+  },
+  // bright crystalline pings — high register, airy
+  glass: {
+    scales: ['major_pentatonic','whole_tone','chinese','lydian'],
+    bpmRange: [40, 58],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.001, 0.003], cutoffRange: [6000, 16000],
+    lpfRange: [12000, 20000],
+    delayRange: [0.20, 0.38], reverbRange: [0.78, 0.92],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0, tremoloRange: [0, 0],
+    adsrChance: 1.0, adsrStyle: 'glass',
+    lfoParams: ['pan','rev'], lfoChance: 0.20, lfoRateRange: [0.04, 0.14],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.0, ghostChance: 0.65,
+    physWave: 'glass',
+    transposeRange: [12, 24],
   },
 };
 
@@ -4845,19 +4956,19 @@ $$('randRefresh').addEventListener('click', (e) => {
   const midWaves  = ['sine','sine','triangle','triangle'];
   const hiWaves   = ['sine','triangle','sine','triangle','triangle'];
   function waveFor(r) {
-    if (prof.chimeWave) return 'chime';
+    if (prof.physWave) return prof.physWave;
     // Lock to dominant wave when other pages already establish a clear timbre
     if (pageCtx && pageCtx.dominantWaveFrac >= 0.6) return pageCtx.dominantWave;
     if (r >= 12) return pick(bassWaves);
     if (r >= 5)  return pick(midWaves);
     return pick(hiWaves);
   }
-  if (prof.chimeWave) {
-    S.wave = 'chime';
-    document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === 'chime'));
+  if (prof.physWave) {
+    S.wave = prof.physWave;
+    document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === prof.physWave));
   } else if (pageCtx && pageCtx.dominantWaveFrac >= 0.6) {
     S.wave = pageCtx.dominantWave;
-    document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === pageCtx.dominantWave));
+    document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === pageCtx.dominantWave));
   }
 
   // ── Global FX shaped by mood ────────────────────────
@@ -4925,6 +5036,18 @@ $$('randRefresh').addEventListener('click', (e) => {
     }
     if (prof.adsrStyle === 'chime') {
       return { a: rngR(0.001, 0.004), d: rngR(0.80, 2.50), s: 0.001, h: 0, r: rngR(0.20, 0.45) };
+    }
+    if (prof.adsrStyle === 'bell') {
+      return { a: rngR(0.001, 0.003), d: rngR(1.50, 4.00), s: 0.001, h: 0, r: rngR(0.30, 0.80) };
+    }
+    if (prof.adsrStyle === 'bowl') {
+      return { a: rngR(0.20, 0.50), d: rngR(0.50, 1.50), s: rngR(0.40, 0.70), h: rngR(1.0, 3.0), r: rngR(1.50, 3.50) };
+    }
+    if (prof.adsrStyle === 'wood') {
+      return { a: rngR(0.001, 0.003), d: rngR(0.20, 0.70), s: 0.001, h: 0, r: rngR(0.05, 0.15) };
+    }
+    if (prof.adsrStyle === 'glass') {
+      return { a: rngR(0.001, 0.003), d: rngR(0.80, 2.50), s: 0.001, h: 0, r: rngR(0.40, 0.80) };
     }
     return { a: rngR(0.03, 0.12), d: rngR(0.10, 0.25), s: rngR(0.50, 0.75), h: rngR(0.15, 0.35), r: rngR(0.15, 0.40) };
   }
@@ -4998,7 +5121,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       distortion: gDist,
       delaySend:  rng() < 0.18 ? rngR(0.05, 0.18) : gDelay,
       reverbSend: (() => {
-        const base = prof.chimeWave ? rngR(0.65, 0.90) : rngR(0.35 + (1 - t) * 0.12, 0.60 + (1 - t) * 0.15);
+        const base = prof.physWave ? rngR(0.65, 0.90) : rngR(0.35 + (1 - t) * 0.12, 0.60 + (1 - t) * 0.15);
         return pageCtx ? base * 0.5 + pageCtx.reverbSend * 0.5 : base;
       })(),
       pan:        usePan ? Math.round(rngR(12, 38)) * (rng() < 0.5 ? -1 : 1) : 0,
@@ -5291,7 +5414,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       const c = rng() * COLS | 0;
       if (S.cells[r][c] || colCount[c] >= MAX_VOICES) continue;
       const note = {
-        wave: prof.chimeWave ? 'chime' : 'sine', vol: rngR(0.08, 0.20), decay: rngR(0.3, 0.6),
+        wave: prof.physWave ?? 'sine', vol: rngR(0.08, 0.20), decay: rngR(0.3, 0.6),
         scale: chosenScale, ...noteFx(r), prob: rngR(0.30, 0.60),
       };
       applyMoodFx(note, r);
@@ -5857,7 +5980,7 @@ function restoreState(data) {
   $$('scaleSelect').value = S.scale;
   $$('transposeSlider').value = S.transpose;
   $$('transposeVal').textContent = S.transpose > 0 ? `+${S.transpose}` : `${S.transpose}`;
-  document.querySelectorAll('#ig-waveGroup .tui-btn').forEach(b =>
+  document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b =>
     b.classList.toggle('sel', b.dataset.wave === S.wave));
 
   // sync fx sliders
