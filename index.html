@@ -893,16 +893,16 @@
         <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
-            <option value="ambient">drift</option>
-            <option value="rhythmic">pulse</option>
-            <option value="dark">shadow</option>
-            <option value="bright">glow</option>
-            <option value="movement">flow</option>
-            <option value="chime" selected>chime</option>
-            <option value="bell">bell</option>
-            <option value="bowl">bowl</option>
-            <option value="wood">wood</option>
-            <option value="glass">glass</option>
+            <option value="mist">mist</option>
+            <option value="drift" selected>drift</option>
+            <option value="tide">tide</option>
+            <option value="ember">ember</option>
+            <option value="bloom">bloom</option>
+            <option value="rain">rain</option>
+            <option value="frost">frost</option>
+            <option value="dusk">dusk</option>
+            <option value="dawn">dawn</option>
+            <option value="cave">cave</option>
           </select>
         </div>
       </div>
@@ -4727,180 +4727,128 @@ $$('clearRefresh').addEventListener('click', (e) => {
 })();
 
 const MOOD_PROFILES = {
-  // floating, spacious, pentatonic pads
-  ambient: {
-    scales: ['major_pentatonic','hawaiian','balinese_pelog','whole_tone','aeolian','ryuku'],
-    bpmRange: [50, 68],
+  // sparse, barely there — sine with occasional bowl undertone
+  mist: {
+    scales: ['balinese_pelog','major_pentatonic','whole_tone','ryuku','hawaiian'],
+    bpmRange: [30, 45],
     strategies: ['anchor-scatter','anchor-scatter'],
-    atkRange: [0.10, 0.35], cutoffRange: [1800, 5500],
-    lpfRange: [1800, 4000],
-    delayRange: [0.28, 0.48], reverbRange: [0.68, 0.88],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0.30, tremoloRange: [0.12, 0.55],
-    adsrChance: 1.0, adsrStyle: 'long',
-    lfoParams: ['cut','det','rev'], lfoChance: 0.55, lfoRateRange: [0.08, 0.40],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.70, ghostChance: 0.45,
-    transposeRange: [-3, 5],
-  },
-  // sparse, slow pulse — gentle and grounded
-  rhythmic: {
-    scales: ['minor_pentatonic','major_pentatonic','dorian','aeolian'],
-    bpmRange: [56, 76],
-    strategies: ['euclidean','anchor-scatter'],
-    atkRange: [0.06, 0.20], cutoffRange: [1800, 5000],
-    lpfRange: [2000, 4500],
-    delayRange: [0.22, 0.42], reverbRange: [0.60, 0.78],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0.20, tremoloRange: [0.25, 0.80],
-    adsrChance: 1.0, adsrStyle: 'long',
-    lfoParams: ['pan','cut','det'], lfoChance: 0.40, lfoRateRange: [0.10, 0.50],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.60, ghostChance: 0.25,
-    transposeRange: [-3, 3],
-  },
-  // deep, meditative, minor tonalities
-  dark: {
-    scales: ['aeolian','japanese_miyakobushi','raga_bhairav','melodic_minor','gypsy'],
-    bpmRange: [48, 64],
-    strategies: ['anchor-scatter','anchor-scatter'],
-    atkRange: [0.14, 0.40], cutoffRange: [700, 3000],
-    lpfRange: [1000, 3000],
-    delayRange: [0.25, 0.50], reverbRange: [0.70, 0.90],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0.25, tremoloRange: [0.08, 0.40],
-    adsrChance: 1.0, adsrStyle: 'long',
-    lfoParams: ['cut','det','rev'], lfoChance: 0.55, lfoRateRange: [0.06, 0.30],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.92, ghostChance: 0.20,
-    transposeRange: [-9, -2],
-  },
-  // warm, open, hopeful
-  bright: {
-    scales: ['major_pentatonic','major_pentatonic','hawaiian','chinese','whole_tone'],
-    bpmRange: [58, 76],
-    strategies: ['anchor-scatter','euclidean'],
-    atkRange: [0.06, 0.20], cutoffRange: [2000, 5500],
-    lpfRange: [2500, 5000],
-    delayRange: [0.18, 0.36], reverbRange: [0.58, 0.76],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0.20, tremoloRange: [0.20, 0.70],
-    adsrChance: 1.0, adsrStyle: 'long',
-    lfoParams: ['pan','cut','rev'], lfoChance: 0.40, lfoRateRange: [0.12, 0.55],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.50, ghostChance: 0.50,
-    transposeRange: [4, 12],
-  },
-  // slow drift, evolving texture
-  movement: {
-    scales: ['dorian','lydian','major_pentatonic','minor_pentatonic','whole_tone'],
-    bpmRange: [52, 70],
-    strategies: ['anchor-scatter','euclidean'],
-    atkRange: [0.08, 0.28], cutoffRange: [1500, 6000],
+    atkRange: [0.25, 0.65], cutoffRange: [1200, 4000],
     lpfRange: [1800, 4500],
-    delayRange: [0.22, 0.44], reverbRange: [0.62, 0.82],
+    delayRange: [0.30, 0.50], reverbRange: [0.82, 0.96],
     distChance: 0, distRange: [0, 0],
-    tremoloChance: 0.40, tremoloRange: [0.10, 0.50],
+    tremoloChance: 0.15, tremoloRange: [0.05, 0.18],
     adsrChance: 1.0, adsrStyle: 'long',
-    lfoParams: ['cut','pan','det','rev'], lfoChance: 0.65, lfoRateRange: [0.08, 0.45],
+    lfoParams: ['cut','rev'], lfoChance: 0.35, lfoRateRange: [0.04, 0.15],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 1],
+    bassDroneChance: 0.50, ghostChance: 0.25,
+    voices: ['sine','sine','sine','bowl'],
+    transposeRange: [-3, 8],
+  },
+  // slow, formless float — sine dominant with bowl and triangle
+  drift: {
+    scales: ['major_pentatonic','balinese_pelog','aeolian','whole_tone','hawaiian'],
+    bpmRange: [32, 48],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.18, 0.50], cutoffRange: [1500, 4500],
+    lpfRange: [2000, 5000],
+    delayRange: [0.28, 0.48], reverbRange: [0.78, 0.94],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.25, tremoloRange: [0.06, 0.20],
+    adsrChance: 1.0, adsrStyle: 'long',
+    lfoParams: ['cut','rev','pan'], lfoChance: 0.45, lfoRateRange: [0.05, 0.18],
     dstShapes: ['soft'], dstShapeChance: 0,
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.65, ghostChance: 0.40,
-    transposeRange: [-5, 8],
+    voices: ['sine','sine','bowl','triangle'],
+    transposeRange: [-5, 7],
   },
-  // sparse percussive pings — windchime and kalimba textures
-  chime: {
-    scales: ['major_pentatonic','major_pentatonic','hawaiian','japanese_miyakobushi','ryuku'],
-    bpmRange: [38, 56],
+  // gentle swell and fade — sine and triangle with bowl warmth
+  tide: {
+    scales: ['dorian','aeolian','major_pentatonic','lydian','raga_bhairav'],
+    bpmRange: [35, 52],
     strategies: ['anchor-scatter','anchor-scatter'],
-    atkRange: [0.002, 0.005], cutoffRange: [5000, 14000],
-    lpfRange: [9000, 20000],
-    delayRange: [0.20, 0.36], reverbRange: [0.75, 0.92],
+    atkRange: [0.14, 0.40], cutoffRange: [1200, 4000],
+    lpfRange: [1600, 4000],
+    delayRange: [0.25, 0.45], reverbRange: [0.75, 0.92],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.35, tremoloRange: [0.06, 0.18],
+    adsrChance: 1.0, adsrStyle: 'long',
+    lfoParams: ['cut','det','rev'], lfoChance: 0.55, lfoRateRange: [0.06, 0.22],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.70, ghostChance: 0.35,
+    voices: ['sine','sine','triangle','bowl'],
+    transposeRange: [-6, 5],
+  },
+  // warm, glowing pulse — triangle and bell with sine softness
+  ember: {
+    scales: ['major_pentatonic','dorian','hawaiian','balinese_pelog'],
+    bpmRange: [38, 55],
+    strategies: ['anchor-scatter','euclidean'],
+    atkRange: [0.10, 0.30], cutoffRange: [2000, 5500],
+    lpfRange: [2500, 5500],
+    delayRange: [0.22, 0.40], reverbRange: [0.72, 0.88],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.20, tremoloRange: [0.08, 0.22],
+    adsrChance: 1.0, adsrStyle: 'long',
+    lfoParams: ['cut','pan','rev'], lfoChance: 0.40, lfoRateRange: [0.08, 0.25],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.55, ghostChance: 0.45,
+    voices: ['triangle','triangle','bell','sine'],
+    transposeRange: [0, 9],
+  },
+  // soft, open, hopeful — sine and triangle with bright bell accents
+  bloom: {
+    scales: ['major_pentatonic','major_pentatonic','lydian','chinese','hawaiian'],
+    bpmRange: [40, 58],
+    strategies: ['anchor-scatter','euclidean'],
+    atkRange: [0.08, 0.25], cutoffRange: [2000, 6000],
+    lpfRange: [2800, 6000],
+    delayRange: [0.20, 0.38], reverbRange: [0.68, 0.86],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.20, tremoloRange: [0.10, 0.24],
+    adsrChance: 1.0, adsrStyle: 'long',
+    lfoParams: ['pan','cut','rev'], lfoChance: 0.40, lfoRateRange: [0.10, 0.30],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.45, ghostChance: 0.55,
+    voices: ['sine','sine','triangle','bell'],
+    transposeRange: [3, 12],
+  },
+  // light, distant touches — chime and glass with sine ground
+  rain: {
+    scales: ['major_pentatonic','major_pentatonic','japanese_miyakobushi','ryuku','whole_tone'],
+    bpmRange: [30, 46],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.002, 0.006], cutoffRange: [5000, 14000],
+    lpfRange: [8000, 20000],
+    delayRange: [0.22, 0.40], reverbRange: [0.80, 0.95],
     distChance: 0, distRange: [0, 0],
     tremoloChance: 0, tremoloRange: [0, 0],
     adsrChance: 1.0, adsrStyle: 'chime',
-    lfoParams: ['pan', 'rev'], lfoChance: 0.20, lfoRateRange: [0.04, 0.16],
+    lfoParams: ['pan','rev'], lfoChance: 0.20, lfoRateRange: [0.04, 0.14],
     dstShapes: ['soft'], dstShapeChance: 0,
     ratchetChance: 0,
     voiceCountRange: [1, 2],
-    bassDroneChance: 0.0, ghostChance: 0.72,
-    physWave: 'chime',
-    transposeRange: [12, 19],
+    bassDroneChance: 0.0, ghostChance: 0.70,
+    voices: ['chime','chime','glass','sine'],
+    transposeRange: [7, 19],
   },
-  // deep carillon — longer ring, richer harmonics than chime
-  bell: {
-    scales: ['major_pentatonic','hawaiian','whole_tone','balinese_pelog'],
-    bpmRange: [36, 52],
+  // delicate, high shimmer — glass and chime with sine softness
+  frost: {
+    scales: ['major_pentatonic','whole_tone','lydian','chinese'],
+    bpmRange: [32, 50],
     strategies: ['anchor-scatter','anchor-scatter'],
-    atkRange: [0.001, 0.004], cutoffRange: [4000, 12000],
-    lpfRange: [7000, 18000],
-    delayRange: [0.22, 0.40], reverbRange: [0.80, 0.94],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0, tremoloRange: [0, 0],
-    adsrChance: 1.0, adsrStyle: 'bell',
-    lfoParams: ['pan','rev'], lfoChance: 0.15, lfoRateRange: [0.03, 0.12],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.0, ghostChance: 0.60,
-    physWave: 'bell',
-    transposeRange: [5, 12],
-  },
-  // meditative singing bowl — slow attack, very long sustain
-  bowl: {
-    scales: ['major_pentatonic','minor_pentatonic','balinese_pelog','raga_bhairav'],
-    bpmRange: [30, 44],
-    strategies: ['anchor-scatter','anchor-scatter'],
-    atkRange: [0.30, 0.80], cutoffRange: [600, 2500],
-    lpfRange: [800, 2500],
-    delayRange: [0.35, 0.55], reverbRange: [0.85, 0.98],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0.15, tremoloRange: [0.05, 0.20],
-    adsrChance: 1.0, adsrStyle: 'bowl',
-    lfoParams: ['cut','rev'], lfoChance: 0.30, lfoRateRange: [0.03, 0.10],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.85, ghostChance: 0.15,
-    physWave: 'bowl',
-    transposeRange: [-5, 5],
-  },
-  // warm marimba — percussive, fast decay, mid-register
-  wood: {
-    scales: ['major_pentatonic','minor_pentatonic','dorian','hawaiian'],
-    bpmRange: [52, 70],
-    strategies: ['euclidean','anchor-scatter'],
-    atkRange: [0.001, 0.004], cutoffRange: [2000, 6000],
-    lpfRange: [3000, 8000],
-    delayRange: [0.15, 0.30], reverbRange: [0.55, 0.75],
-    distChance: 0, distRange: [0, 0],
-    tremoloChance: 0, tremoloRange: [0, 0],
-    adsrChance: 1.0, adsrStyle: 'wood',
-    lfoParams: ['pan'], lfoChance: 0.20, lfoRateRange: [0.10, 0.40],
-    dstShapes: ['soft'], dstShapeChance: 0,
-    ratchetChance: 0,
-    voiceCountRange: [1, 2],
-    bassDroneChance: 0.0, ghostChance: 0.50,
-    physWave: 'wood',
-    transposeRange: [0, 7],
-  },
-  // bright crystalline pings — high register, airy
-  glass: {
-    scales: ['major_pentatonic','whole_tone','chinese','lydian'],
-    bpmRange: [40, 58],
-    strategies: ['anchor-scatter','anchor-scatter'],
-    atkRange: [0.001, 0.003], cutoffRange: [6000, 16000],
+    atkRange: [0.001, 0.004], cutoffRange: [6000, 16000],
     lpfRange: [12000, 20000],
-    delayRange: [0.20, 0.38], reverbRange: [0.78, 0.92],
+    delayRange: [0.20, 0.38], reverbRange: [0.80, 0.94],
     distChance: 0, distRange: [0, 0],
     tremoloChance: 0, tremoloRange: [0, 0],
     adsrChance: 1.0, adsrStyle: 'glass',
@@ -4909,8 +4857,65 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.0, ghostChance: 0.65,
-    physWave: 'glass',
+    voices: ['glass','glass','chime','sine'],
     transposeRange: [12, 24],
+  },
+  // low, meditative, still — bowl dominant with sine and bell
+  dusk: {
+    scales: ['minor_pentatonic','aeolian','raga_bhairav','balinese_pelog','japanese_miyakobushi'],
+    bpmRange: [30, 44],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.30, 0.80], cutoffRange: [600, 2500],
+    lpfRange: [800, 2500],
+    delayRange: [0.35, 0.55], reverbRange: [0.86, 0.98],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.15, tremoloRange: [0.05, 0.15],
+    adsrChance: 1.0, adsrStyle: 'bowl',
+    lfoParams: ['cut','rev'], lfoChance: 0.30, lfoRateRange: [0.03, 0.10],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.85, ghostChance: 0.15,
+    voices: ['bowl','bowl','sine','bell'],
+    transposeRange: [-9, -1],
+  },
+  // gentle brightening — chime and bell with sine warmth
+  dawn: {
+    scales: ['major_pentatonic','lydian','hawaiian','whole_tone'],
+    bpmRange: [38, 55],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.002, 0.006], cutoffRange: [4000, 12000],
+    lpfRange: [7000, 18000],
+    delayRange: [0.22, 0.40], reverbRange: [0.80, 0.94],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0, tremoloRange: [0, 0],
+    adsrChance: 1.0, adsrStyle: 'bell',
+    lfoParams: ['pan','rev'], lfoChance: 0.20, lfoRateRange: [0.04, 0.14],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.0, ghostChance: 0.60,
+    voices: ['chime','bell','bell','sine'],
+    transposeRange: [5, 14],
+  },
+  // deep resonance, ancient — bowl and bell with triangle body
+  cave: {
+    scales: ['minor_pentatonic','raga_bhairav','aeolian','balinese_pelog'],
+    bpmRange: [30, 44],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.20, 0.60], cutoffRange: [500, 2000],
+    lpfRange: [700, 2000],
+    delayRange: [0.30, 0.52], reverbRange: [0.85, 0.98],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.10, tremoloRange: [0.04, 0.14],
+    adsrChance: 1.0, adsrStyle: 'bowl',
+    lfoParams: ['cut','rev'], lfoChance: 0.30, lfoRateRange: [0.03, 0.10],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.90, ghostChance: 0.10,
+    voices: ['bowl','bowl','bell','triangle'],
+    transposeRange: [-12, -3],
   },
 };
 
@@ -4925,7 +4930,7 @@ $$('randRefresh').addEventListener('click', (e) => {
   // ── Resolve mood ────────────────────────────────────
   const moodSelectEl = $$('moodSelect');
   const moodKeys = Object.keys(MOOD_PROFILES);
-  const sel = moodSelectEl?.value || 'chime';
+  const sel = moodSelectEl?.value || 'drift';
   const mood = MOOD_PROFILES[sel] ? sel : pick(moodKeys);
   const prof = MOOD_PROFILES[mood];
 
@@ -4954,24 +4959,15 @@ $$('randRefresh').addEventListener('click', (e) => {
     $$('transposeVal').textContent = '+' + t;
   }
 
-  // ── Wave palette per register ───────────────────────
-  const bassWaves = ['sine','sine','triangle'];
-  const midWaves  = ['sine','sine','triangle','triangle'];
-  const hiWaves   = ['sine','triangle','sine','triangle','triangle'];
-  function waveFor(r) {
-    if (prof.physWave) return prof.physWave;
-    // Lock to dominant wave when other pages already establish a clear timbre
+  // ── Wave from mood voice palette ────────────────────
+  function waveFor() {
     if (pageCtx && pageCtx.dominantWaveFrac >= 0.6) return pageCtx.dominantWave;
-    if (r >= 12) return pick(bassWaves);
-    if (r >= 5)  return pick(midWaves);
-    return pick(hiWaves);
+    return pick(prof.voices);
   }
-  if (prof.physWave) {
-    S.wave = prof.physWave;
-    document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === prof.physWave));
-  } else if (pageCtx && pageCtx.dominantWaveFrac >= 0.6) {
-    S.wave = pageCtx.dominantWave;
-    document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === pageCtx.dominantWave));
+  {
+    const primaryWave = (pageCtx && pageCtx.dominantWaveFrac >= 0.6) ? pageCtx.dominantWave : prof.voices[0];
+    S.wave = primaryWave;
+    document.querySelectorAll('#ig-waveGroup .tui-btn, #ig-voiceGroup .tui-btn').forEach(b => b.classList.toggle('sel', b.dataset.wave === primaryWave));
   }
 
   // ── Global FX shaped by mood ────────────────────────
@@ -5124,7 +5120,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       distortion: gDist,
       delaySend:  rng() < 0.18 ? rngR(0.05, 0.18) : gDelay,
       reverbSend: (() => {
-        const base = prof.physWave ? rngR(0.65, 0.90) : rngR(0.35 + (1 - t) * 0.12, 0.60 + (1 - t) * 0.15);
+        const base = rngR(0.60 + (1 - t) * 0.08, 0.88 + (1 - t) * 0.06);
         return pageCtx ? base * 0.5 + pageCtx.reverbSend * 0.5 : base;
       })(),
       pan:        usePan ? Math.round(rngR(12, 38)) * (rng() < 0.5 ? -1 : 1) : 0,
@@ -5200,7 +5196,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       const placeNote = (r, c, vol, decay, extra) => {
         if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
         if (page[r][c] || colCount[c] >= pageVox) return false;
-        const note = { wave: waveFor(r), vol, decay, scale: chosenScale, ...noteFx(r), ...(extra || {}) };
+        const note = { wave: waveFor(), vol, decay, scale: chosenScale, ...noteFx(r), ...(extra || {}) };
         const inChord = harmRows.includes(r);
         note.prob       = Math.min(1.0, (note.prob || 0.7) * (inChord ? 1.25 : 0.80) * (0.55 + sec.d * 0.45));
         note.reverbSend = Math.min(0.92, (note.reverbSend || gReverb) * sec.rv);
@@ -5331,7 +5327,7 @@ $$('randRefresh').addEventListener('click', (e) => {
         if (colCount[c] >= MAX_VOICES) continue;
         const vol = r >= 12 ? rngR(0.35, 0.55) : r >= 5 ? rngR(0.25, 0.50) : rngR(0.15, 0.38);
         const decay = r >= 12 ? rngR(0.5, 1.2) : r >= 5 ? rngR(0.3, 0.7) : rngR(0.15, 0.45);
-        const note = { wave: waveFor(r), vol, decay, scale: chosenScale, ...noteFx(r) };
+        const note = { wave: waveFor(), vol, decay, scale: chosenScale, ...noteFx(r) };
         applyMoodFx(note, r);
         S.cells[r][c] = note;
         colCount[c]++;
@@ -5358,7 +5354,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       const prob = anchors.has(c) ? 0.75 : 0.45;
       if (rng() > prob) continue;
       const note = {
-        wave: waveFor(r), vol: rngR(0.18, 0.42), decay: rngR(0.2, 0.55),
+        wave: waveFor(), vol: rngR(0.18, 0.42), decay: rngR(0.2, 0.55),
         scale: chosenScale, ...noteFx(r),
       };
       applyMoodFx(note, r);
@@ -5381,7 +5377,7 @@ $$('randRefresh').addEventListener('click', (e) => {
         if (!rhythm[(c + rotation) % COLS]) continue;
         if (colCount[c] >= MAX_VOICES) continue;
         const note = {
-          wave: waveFor(r), vol: rngR(0.22, 0.45), decay: rngR(0.25, 0.65),
+          wave: waveFor(), vol: rngR(0.22, 0.45), decay: rngR(0.25, 0.65),
           scale: chosenScale, ...noteFx(r),
         };
         applyMoodFx(note, r);
@@ -5417,7 +5413,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       const c = rng() * COLS | 0;
       if (S.cells[r][c] || colCount[c] >= MAX_VOICES) continue;
       const note = {
-        wave: prof.physWave ?? 'sine', vol: rngR(0.08, 0.20), decay: rngR(0.3, 0.6),
+        wave: pick(prof.voices), vol: rngR(0.08, 0.20), decay: rngR(0.3, 0.6),
         scale: chosenScale, ...noteFx(r), prob: rngR(0.30, 0.60),
       };
       applyMoodFx(note, r);
