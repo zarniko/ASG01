@@ -5297,7 +5297,7 @@ $$('randRefresh').addEventListener('click', (e) => {
     switchPage(0);
     renderAll();
     showPoem(generatePoem({
-      mode: 'song', mood, chosenScale, bpm, strategy: null,
+      mode: 'song', mood, chosenScale, bpm: S.bpm, strategy: null,
       seedK, MOTIF_N, bassRow, baseSeedK,
       gReverb, gDelay, gTremolo, gCutoff, gDist, gFeedback, patternLfoBase,
     }));
@@ -5423,7 +5423,7 @@ $$('randRefresh').addEventListener('click', (e) => {
 
   renderAll();
   showPoem(generatePoem({
-    mode: 'single', mood, chosenScale, bpm, strategy,
+    mode: 'single', mood, chosenScale, bpm: S.bpm, strategy,
     seedK: null, MOTIF_N: null, bassRow: null, baseSeedK: null,
     gReverb, gDelay, gTremolo, gCutoff, gDist, gFeedback, patternLfoBase,
   }));
