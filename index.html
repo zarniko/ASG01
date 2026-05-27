@@ -259,7 +259,7 @@
       color: rgba(255,255,255,0.45); text-decoration: none; cursor: pointer; transition: color .1s;
     }
     #app-zko:hover { color: rgba(255,255,255,0.75); }
-    #gs-hbtn, #ig-hbtn, #bm-hbtn {
+    #gs-hbtn, #ig-hbtn, #bm-hbtn, #app-help-btn {
       all: unset;
       font-family: 'Share Tech Mono', monospace;
       letter-spacing: 2px;
@@ -267,7 +267,7 @@
       cursor: pointer;
       transition: color .1s, text-shadow .1s;
     }
-    #gs-hbtn:hover, #ig-hbtn:hover, #bm-hbtn:hover { color: #fff; text-shadow: 0 0 8px #fff, 0 0 20px #fff; }
+    #gs-hbtn:hover, #ig-hbtn:hover, #bm-hbtn:hover, #app-help-btn:hover { color: #fff; text-shadow: 0 0 8px #fff, 0 0 20px #fff; }
 
     /* Universal Mobile/Touch Optimizations */
     @media (hover: none) {
@@ -277,7 +277,7 @@
       input[type=range]::-webkit-slider-thumb { width: 24px !important; height: 24px !important; }
       input[type=range]::-moz-range-thumb     { width: 24px !important; height: 24px !important; border-radius: 50%; border: none; background: var(--accent); }
       input[type=range]::-moz-range-track     { height: 4px !important; background: rgba(255,255,255,0.22); border-radius: 2px; }
-      .btn-action, .tui-btn, .app-toggle-btn, .page-btn, .copy-btn, .btn-play, #gs-hbtn, #ig-hbtn, #bm-hbtn, #app-zko { min-height: 44px; display: inline-flex; align-items: center; }
+      .btn-action, .tui-btn, .app-toggle-btn, .page-btn, .copy-btn, .btn-play, #gs-hbtn, #ig-hbtn, #bm-hbtn, #app-help-btn, #app-zko { min-height: 44px; display: inline-flex; align-items: center; }
       .s-brk { padding: 10px 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 32px; }
     }
 
@@ -379,7 +379,7 @@
       #gs-panel .ctrl-gap { height: 16px; }
       .ctrl-grid { gap: 24px 32px; }
     }
-    .btn-action, #gs-hbtn, .tui-btn, .view-toggle-btn, .splice-chip { touch-action: manipulation; }
+    .btn-action, #gs-hbtn, #app-help-btn, .tui-btn, .view-toggle-btn, .splice-chip { touch-action: manipulation; }
     .app-toggle-btn, .tui-btn, .btn-action, .btn-play, .view-toggle-btn, .splice-chip,
     .lfo-toggle, .page-btn, .copy-btn, #gs-legend span, #ig-legend span, #bm-legend span, #app-legend span {
       text-decoration: underline dashed;
@@ -597,6 +597,8 @@
     <div id="app-legend"></div>
     <span class="app-toggle-sep" style="margin-left:10px;">|</span>
     <a id="app-zko" href="https://zko.io" target="_blank" rel="noopener" style="margin-left:10px;"></a>
+    <span class="app-toggle-sep" style="margin-left:10px;">|</span>
+    <button id="app-help-btn" tabindex="-1" style="margin-left:10px;">help</button>
   </div>
 </div>
 
@@ -619,7 +621,6 @@
     <div class="hdr-mid">
       <button class="btn-action" id="gs-muteBtn">mute</button>
       <button class="btn-action" id="gs-exportBtn">export</button>
-      <button id="gs-hbtn" tabindex="-1">help</button>
     </div>
   </div>
 
@@ -1094,9 +1095,7 @@
       </div>
 
       <div class="panel-rule"></div>
-      <div class="footer" style="display:none;">
-        <button id="ig-hbtn" tabindex="-1">help</button>
-      </div>
+      <div class="footer" style="display:none;"></div>
 
     </div><!-- /ctrl-panel -->
 
@@ -1186,7 +1185,6 @@
         <span style="color:var(--dim);">|</span>
         <button class="btn-action" id="bm-autoBtn" title="Auto — automatically cycles through Chladni patterns at a slow interval">auto</button>
         <span style="flex:1;"></span>
-        <button id="bm-hbtn" tabindex="-1">help</button>
       </div>
       <div id="bm-touch-wrap">
         <canvas id="bm-touch-cv"></canvas>
@@ -1286,6 +1284,7 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'w' || e.key === 'W') { e.stopImmediatePropagation(); closeAll(); window._gsShowHelp?.(); }
     else if (e.key === 'e' || e.key === 'E') { e.stopImmediatePropagation(); closeAll(); window._bmShowHelp?.(); }
     else if (e.key === 'h' || e.key === 'H') { e.stopImmediatePropagation(); closeAll(); }
+    else if (e.key === 'Escape') { e.stopImmediatePropagation(); closeAll(); }
     return;
   }
   if (e.key === 'q' || e.key === 'Q') _showPanel('ig-panel');
@@ -1322,6 +1321,16 @@ document.addEventListener('keydown', e => {
     setInterval(() => { zkoEl.textContent = rc()+rc()+rc()+rc(); }, 140);
   }
 })();
+
+document.getElementById('app-help-btn').addEventListener('click', () => {
+  if (document.getElementById('gs-help-ov')) { window._gsHideHelp?.(); return; }
+  if (document.getElementById('ig-help-ov')) { window._igHideHelp?.(); return; }
+  if (document.getElementById('bm-help-ov')) { window._bmHideHelp?.(); return; }
+  const active = _panels.find(p => document.getElementById(p.panel).style.display !== 'none');
+  if (active?.panel === 'gs-panel') window._gsShowHelp?.();
+  else if (active?.panel === 'ig-panel') window._igShowHelp?.();
+  else if (active?.panel === 'bm-panel') window._bmShowHelp?.();
+});
 
 </script>
 <script>
@@ -1373,7 +1382,7 @@ function _asgMakeHelpTabs(activeKey, onClose) {
   right.className = 'atb-right';
 
   const legendEl = document.createElement('div');
-  legendEl.style.cssText = 'display:flex;align-items:center;';
+  legendEl.style.cssText = 'display:flex;align-items:center;letter-spacing:0;';
   const legendSpans = COLORS.map(col => {
     const s = document.createElement('span');
     s.style.cssText = `color:${col};cursor:pointer;transition:opacity .1s;font-size:13px;padding:6px 5px;`;
@@ -1408,6 +1417,20 @@ function _asgMakeHelpTabs(activeKey, onClose) {
   zko.addEventListener('mouseout',  () => { zko.style.color = 'rgba(255,255,255,0.45)'; });
   window._asgHelpIntervals.push(setInterval(() => { zko.textContent = rc()+rc()+rc()+rc(); }, 140));
   right.appendChild(zko);
+
+  const closeSep = document.createElement('span');
+  closeSep.className = 'app-toggle-sep';
+  closeSep.style.marginLeft = '10px';
+  closeSep.textContent = '|';
+  right.appendChild(closeSep);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'close(esc)';
+  closeBtn.style.cssText = 'all:unset;margin-left:10px;font-family:\'Share Tech Mono\',monospace;font-size:13px;letter-spacing:2px;color:rgba(255,255,255,0.45);cursor:pointer;transition:color .1s,text-shadow .1s;';
+  closeBtn.addEventListener('mouseover', () => { closeBtn.style.color = '#fff'; closeBtn.style.textShadow = '0 0 8px #fff, 0 0 20px #fff'; });
+  closeBtn.addEventListener('mouseout',  () => { closeBtn.style.color = 'rgba(255,255,255,0.45)'; closeBtn.style.textShadow = ''; });
+  closeBtn.addEventListener('click', e => { e.stopPropagation(); onClose(); });
+  right.appendChild(closeBtn);
 
   bar.appendChild(right);
   return bar;
@@ -2428,11 +2451,13 @@ const HELP_ROWS = [
   ['row',  'capture audio',    'start / stop audio capture'],
   ['row',  'source',          'select mic or system audio (BlackHole/Loopback on Mac)'],
   ['row',  'freeze',          'lock buffer — grains keep playing'],
+  ['row',  'mute',            'silence output without stopping grains'],
+  ['row',  'export',          'record output to wav or webm file'],
   ['gap'],
   ['head', 'KEYS', ''],
-  ['row',  'R',               'toggle capture audio'],
   ['row',  'space',           'toggle freeze'],
   ['row',  'H',               'toggle this help'],
+  ['row',  'ESC',             'close this help'],
   ['gap'],
   ['head', 'WAVEFORM', ''],
   ['row',  'shift + click',   'add splice marker'],
@@ -2445,9 +2470,12 @@ const HELP_ROWS = [
   ['row',  'pos',             'read position in buffer (0–1)'],
   ['row',  'ptch',            'playback pitch multiplier'],
   ['row',  'sprd',            'position + stereo randomness'],
+  ['row',  'p.dft',           'random pitch variation per grain'],
+  ['row',  'p.jmp',           'chance each grain skips to random buffer position'],
   ['gap'],
   ['head', 'BUFFER', ''],
   ['row',  'revb',            'reverb wet amount'],
+  ['row',  'vol',             'output gain'],
   ['row',  'prsv',            'buffer feedback — old audio bleeds in'],
   ['row',  'bar at top',      'shows write-head position in 4s buffer'],
   ['gap'],
@@ -2462,6 +2490,8 @@ const HELP_ROWS = [
 function showHelp() {
   if (helpVisible) return;
   helpVisible = true;
+  const _ahb = document.getElementById('app-help-btn');
+  if (_ahb) _ahb.textContent = 'close(esc)';
 
   const w      = window.innerWidth;
   const narrow = w <= 580;
@@ -2571,6 +2601,8 @@ function showHelp() {
 function hideHelp() {
   if (!helpVisible) return;
   helpVisible = false;
+  const _ahb = document.getElementById('app-help-btn');
+  if (_ahb) _ahb.textContent = 'help';
   const ov = $$('help-ov');
   if (ov) {
     if (ov._onResize) window.removeEventListener('resize', ov._onResize);
@@ -2580,7 +2612,6 @@ function hideHelp() {
 
 window._gsShowHelp = showHelp;
 window._gsHideHelp = hideHelp;
-$$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp());
 
 // ── §GS01:bh  black hole visualization ──────────────────────────────────────
 (function () {
@@ -4496,7 +4527,6 @@ function buildPageBar() {
     progressActive ? stopProgression() : startProgression();
   });
   bpmGroup.appendChild(progressBtn);
-  document.getElementById('ig-panel').querySelector('.hdr').appendChild($$('hbtn'));
 }
 
 // Build a per-run progression: 8 page durations (in pattern loops) summing to ~3-8 min
@@ -5460,6 +5490,7 @@ const HELP_COLS = [
   ['head', 'KEYS', ''],
   ['row',  'space',    'play / stop'],
   ['row',  'h',        'toggle help'],
+  ['row',  'ESC',      'close this help'],
   ['row',  'A (hold)', 'per-note fx panel'],
   ['row',  'B (hold)', 'global fx panel'],
   ['row',  'G',        'generate current page'],
@@ -5488,11 +5519,14 @@ const HELP_COLS = [
   ['row',  '1 – 8',   'switch page'],
   ['row',  '↑',       'copy pattern'],
   ['row',  '↓',       'paste pattern'],
+  ['row',  '◯',       'toggle spiral sequencer view'],
+  ['row',  'auto',    'auto-progress through pages on a 3–8 min arc'],
   ['gap'],
   ['head', 'NOTE (A)', 'select a note first'],
   ['row',  'vol',   'volume'],
   ['row',  'decay', 'release time'],
   ['row',  'scale', '35 scales'],
+  ['row',  'xpose', 'transpose all notes ±24 semitones'],
   ['row',  'wave',  'oscillator type'],
   ['row',  'atk',   'attack time'],
   ['row',  'det',   'detune (cents)'],
@@ -5517,10 +5551,15 @@ const HELP_COLS = [
   ['row',  'share', 'copy shareable url'],
   ['gap'],
   ['head', 'WAVEFORMS', ''],
-  ['row',  'sine', 'smooth / ambient'],
-  ['row',  'tri',  'warm / mellow'],
-  ['row',  'sqr',  'bright / harsh'],
-  ['row',  'saw',  'buzzy / rich'],
+  ['row',  'sine',  'smooth / ambient'],
+  ['row',  'tri',   'warm / mellow'],
+  ['row',  'sqr',   'bright / harsh'],
+  ['row',  'saw',   'buzzy / rich'],
+  ['row',  'chime', 'inharmonic — bright metallic decay'],
+  ['row',  'bell',  'inharmonic — deep resonant tone'],
+  ['row',  'bowl',  'inharmonic — singing bowl sustain'],
+  ['row',  'wood',  'inharmonic — percussive thud'],
+  ['row',  'glass', 'inharmonic — glassy shimmer'],
   ['gap'],
   ['head', 'COLORS', ''],
   ['row',  'click swatch', 'set accent color'],
@@ -5530,6 +5569,8 @@ const HELP_COLS = [
 function showHelp() {
   if (helpVisible) return;
   helpVisible = true;
+  const _ahb = document.getElementById('app-help-btn');
+  if (_ahb) _ahb.textContent = 'close(esc)';
 
   const w = window.innerWidth;
   const narrow = w <= 580;
@@ -5652,6 +5693,8 @@ function showHelp() {
 function hideHelp() {
   if (!helpVisible) return;
   helpVisible = false;
+  const _ahb = document.getElementById('app-help-btn');
+  if (_ahb) _ahb.textContent = 'help';
   const ov = $$('help-ov');
   if (ov) {
     if (ov._onResize) window.removeEventListener('resize', ov._onResize);
@@ -5661,7 +5704,6 @@ function hideHelp() {
 
 window._igShowHelp = showHelp;
 window._igHideHelp = hideHelp;
-$$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp());
 
 /* ── Oscilloscope ───────────────────────────────────── */
 let scopeActive = false;
@@ -7500,6 +7542,10 @@ document.getElementById('ig-scaleSelect').addEventListener('change', e => {
 let helpVisible = false;
 
 const BM_HELP = [
+  ['head', 'KEYS', ''],
+  ['row',  'H',   'toggle this help'],
+  ['row',  'ESC', 'close this help'],
+  ['gap'],
   ['head', 'TOUCH', ''],
   ['row',  'tap touch area',   'spawn held tone'],
   ['row',  'drag X',           'stereo pan'],
@@ -7511,10 +7557,17 @@ const BM_HELP = [
   ['row',  'hold off',         'release all voices'],
   ['gap'],
   ['head', 'CONTROLS', ''],
-  ['row',  'atk',   'attack time'],
-  ['row',  'rel',   'release time'],
-  ['row',  'revb',  'reverb send'],
-  ['row',  'vol',   'output volume'],
+  ['row',  'cut',  'filter brightness'],
+  ['row',  'det',  'detune spread across voices'],
+  ['row',  'oct',  'octave transpose'],
+  ['row',  'atk',  'attack time'],
+  ['row',  'rel',  'release time'],
+  ['row',  'revb', 'reverb send'],
+  ['row',  'vol',  'output volume'],
+  ['gap'],
+  ['head', 'RECORD', ''],
+  ['row',  'rec',    'start / stop recording gesture'],
+  ['row',  'replay', 'play back last recorded gesture'],
   ['gap'],
   ['head', 'SCALE', ''],
   ['row',  '[link]',           'sync scale with grid'],
@@ -7535,6 +7588,8 @@ const BM_HELP = [
 function showHelp() {
   if (helpVisible) return;
   helpVisible = true;
+  const _ahb = document.getElementById('app-help-btn');
+  if (_ahb) _ahb.textContent = 'close(esc)';
   const w = window.innerWidth;
   const narrow = w <= 580;
   const cols = narrow ? 1 : 2;
@@ -7633,6 +7688,8 @@ function showHelp() {
 function hideHelp() {
   if (!helpVisible) return;
   helpVisible = false;
+  const _ahb = document.getElementById('app-help-btn');
+  if (_ahb) _ahb.textContent = 'help';
   const ov = document.getElementById('bm-help-ov');
   if (ov) {
     if (ov._onResize) window.removeEventListener('resize', ov._onResize);
@@ -7642,7 +7699,6 @@ function hideHelp() {
 
 window._bmShowHelp = showHelp;
 window._bmHideHelp = hideHelp;
-$$('hbtn').addEventListener('click', () => helpVisible ? hideHelp() : showHelp());
 
 document.addEventListener('keydown', e => {
   if (document.getElementById('bm-panel').style.display === 'none') return;
