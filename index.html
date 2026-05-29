@@ -1436,6 +1436,100 @@ function _asgMakeHelpTabs(activeKey, onClose) {
   bar.appendChild(right);
   return bar;
 }
+
+window._asgBuildHelpOverlay = function(inst, items, color, cols, maxW, onHide) {
+  const narrow = cols === 1;
+  const ov = document.createElement('div');
+  ov.id = inst + '-help-ov';
+  Object.assign(ov.style, {
+    position: 'fixed', inset: '0', zIndex: '9999',
+    background: 'rgba(0,0,0,0.92)',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+    overflow: 'auto',
+    paddingTop: narrow ? '48px' : '0',
+    paddingBottom: narrow ? '32px' : '0',
+    paddingLeft: narrow ? '20px' : '0',
+    paddingRight: narrow ? '20px' : '0',
+    boxSizing: 'border-box',
+  });
+
+  const sl = document.createElement('div');
+  Object.assign(sl.style, {
+    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '1',
+    background: 'repeating-linear-gradient(to bottom,transparent 0px,transparent 1px,rgba(0,0,0,0.07) 1px,rgba(0,0,0,0.07) 2px)',
+  });
+  ov.appendChild(sl);
+
+  const vg = document.createElement('div');
+  Object.assign(vg.style, {
+    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '2',
+    background: 'radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%)',
+  });
+  ov.appendChild(vg);
+
+  const grid = document.createElement('div');
+  Object.assign(grid.style, {
+    position: 'relative', zIndex: '10',
+    fontFamily: "'Share Tech Mono', monospace", fontSize: '14px',
+    lineHeight: '1.5', letterSpacing: '2px',
+    userSelect: 'none', color,
+    maxWidth: maxW, width: cols === 1 ? '100%' : '90vw',
+    textShadow: `0 0 8px ${color}60`,
+    columnCount: String(cols),
+    columnGap: '48px',
+  });
+
+  function renderItem(item, container) {
+    if (item[0] === 'head') {
+      const h = document.createElement('div');
+      h.textContent = item[1];
+      h.style.cssText = `grid-column:1/-1; color:${color}; opacity:0.55; margin-bottom:6px; letter-spacing:3px;`;
+      container.appendChild(h);
+      if (item[2]) {
+        const sub = document.createElement('div');
+        sub.textContent = item[2];
+        sub.style.cssText = `grid-column:1/-1; opacity:0.35; font-size:12px; margin-bottom:2px; letter-spacing:2px;`;
+        container.appendChild(sub);
+      }
+      return;
+    }
+    const k = document.createElement('div');
+    k.textContent = item[1];
+    k.style.cssText = 'white-space:nowrap; opacity:0.90;';
+    const d = document.createElement('div');
+    d.textContent = item[2];
+    d.style.cssText = 'opacity:0.45;';
+    container.appendChild(k);
+    container.appendChild(d);
+  }
+
+  const visibleItems = narrow ? items : items.filter(item => !item[3]);
+  let sectionItems = [];
+  function flushSection() {
+    if (!sectionItems.length) return;
+    const sec = document.createElement('div');
+    Object.assign(sec.style, {
+      breakInside: 'avoid', display: 'grid',
+      gridTemplateColumns: 'max-content 1fr',
+      columnGap: '20px', rowGap: '0px', marginBottom: '22px',
+    });
+    sectionItems.forEach(item => renderItem(item, sec));
+    grid.appendChild(sec);
+    sectionItems = [];
+  }
+  visibleItems.forEach(item => { if (item[0] === 'gap') flushSection(); else sectionItems.push(item); });
+  flushSection();
+
+  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
+  ov.appendChild(_asgMakeHelpTabs(inst, onHide));
+  const _hw = document.createElement('div');
+  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
+  _hw.appendChild(grid);
+  _hw.addEventListener('click', e => e.stopPropagation());
+  ov.appendChild(_hw);
+  ov.addEventListener('click', e => { if (e.target === ov) onHide(); });
+  return ov;
+};
 </script>
 
 <script>
@@ -2497,107 +2591,10 @@ function showHelp() {
   helpVisible = true;
   const _ahb = document.getElementById('app-help-btn');
   if (_ahb) _ahb.textContent = 'close(esc)';
-
-  const w      = window.innerWidth;
-  const narrow = w <= 580;
-  const cols   = narrow ? 1 : 2;
-  const helpColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
-
-  const ov = document.createElement('div');
-  ov.id = 'gs-help-ov';
-  Object.assign(ov.style, {
-    position: 'fixed', inset: '0', zIndex: '9999',
-    background: 'rgba(0,0,0,0.92)',
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    overflow: 'auto',
-    paddingTop: narrow ? '48px' : '0',
-    paddingBottom: narrow ? '32px' : '0',
-    paddingLeft: narrow ? '20px' : '0',
-    paddingRight: narrow ? '20px' : '0',
-    boxSizing: 'border-box',
-  });
-
-  const sl = document.createElement('div');
-  Object.assign(sl.style, {
-    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '1',
-    background: 'repeating-linear-gradient(to bottom,transparent 0px,transparent 1px,rgba(0,0,0,0.07) 1px,rgba(0,0,0,0.07) 2px)',
-  });
-  ov.appendChild(sl);
-
-  const vg = document.createElement('div');
-  Object.assign(vg.style, {
-    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '2',
-    background: 'radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%)',
-  });
-  ov.appendChild(vg);
-
-  const grid = document.createElement('div');
-  Object.assign(grid.style, {
-    position: 'relative', zIndex: '10',
-    fontFamily: "'Share Tech Mono', monospace", fontSize: '14px',
-    lineHeight: '1.5', letterSpacing: '2px',
-    userSelect: 'none', color: helpColor,
-    maxWidth: cols === 1 ? '95vw' : '640px',
-    width: cols === 1 ? '100%' : '90vw',
-    textShadow: `0 0 8px ${helpColor}60`,
-    columnCount: String(cols),
-    columnGap: '48px',
-  });
-
-  function renderItem(item, container) {
-    if (item[0] === 'head') {
-      const h = document.createElement('div');
-      h.textContent = item[1];
-      h.style.cssText = `grid-column:1/-1; color:${helpColor}; opacity:0.55; margin-bottom:6px; letter-spacing:3px;`;
-      container.appendChild(h);
-      return;
-    }
-
-    const k = document.createElement('div');
-    k.textContent = item[1];
-    k.style.cssText = 'white-space:nowrap; opacity:0.90;';
-    const d = document.createElement('div');
-    d.textContent = item[2];
-    d.style.cssText = 'opacity:0.45;';
-    container.appendChild(k);
-    container.appendChild(d);
-  }
-
-  let sectionItems = [];
-  function flushSection() {
-    if (!sectionItems.length) return;
-    const sec = document.createElement('div');
-    Object.assign(sec.style, {
-      breakInside: 'avoid',
-      display: 'grid',
-      gridTemplateColumns: 'max-content 1fr',
-      columnGap: '20px',
-      rowGap: '0px',
-      marginBottom: '22px',
-    });
-    sectionItems.forEach(item => renderItem(item, sec));
-    grid.appendChild(sec);
-    sectionItems = [];
-  }
-
-  HELP_ROWS.forEach(item => {
-    if (item[0] === 'gap') flushSection();
-    else sectionItems.push(item);
-  });
-  flushSection();
-
-  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
-  ov.appendChild(_asgMakeHelpTabs('gs', hideHelp));
-  const _hw = document.createElement('div');
-  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
-  _hw.appendChild(grid);
-  _hw.addEventListener('click', e => e.stopPropagation());
-  ov.appendChild(_hw);
-  ov.addEventListener('click', e => { if (e.target === ov) hideHelp(); });
+  const cols = window.innerWidth <= 580 ? 1 : 2;
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
+  const ov = window._asgBuildHelpOverlay('gs', HELP_ROWS, color, cols, cols === 1 ? '95vw' : '640px', hideHelp);
   document.body.appendChild(ov);
-
   function onResize() { if (!helpVisible) return; hideHelp(); showHelp(); }
   ov._onResize = onResize;
   window.addEventListener('resize', onResize);
@@ -5583,121 +5580,12 @@ function showHelp() {
   helpVisible = true;
   const _ahb = document.getElementById('app-help-btn');
   if (_ahb) _ahb.textContent = 'close(esc)';
-
   const w = window.innerWidth;
-  const narrow = w <= 580;
-  const cols   = narrow ? 1 : w >= 900 ? 3 : 2;
-
-  const ov = document.createElement('div');
-  ov.id = 'ig-help-ov';
-  Object.assign(ov.style, {
-    position: 'fixed', inset: '0', zIndex: '9999',
-    background: 'rgba(0,0,0,0.92)',
-    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-    overflow: 'auto',
-    paddingTop: narrow ? '48px' : '0',
-    paddingBottom: narrow ? '32px' : '0',
-    paddingLeft: narrow ? '20px' : '0',
-    paddingRight: narrow ? '20px' : '0',
-    boxSizing: 'border-box',
-  });
-
-  // scanlines
-  const sl = document.createElement('div');
-  Object.assign(sl.style, {
-    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '1',
-    background: 'repeating-linear-gradient(to bottom,transparent 0px,transparent 1px,rgba(0,0,0,0.07) 1px,rgba(0,0,0,0.07) 2px)',
-  });
-  ov.appendChild(sl);
-
-  // vignette
-  const vg = document.createElement('div');
-  Object.assign(vg.style, {
-    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '2',
-    background: 'radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%)',
-  });
-  ov.appendChild(vg);
-
-  // help grid
-  const grid = document.createElement('div');
+  const cols = w <= 580 ? 1 : w >= 900 ? 3 : 2;
   const maxW = cols === 1 ? '95vw' : cols === 2 ? '560px' : '820px';
-  Object.assign(grid.style, {
-    position: 'relative', zIndex: '10',
-    fontFamily: "'Share Tech Mono', monospace", fontSize: '14px',
-    lineHeight: '1.5', letterSpacing: '2px',
-    userSelect: 'none', color: lineColor,
-    maxWidth: maxW, width: cols === 1 ? '100%' : '90vw',
-    textShadow: `0 0 8px ${lineColor}60`,
-    columnCount: String(cols),
-    columnGap: '48px',
-  });
-
-  function renderItem(item, container) {
-    if (item[0] === 'head') {
-      const h = document.createElement('div');
-      h.textContent = item[1];
-      h.style.cssText = `grid-column:1/-1; color:${lineColor}; opacity:0.55; margin-bottom:6px; letter-spacing:3px;`;
-      container.appendChild(h);
-      if (item[2]) {
-        const sub = document.createElement('div');
-        sub.textContent = item[2];
-        sub.style.cssText = `grid-column:1/-1; opacity:0.35; font-size:12px; margin-bottom:2px; letter-spacing:2px;`;
-        container.appendChild(sub);
-      }
-      return;
-    }
-    const k = document.createElement('div');
-    k.textContent = item[1];
-    k.style.cssText = 'white-space:nowrap; opacity:0.90;';
-    const d = document.createElement('div');
-    d.textContent = item[2];
-    d.style.cssText = 'opacity:0.45;';
-    container.appendChild(k);
-    container.appendChild(d);
-  }
-
-  // group into sections separated by gaps; each section gets break-inside:avoid
-  const visibleItems = narrow ? HELP_COLS : HELP_COLS.filter(item => !item[3]);
-  let sectionItems = [];
-
-  function flushSection() {
-    if (!sectionItems.length) return;
-    const sec = document.createElement('div');
-    Object.assign(sec.style, {
-      breakInside: 'avoid',
-      display: 'grid',
-      gridTemplateColumns: 'max-content 1fr',
-      columnGap: '20px',
-      rowGap: '0px',
-      marginBottom: '22px',
-    });
-    sectionItems.forEach(item => renderItem(item, sec));
-    grid.appendChild(sec);
-    sectionItems = [];
-  }
-
-  visibleItems.forEach(item => {
-    if (item[0] === 'gap') { flushSection(); }
-    else { sectionItems.push(item); }
-  });
-  flushSection();
-
-  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
-  ov.appendChild(_asgMakeHelpTabs('ig', hideHelp));
-  const _hw = document.createElement('div');
-  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
-  _hw.appendChild(grid);
-  _hw.addEventListener('click', e => e.stopPropagation());
-  ov.appendChild(_hw);
-
-  ov.addEventListener('click', e => { if (e.target === ov) hideHelp(); });
+  const ov = window._asgBuildHelpOverlay('ig', HELP_COLS, lineColor, cols, maxW, hideHelp);
   document.body.appendChild(ov);
-
-  function onResize() {
-    if (!helpVisible) return;
-    hideHelp();
-    showHelp();
-  }
+  function onResize() { if (!helpVisible) return; hideHelp(); showHelp(); }
   ov._onResize = onResize;
   window.addEventListener('resize', onResize);
 }
@@ -7602,96 +7490,9 @@ function showHelp() {
   helpVisible = true;
   const _ahb = document.getElementById('app-help-btn');
   if (_ahb) _ahb.textContent = 'close(esc)';
-  const w = window.innerWidth;
-  const narrow = w <= 580;
-  const cols = narrow ? 1 : 2;
-
-  const ov = document.createElement('div');
-  ov.id = 'bm-help-ov';
-  Object.assign(ov.style, {
-    position: 'fixed', inset: '0', zIndex: '9999',
-    background: 'rgba(0,0,0,0.92)',
-    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-    overflow: 'auto',
-    paddingTop: narrow ? '48px' : '0',
-    paddingBottom: narrow ? '32px' : '0',
-    paddingLeft: narrow ? '20px' : '0',
-    paddingRight: narrow ? '20px' : '0',
-    boxSizing: 'border-box',
-  });
-
-  const sl = document.createElement('div');
-  Object.assign(sl.style, {
-    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '1',
-    background: 'repeating-linear-gradient(to bottom,transparent 0px,transparent 1px,rgba(0,0,0,0.07) 1px,rgba(0,0,0,0.07) 2px)',
-  });
-  ov.appendChild(sl);
-
-  const vg = document.createElement('div');
-  Object.assign(vg.style, {
-    position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '2',
-    background: 'radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%)',
-  });
-  ov.appendChild(vg);
-
-  const grid = document.createElement('div');
-  const maxW = cols === 1 ? '95vw' : '560px';
-  Object.assign(grid.style, {
-    position: 'relative', zIndex: '10',
-    fontFamily: "'Share Tech Mono', monospace", fontSize: '14px',
-    lineHeight: '1.5', letterSpacing: '2px',
-    userSelect: 'none', color: lineColor,
-    maxWidth: maxW, width: cols === 1 ? '100%' : '90vw',
-    textShadow: `0 0 8px ${lineColor}60`,
-    columnCount: String(cols),
-    columnGap: '48px',
-  });
-
-  function renderItem(item, container) {
-    if (item[0] === 'head') {
-      const h = document.createElement('div');
-      h.textContent = item[1];
-      h.style.cssText = `grid-column:1/-1; color:${lineColor}; opacity:0.55; margin-bottom:6px; letter-spacing:3px;`;
-      container.appendChild(h);
-      return;
-    }
-    const k = document.createElement('div');
-    k.textContent = item[1];
-    k.style.cssText = 'white-space:nowrap; opacity:0.90;';
-    const d = document.createElement('div');
-    d.textContent = item[2];
-    d.style.cssText = 'opacity:0.45;';
-    container.appendChild(k);
-    container.appendChild(d);
-  }
-
-  let sectionItems = [];
-  function flushSection() {
-    if (!sectionItems.length) return;
-    const sec = document.createElement('div');
-    Object.assign(sec.style, {
-      breakInside: 'avoid', display: 'grid',
-      gridTemplateColumns: 'max-content 1fr',
-      columnGap: '20px', rowGap: '0px', marginBottom: '22px',
-    });
-    sectionItems.forEach(item => renderItem(item, sec));
-    grid.appendChild(sec);
-    sectionItems = [];
-  }
-
-  BM_HELP.forEach(item => { if (item[0] === 'gap') flushSection(); else sectionItems.push(item); });
-  flushSection();
-
-  ov.style.paddingTop = ((document.querySelector('.app-toggle-bar')?.offsetHeight || 44) * 2) + 'px';
-  ov.appendChild(_asgMakeHelpTabs('bm', hideHelp));
-  const _hw = document.createElement('div');
-  Object.assign(_hw.style, { position: 'relative', zIndex: '10' });
-  _hw.appendChild(grid);
-  _hw.addEventListener('click', e => e.stopPropagation());
-  ov.appendChild(_hw);
-  ov.addEventListener('click', e => { if (e.target === ov) hideHelp(); });
+  const cols = window.innerWidth <= 580 ? 1 : 2;
+  const ov = window._asgBuildHelpOverlay('bm', BM_HELP, lineColor, cols, cols === 1 ? '95vw' : '560px', hideHelp);
   document.body.appendChild(ov);
-
   function onResize() { if (!helpVisible) return; hideHelp(); showHelp(); }
   ov._onResize = onResize;
   window.addEventListener('resize', onResize);
