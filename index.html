@@ -893,16 +893,16 @@
         <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
-            <option value="mist">mist</option>
-            <option value="drift" selected>drift</option>
-            <option value="tide">tide</option>
-            <option value="ember">ember</option>
-            <option value="bloom">bloom</option>
-            <option value="rain">rain</option>
-            <option value="frost">frost</option>
-            <option value="dusk">dusk</option>
-            <option value="dawn">dawn</option>
-            <option value="cave">cave</option>
+            <option value="stochastic" selected>stochastic</option>
+            <option value="transient">transient</option>
+            <option value="laminar">laminar</option>
+            <option value="diffuse">diffuse</option>
+            <option value="periodic">periodic</option>
+            <option value="harmonic">harmonic</option>
+            <option value="resonant">resonant</option>
+            <option value="crystalline">crystalline</option>
+            <option value="modal">modal</option>
+            <option value="nodal">nodal</option>
           </select>
         </div>
       </div>
@@ -1310,6 +1310,7 @@ document.addEventListener('keydown', e => {
         window.asgIg01SetLineColor?.(col);
         window.asgBmSetLineColor?.(col);
       }
+      document.getElementById('ig-lfo-panel-atk')?._draw?.();
     });
     legendEl.appendChild(s);
     return s;
@@ -3082,7 +3083,13 @@ const dpr = window.devicePixelRatio || 1;
 
 /* ── Accent color ───────────────────────────────────── */
 let lineColor = '#fff';
-window.asgIg01SetLineColor = (col) => { lineColor = col; };
+window.asgIg01SetLineColor = (col) => {
+  lineColor = col;
+  if (shiftActive) {
+    const hint = document.getElementById('ig-shift-hint');
+    if (hint) hint.style.color = col;
+  }
+};
 function setAccent(col) {
   lineColor = col;
   document.documentElement.style.setProperty('--accent', col);
@@ -4757,7 +4764,7 @@ $$('clearRefresh').addEventListener('click', (e) => {
 
 const MOOD_PROFILES = {
   // sparse, barely there — sine with occasional bowl undertone
-  mist: {
+  diffuse: {
     scales: ['balinese_pelog','major_pentatonic','whole_tone','ryuku','hawaiian'],
     bpmRange: [30, 45],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4776,7 +4783,7 @@ const MOOD_PROFILES = {
     transposeRange: [-3, 8],
   },
   // slow, formless float — sine dominant with bowl and triangle
-  drift: {
+  laminar: {
     scales: ['major_pentatonic','balinese_pelog','aeolian','whole_tone','hawaiian'],
     bpmRange: [32, 48],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4795,7 +4802,7 @@ const MOOD_PROFILES = {
     transposeRange: [-5, 7],
   },
   // gentle swell and fade — sine and triangle with bowl warmth
-  tide: {
+  periodic: {
     scales: ['dorian','aeolian','major_pentatonic','lydian','raga_bhairav'],
     bpmRange: [35, 52],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4814,7 +4821,7 @@ const MOOD_PROFILES = {
     transposeRange: [-6, 5],
   },
   // warm, glowing pulse — triangle and bell with sine softness
-  ember: {
+  harmonic: {
     scales: ['major_pentatonic','dorian','hawaiian','balinese_pelog'],
     bpmRange: [38, 55],
     strategies: ['anchor-scatter','euclidean'],
@@ -4833,7 +4840,7 @@ const MOOD_PROFILES = {
     transposeRange: [0, 9],
   },
   // soft, open, hopeful — sine and triangle with bright bell accents
-  bloom: {
+  resonant: {
     scales: ['major_pentatonic','major_pentatonic','lydian','chinese','hawaiian'],
     bpmRange: [40, 58],
     strategies: ['anchor-scatter','euclidean'],
@@ -4852,7 +4859,7 @@ const MOOD_PROFILES = {
     transposeRange: [3, 12],
   },
   // light, distant touches — chime and glass with sine ground
-  rain: {
+  stochastic: {
     scales: ['major_pentatonic','major_pentatonic','japanese_miyakobushi','ryuku','whole_tone'],
     bpmRange: [30, 46],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4871,7 +4878,7 @@ const MOOD_PROFILES = {
     transposeRange: [7, 19],
   },
   // delicate, high shimmer — glass and chime with sine softness
-  frost: {
+  crystalline: {
     scales: ['major_pentatonic','whole_tone','lydian','chinese'],
     bpmRange: [32, 50],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4890,7 +4897,7 @@ const MOOD_PROFILES = {
     transposeRange: [12, 24],
   },
   // low, meditative, still — bowl dominant with sine and bell
-  dusk: {
+  modal: {
     scales: ['minor_pentatonic','aeolian','raga_bhairav','balinese_pelog','japanese_miyakobushi'],
     bpmRange: [30, 44],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4909,7 +4916,7 @@ const MOOD_PROFILES = {
     transposeRange: [-9, -1],
   },
   // gentle brightening — chime and bell with sine warmth
-  dawn: {
+  transient: {
     scales: ['major_pentatonic','lydian','hawaiian','whole_tone'],
     bpmRange: [38, 55],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4928,7 +4935,7 @@ const MOOD_PROFILES = {
     transposeRange: [5, 14],
   },
   // deep resonance, ancient — bowl and bell with triangle body
-  cave: {
+  nodal: {
     scales: ['minor_pentatonic','raga_bhairav','aeolian','balinese_pelog'],
     bpmRange: [30, 44],
     strategies: ['anchor-scatter','anchor-scatter'],
@@ -4959,7 +4966,7 @@ $$('randRefresh').addEventListener('click', (e) => {
   // ── Resolve mood ────────────────────────────────────
   const moodSelectEl = $$('moodSelect');
   const moodKeys = Object.keys(MOOD_PROFILES);
-  const sel = moodSelectEl?.value || 'drift';
+  const sel = moodSelectEl?.value || 'stochastic';
   const mood = MOOD_PROFILES[sel] ? sel : pick(moodKeys);
   const prof = MOOD_PROFILES[mood];
 
