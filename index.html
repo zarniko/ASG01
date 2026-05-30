@@ -3773,14 +3773,15 @@ function buildLfoPanels() {
       updateLfoActive(param);
     }
     function toPoints(adsr, dw) {
-      const sc = dw / T_MAX;
+      const total = adsr.a + adsr.d + adsr.h + adsr.r;
+      const sc = dw / Math.max(T_MAX, total);
       const py = PAD + (1 - Math.max(0.01, Math.min(0.99, adsr.s))) * DH;
       return [
-        [PAD,                                                                PAD + DH],
-        [PAD + adsr.a * sc,                                                  PAD],
-        [PAD + (adsr.a + adsr.d) * sc,                                      py],
-        [PAD + (adsr.a + adsr.d + adsr.h) * sc,                             py],
-        [Math.min(PAD + dw, PAD + (adsr.a + adsr.d + adsr.h + adsr.r) * sc), PAD + DH],
+        [PAD,                                             PAD + DH],
+        [PAD + adsr.a * sc,                               PAD],
+        [PAD + (adsr.a + adsr.d) * sc,                   py],
+        [PAD + (adsr.a + adsr.d + adsr.h) * sc,          py],
+        [PAD + total * sc,                                PAD + DH],
       ];
     }
     function draw() {
@@ -3797,26 +3798,22 @@ function buildLfoPanels() {
       // faint grid lines (within padded area)
       ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
       ctx.beginPath();
-      for (let i = 1; i < 4; i++) { const x = PAD + dw * i / 4; ctx.moveTo(x, PAD); ctx.lineTo(x, PAD + DH); }
-      for (let i = 1; i < 4; i++) { const y = PAD + DH * i / 4; ctx.moveTo(PAD, y); ctx.lineTo(PAD + dw, y); }
+      for (let i = 0; i <= 10; i++) { const x = PAD + dw * i / 10; ctx.moveTo(x, PAD); ctx.lineTo(x, PAD + DH); }
+      for (let i = 0; i <= 8; i++) { const y = PAD + DH * i / 8; ctx.moveTo(PAD, y); ctx.lineTo(PAD + dw, y); }
       ctx.stroke();
 
       // curve
       const p = toPoints(adsr, dw);
-      ctx.strokeStyle = accent; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.5;
+      ctx.setLineDash([6, 5]);
       ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
       for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
       ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
 
-      // corner brackets
-      const bk = 5;
+      // border
       ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(bk, 0); ctx.lineTo(0, 0); ctx.lineTo(0, bk);
-      ctx.moveTo(cssW - bk, 0); ctx.lineTo(cssW, 0); ctx.lineTo(cssW, bk);
-      ctx.moveTo(0, CV_H - bk); ctx.lineTo(0, CV_H); ctx.lineTo(bk, CV_H);
-      ctx.moveTo(cssW - bk, CV_H); ctx.lineTo(cssW, CV_H); ctx.lineTo(cssW, CV_H - bk);
-      ctx.stroke();
+      ctx.strokeRect(0.5, 0.5, cssW - 1, CV_H - 1);
 
       // handles
       ctx.fillStyle = accent;
@@ -3843,8 +3840,9 @@ function buildLfoPanels() {
     function applyDrag(idx, mx, my) {
       let a = currentAdsr();
       const dw = cv.offsetWidth - PAD * 2;
-      const MIN_S = 4 / (dw / T_MAX);
-      const sc = dw / T_MAX;
+      const total = a.a + a.d + a.h + a.r;
+      const MIN_S = 4 / (dw / Math.max(T_MAX, total));
+      const sc = dw / Math.max(T_MAX, total);
       const t = clp((mx - PAD) / sc, 0, T_MAX);
       if (idx === 1) {
         const p2t = a.a + a.d;
@@ -3869,6 +3867,8 @@ function buildLfoPanels() {
     cv.addEventListener('touchstart', e => { dragIdx = hitTest(...evPos(e)); if (dragIdx !== null) e.preventDefault(); }, { passive: false });
     cv.addEventListener('touchmove', e => { if (dragIdx === null) return; e.preventDefault(); applyDrag(dragIdx, ...evPos(e)); }, { passive: false });
     cv.addEventListener('touchend', () => { dragIdx = null; });
+    const _adsrRO = new ResizeObserver(() => { if (panel.classList.contains('open')) draw(); });
+    _adsrRO.observe(cv);
     row.querySelector('.lfo-toggle').addEventListener('click', e => {
       e.stopPropagation();
       if (!fxLocked) { fxLocked = true; if (!shiftActive) openShiftPanel(); }
@@ -4234,6 +4234,7 @@ function advancePlayhead(step) {
   }
   for (let r = 0; r < ROWS; r++) renderCell(r, step);
   pips[step]?.classList.add('lit');
+  updateSelLabel();
 }
 
 function startSeq() {
