@@ -1256,7 +1256,10 @@ function _showPanel(activePanel) {
     document.getElementById(btn).classList.toggle('active', panel === activePanel);
   });
   window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
-  if (activePanel === 'gs-panel') window._gsAnimStart?.();
+  if (activePanel === 'gs-panel') {
+    window._gsAnimStart?.();
+    if (document.getElementById('gs-visualView')?.style.display !== 'none') window._gsBhStart?.();
+  }
   if (activePanel === 'ig-panel') window._igDrawStart?.();
   if (activePanel === 'bm-panel') { window._bmFrameStart?.(); window.asgBmResize?.(); }
 }
@@ -2783,8 +2786,8 @@ window._gsHideHelp = hideHelp;
   window._gsBhSetColor = function(col) { lineColor = col; };
 
   window._gsBhStart = function() {
+    bhResize();
     if (!bhRunning) {
-      bhResize();
       bhRunning = true;
       bhLoop();
     }
@@ -2816,7 +2819,7 @@ function showTab(active) {
 $$('showVisual').addEventListener('click',   () => showTab('showVisual'));
 $$('showGlossary').addEventListener('click', () => showTab('showGlossary'));
 
-requestAnimationFrame(() => window._gsBhStart?.());
+if (document.getElementById('gs-panel').style.display !== 'none') requestAnimationFrame(() => window._gsBhStart?.());
 
 // ─── Accent color ───────────────────────────────────────────────────────────────
 function setAccent(col) {
