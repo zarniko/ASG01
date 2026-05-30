@@ -4688,10 +4688,8 @@ function hidePoem() {
   $$('poem-footnote').style.display = 'none';
 }
 function showPoem(text) {
-  const fn = $$('poem-footnote');
-  fn.style.maxWidth = document.getElementById('ig-panel').querySelector('.main-layout').offsetWidth + 'px';
   $$('poem-text').textContent = text;
-  fn.style.display = 'block';
+  $$('poem-footnote').style.display = 'block';
 }
 $$('poem-dismiss').addEventListener('click', hidePoem);
 
