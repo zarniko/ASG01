@@ -4055,6 +4055,7 @@ function playTone(freq, note, when) {
   const dist   = audioCtx.createWaveShaper();
   const panner = audioCtx.createStereoPanner();
   panner.pan.value = Math.max(-1, Math.min(1, pan));
+  const _allNodes = [osc, gain, filt, dist, panner];
 
   if (_physicalWaves.has(note.wave)) {
     osc.setPeriodicWave(_getPhysWave(note.wave));
@@ -4097,6 +4098,7 @@ function playTone(freq, note, when) {
     if (!d || d.rate <= 0 || d.depth <= 0) return;
     const lfoOsc  = audioCtx.createOscillator();
     const lfoGain = audioCtx.createGain();
+    _allNodes.push(lfoOsc, lfoGain);
     lfoOsc.type = d.shape || 'sine';
     lfoOsc.frequency.value = d.rate;
     lfoGain.gain.value = d.depth * depthScale;
@@ -4109,6 +4111,7 @@ function playTone(freq, note, when) {
   const dlyLfo = note.lfo?.dly, revLfo = note.lfo?.rev;
   if (dSend > 0 || (dlyLfo?.rate > 0 && dlyLfo?.depth > 0)) {
     const dg = audioCtx.createGain();
+    _allNodes.push(dg);
     dg.gain.value = dSend;
     dist.connect(dg);
     dg.connect(delayNode);
@@ -4116,6 +4119,7 @@ function playTone(freq, note, when) {
   }
   if (rSend > 0 || (revLfo?.rate > 0 && revLfo?.depth > 0)) {
     const rg = audioCtx.createGain();
+    _allNodes.push(rg);
     rg.gain.value = rSend;
     dist.connect(rg);
     rg.connect(reverbNode);
@@ -4124,6 +4128,7 @@ function playTone(freq, note, when) {
 
   osc.start(when);
   osc.stop(when + dur + 0.02);
+  osc.onended = () => { _allNodes.forEach(n => { try { n.disconnect(); } catch(_) {} }); };
 
   // inharmonic partials for physical-model voices — [ratio, level, durFactor, maxDur]
   if (_physicalWaves.has(note.wave)) {
@@ -4137,6 +4142,7 @@ function playTone(freq, note, when) {
     for (const [ratio, level, factor, max] of _inharm[note.wave]) {
       const oscH  = audioCtx.createOscillator();
       const gainH = audioCtx.createGain();
+      _allNodes.push(oscH, gainH);
       oscH.frequency.value = freq * ratio;
       const hDur = Math.min(dur * factor, max);
       gainH.gain.setValueAtTime(0, when);
@@ -4157,6 +4163,7 @@ function playTone(freq, note, when) {
   if (det > 0 && !_physicalWaves.has(note.wave)) {
     const osc2  = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
+    _allNodes.push(osc2, gain2);
     osc2.type = note.wave;
     osc2.frequency.value = freq;
     osc2.detune.value = det;
@@ -4207,6 +4214,7 @@ function tick() {
 }
 
 function advancePlayhead(step) {
+  const prevStep = S.step;
   S.step = step;
   let hasNote = false;
   for (let r = 0; r < ROWS; r++) {
@@ -4217,7 +4225,12 @@ function advancePlayhead(step) {
     }
   }
   if (spiralView && hasNote) spiralCrossPulse = 1;
-  renderAll();
+  if (prevStep >= 0 && prevStep !== step) {
+    for (let r = 0; r < ROWS; r++) renderCell(r, prevStep);
+    pips[prevStep]?.classList.remove('lit');
+  }
+  for (let r = 0; r < ROWS; r++) renderCell(r, step);
+  pips[step]?.classList.add('lit');
 }
 
 function startSeq() {
