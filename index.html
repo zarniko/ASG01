@@ -497,7 +497,7 @@
     #ig-legend span { cursor: pointer; transition: opacity .1s; }
     #ig-legend span:hover { opacity: 0.7; }
     /* Poem footnote */
-    #ig-poem-footnote { display:none; position:relative; margin-top:18px; padding:14px; border:1px solid #1a1a1a; font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:calc(16 * var(--cell) + 55px); box-sizing:border-box; overflow-wrap:break-word; word-break:break-word; }
+    #ig-poem-footnote { display:none; position:relative; margin-top:18px; padding:14px; border:1px solid #1a1a1a; font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:calc(16 * var(--cell) + 65px); box-sizing:border-box; overflow-wrap:break-word; word-break:break-word; }
     #ig-poem-dismiss { position:absolute;top:8px;right:8px;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px; }
     /* IG01 Responsive */
     @media (max-width: 1080px) {
@@ -839,13 +839,13 @@
         <div class="step-grid-col" id="ig-step-grid-col">
           <div class="step-bar" id="ig-stepBar"></div>
           <div class="grid" id="ig-grid"></div>
-          <div id="ig-poem-footnote">
-            <button id="ig-poem-dismiss" tabindex="-1">×</button>
-            <p id="ig-poem-text" style="margin:0;padding-right:28px;overflow-wrap:break-word;word-break:break-word;"></p>
-          </div>
         </div>
       </div>
       <canvas id="ig-spiral-cv"></canvas>
+      <div id="ig-poem-footnote">
+        <button id="ig-poem-dismiss" tabindex="-1">×</button>
+        <p id="ig-poem-text" style="margin:0;padding-right:28px;overflow-wrap:break-word;word-break:break-word;"></p>
+      </div>
     </div>
 
     <div class="ctrl-panel">
