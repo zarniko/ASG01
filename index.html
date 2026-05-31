@@ -497,8 +497,8 @@
     #ig-legend span { cursor: pointer; transition: opacity .1s; }
     #ig-legend span:hover { opacity: 0.7; }
     /* Poem footnote */
-    #ig-poem-footnote { display:none; position:relative; margin-top:18px; padding:14px 16px 12px; border-top:1px solid #1a1a1a; font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:100%; box-sizing:border-box; overflow-wrap:break-word; word-break:break-word; }
-    #ig-poem-dismiss { position:absolute;top:10px;right:0;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px; }
+    #ig-poem-footnote { display:none; position:relative; margin-top:18px; padding:14px; border:1px solid #1a1a1a; font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:calc(16 * var(--cell) + 55px); box-sizing:border-box; overflow-wrap:break-word; word-break:break-word; }
+    #ig-poem-dismiss { position:absolute;top:8px;right:8px;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px; }
     /* IG01 Responsive */
     @media (max-width: 1080px) {
       :root { --cell: clamp(16px, calc((100vw - 103px) / 16), 52px); }
@@ -839,6 +839,10 @@
         <div class="step-grid-col" id="ig-step-grid-col">
           <div class="step-bar" id="ig-stepBar"></div>
           <div class="grid" id="ig-grid"></div>
+          <div id="ig-poem-footnote">
+            <button id="ig-poem-dismiss" tabindex="-1">×</button>
+            <p id="ig-poem-text" style="margin:0;padding-right:28px;overflow-wrap:break-word;word-break:break-word;"></p>
+          </div>
         </div>
       </div>
       <canvas id="ig-spiral-cv"></canvas>
@@ -1100,11 +1104,6 @@
     </div><!-- /ctrl-panel -->
 
   </div><!-- /main-layout -->
-
-  <div id="ig-poem-footnote" style="display:none; position:relative; margin-top:18px; padding:14px 16px 12px; border-top:1px solid #1a1a1a; font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:100%; box-sizing:border-box; overflow-wrap:break-word; word-break:break-word;">
-    <button id="ig-poem-dismiss" tabindex="-1" style="position:absolute;top:10px;right:0;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px;">×</button>
-    <p id="ig-poem-text" style="margin:0;padding-right:18px;overflow-wrap:break-word;word-break:break-word;"></p>
-  </div>
 
 </div><!-- /instrument -->
 </div>
@@ -3757,6 +3756,7 @@ function buildLfoPanels() {
     const CV_H = Math.round(68 * hr / 4.5), T_MAX = 2.0, PAD = 10;
     const DH   = CV_H - PAD * 2;
     const hitR = hr + 6;
+    const step = Math.round(DH / 8);
     const dpr  = window.devicePixelRatio || 1;
     panel.innerHTML = `<canvas id="ig-adsr-cv" style="display:block;width:100%;height:${CV_H}px;cursor:crosshair;"></canvas><div class="ctrl-row" style="margin-top:4px;justify-content:flex-end"><button class="tui-btn" data-reset="atk" tabindex="-1">reset</button></div>`;
     row.insertAdjacentElement('afterend', panel);
@@ -3795,12 +3795,13 @@ function buildLfoPanels() {
       ctx.clearRect(0, 0, cssW, CV_H);
       const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
 
-      // faint grid lines (within padded area)
-      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = 0; i <= 10; i++) { const x = PAD + dw * i / 10; ctx.moveTo(x, PAD); ctx.lineTo(x, PAD + DH); }
-      for (let i = 0; i <= 8; i++) { const y = PAD + DH * i / 8; ctx.moveTo(PAD, y); ctx.lineTo(PAD + dw, y); }
-      ctx.stroke();
+      // dots at grid intersections — equal pixel spacing both axes
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      for (let x = PAD; x <= PAD + dw + 0.5; x += step) {
+        for (let y = PAD; y <= PAD + DH + 0.5; y += step) {
+          ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
+        }
+      }
 
       // curve
       const p = toPoints(adsr, dw);
@@ -3838,6 +3839,8 @@ function buildLfoPanels() {
     }
     function clp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
     function applyDrag(idx, mx, my) {
+      mx = PAD + Math.round((mx - PAD) / step) * step;
+      my = PAD + Math.round((my - PAD) / step) * step;
       let a = currentAdsr();
       const dw = cv.offsetWidth - PAD * 2;
       const total = a.a + a.d + a.h + a.r;
