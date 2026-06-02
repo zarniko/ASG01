@@ -610,9 +610,9 @@
     <div class="hdr-left">
       <div class="src-wrap">
         <select id="gs-srcSelect">
-          <option value="tab" selected>system audio</option>
+          <option value="tab">system audio</option>
           <option value="mic">mic</option>
-          <option value="grid">grid audio</option>
+          <option value="grid" selected>grid audio</option>
           <option value="bloom">bloom audio</option>
         </select>
       </div>
@@ -658,85 +658,6 @@
           <button class="btn-action active" id="gs-waveViewInput" style="font-size:11px;">input</button>
         </span>
       </div>
-      <div id="gs-controlsView" style="width:100%;margin-top:12px;">
-        <div class="ctrl-grid">
-
-          <div class="ctrl-group">
-            <div class="ctrl-row slider" title="Grain density — grains spawned per second. Higher = denser, more continuous texture">
-              <span class="ctrl-key">dens</span>
-              <input type="range" id="gs-densSlider" min="1" max="100" value="20" step="1">
-              <span class="ctrl-val" id="gs-densVal">20</span>
-            </div>
-            <div class="ctrl-row slider" title="Grain size — duration of each grain in milliseconds">
-              <span class="ctrl-key">size</span>
-              <input type="range" id="gs-sizeSlider" min="10" max="500" value="100" step="5">
-              <span class="ctrl-val" id="gs-sizeVal">100ms</span>
-            </div>
-            <div class="ctrl-row slider" title="Read position — location in the 4-second buffer where grains are sampled from">
-              <span class="ctrl-key">pos</span>
-              <input type="range" id="gs-posSlider" min="0" max="100" value="50" step="1">
-              <span class="ctrl-val" id="gs-posVal">0.50</span>
-            </div>
-            <div class="ctrl-row slider" title="Pitch — grain playback rate. 1× = original pitch, 2× = one octave up, 0.5× = one octave down">
-              <span class="ctrl-key">ptch</span>
-              <input type="range" id="gs-pitchSlider" min="25" max="400" value="100" step="1">
-              <span class="ctrl-val" id="gs-pitchVal">1.00×</span>
-            </div>
-            <div class="ctrl-row slider" title="Spread — randomizes each grain's buffer position and stereo placement around the read head">
-              <span class="ctrl-key">sprd</span>
-              <input type="range" id="gs-spreadSlider" min="0" max="100" value="50" step="1">
-              <span class="ctrl-val" id="gs-spreadVal">0.50</span>
-            </div>
-            <div class="ctrl-row slider" title="Pitch drift — random pitch variation added to each grain. Creates an organic, fluctuating texture">
-              <span class="ctrl-key">p.dft</span>
-              <input type="range" id="gs-pitchDriftSlider" min="0" max="100" value="0" step="1">
-              <span class="ctrl-val" id="gs-pitchDriftVal">0.00</span>
-            </div>
-            <div class="ctrl-row slider" title="Position jump — chance each grain skips to a random point in the buffer instead of the read head">
-              <span class="ctrl-key">p.jmp</span>
-              <input type="range" id="gs-headJumpSlider" min="0" max="100" value="0" step="1">
-              <span class="ctrl-val" id="gs-headJumpVal">0.00</span>
-            </div>
-          </div>
-
-          <div class="ctrl-group">
-            <div class="ctrl-row slider" title="Reverb — wet mix of the reverb effect">
-              <span class="ctrl-key">revb</span>
-              <input type="range" id="gs-reverbSlider" min="0" max="100" value="30" step="1">
-              <span class="ctrl-val" id="gs-reverbVal">0.30</span>
-            </div>
-            <div class="ctrl-row slider" title="Volume — output gain of the granular engine">
-              <span class="ctrl-key">vol</span>
-              <input type="range" id="gs-volSlider" min="0" max="1000" value="160" step="5">
-              <span class="ctrl-val" id="gs-volVal">1.50×</span>
-            </div>
-            <div class="ctrl-row slider" title="Preservation — buffer feedback. At 0, incoming audio overwrites the buffer; at 1, old audio never erases and layers accumulate indefinitely">
-              <span class="ctrl-key">prsv</span>
-              <input type="range" id="gs-preserveSlider" min="0" max="95" value="0" step="1">
-              <span class="ctrl-val" id="gs-preserveVal">0.00</span>
-            </div>
-            <div class="ctrl-row slider" aria-hidden="true"></div>
-            <div class="ctrl-row slider" title="Read head — toggle H1 and H2 independent scan heads on or off. Each head scans the buffer at its own rate">
-              <span class="ctrl-key">head</span>
-              <div class="tui-group">
-                <button class="tui-btn sel" id="gs-head1Btn">h1</button>
-                <button class="tui-btn sel" id="gs-head2Btn">h2</button>
-              </div>
-            </div>
-            <div class="ctrl-row slider" title="Head 1 rate — scan speed and direction for read head 1. Positive = forward, negative = backward, zero = parked">
-              <span class="ctrl-key sm">h1 rt</span>
-              <input type="range" id="gs-head1Rate" min="-200" max="200" value="100" step="5">
-              <span class="ctrl-val" id="gs-head1RateVal">+1.0×</span>
-            </div>
-            <div class="ctrl-row slider" title="Head 2 rate — scan speed and direction for read head 2. Positive = forward, negative = backward, zero = parked">
-              <span class="ctrl-key sm">h2 rt</span>
-              <input type="range" id="gs-head2Rate" min="-200" max="200" value="-50" step="5">
-              <span class="ctrl-val" id="gs-head2RateVal">−0.5×</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
     </div>
 
   </div>
@@ -749,10 +670,91 @@
   <div class="view-toggle">
     <button class="view-toggle-btn active" id="gs-showVisual">visual</button>
     <span class="view-toggle-sep">/</span>
+    <button class="view-toggle-btn" id="gs-showControls">controls</button>
+    <span class="view-toggle-sep">/</span>
     <button class="view-toggle-btn" id="gs-showGlossary">glossary</button>
   </div>
 
   <div style="min-height:500px;width:100%;">
+  <div id="gs-controlsView" style="display:none;width:100%;padding-top:20px;">
+    <div class="ctrl-grid">
+
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Grain density — grains spawned per second. Higher = denser, more continuous texture">
+          <span class="ctrl-key">dens</span>
+          <input type="range" id="gs-densSlider" min="1" max="100" value="65" step="1">
+          <span class="ctrl-val" id="gs-densVal">65</span>
+        </div>
+        <div class="ctrl-row slider" title="Grain size — duration of each grain in milliseconds">
+          <span class="ctrl-key">size</span>
+          <input type="range" id="gs-sizeSlider" min="10" max="500" value="350" step="5">
+          <span class="ctrl-val" id="gs-sizeVal">350ms</span>
+        </div>
+        <div class="ctrl-row slider" title="Read position — location in the 4-second buffer where grains are sampled from">
+          <span class="ctrl-key">pos</span>
+          <input type="range" id="gs-posSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs-posVal">0.50</span>
+        </div>
+        <div class="ctrl-row slider" title="Pitch — grain playback rate. 1× = original pitch, 2× = one octave up, 0.5× = one octave down">
+          <span class="ctrl-key">ptch</span>
+          <input type="range" id="gs-pitchSlider" min="25" max="400" value="85" step="1">
+          <span class="ctrl-val" id="gs-pitchVal">0.85×</span>
+        </div>
+        <div class="ctrl-row slider" title="Spread — randomizes each grain's buffer position and stereo placement around the read head">
+          <span class="ctrl-key">sprd</span>
+          <input type="range" id="gs-spreadSlider" min="0" max="100" value="80" step="1">
+          <span class="ctrl-val" id="gs-spreadVal">0.80</span>
+        </div>
+        <div class="ctrl-row slider" title="Pitch drift — random pitch variation added to each grain. Creates an organic, fluctuating texture">
+          <span class="ctrl-key">p.dft</span>
+          <input type="range" id="gs-pitchDriftSlider" min="0" max="100" value="12" step="1">
+          <span class="ctrl-val" id="gs-pitchDriftVal">0.12</span>
+        </div>
+        <div class="ctrl-row slider" title="Position jump — chance each grain skips to a random point in the buffer instead of the read head">
+          <span class="ctrl-key">p.jmp</span>
+          <input type="range" id="gs-headJumpSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs-headJumpVal">0.00</span>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Reverb — wet mix of the reverb effect">
+          <span class="ctrl-key">revb</span>
+          <input type="range" id="gs-reverbSlider" min="0" max="100" value="70" step="1">
+          <span class="ctrl-val" id="gs-reverbVal">0.70</span>
+        </div>
+        <div class="ctrl-row slider" title="Volume — output gain of the granular engine">
+          <span class="ctrl-key">vol</span>
+          <input type="range" id="gs-volSlider" min="0" max="1000" value="60" step="5">
+          <span class="ctrl-val" id="gs-volVal">0.60×</span>
+        </div>
+        <div class="ctrl-row slider" title="Preservation — buffer feedback. At 0, incoming audio overwrites the buffer; at 1, old audio never erases and layers accumulate indefinitely">
+          <span class="ctrl-key">prsv</span>
+          <input type="range" id="gs-preserveSlider" min="0" max="95" value="20" step="1">
+          <span class="ctrl-val" id="gs-preserveVal">0.20</span>
+        </div>
+        <div class="ctrl-row slider" aria-hidden="true"></div>
+        <div class="ctrl-row slider" title="Read head — toggle H1 and H2 independent scan heads on or off. Each head scans the buffer at its own rate">
+          <span class="ctrl-key">head</span>
+          <div class="tui-group">
+            <button class="tui-btn sel" id="gs-head1Btn">h1</button>
+            <button class="tui-btn sel" id="gs-head2Btn">h2</button>
+          </div>
+        </div>
+        <div class="ctrl-row slider" title="Head 1 rate — scan speed and direction for read head 1. Positive = forward, negative = backward, zero = parked">
+          <span class="ctrl-key sm">h1 rt</span>
+          <input type="range" id="gs-head1Rate" min="-200" max="200" value="25" step="5">
+          <span class="ctrl-val" id="gs-head1RateVal">+0.3×</span>
+        </div>
+        <div class="ctrl-row slider" title="Head 2 rate — scan speed and direction for read head 2. Positive = forward, negative = backward, zero = parked">
+          <span class="ctrl-key sm">h2 rt</span>
+          <input type="range" id="gs-head2Rate" min="-200" max="200" value="-15" step="5">
+          <span class="ctrl-val" id="gs-head2RateVal">−0.2×</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
   <div id="gs-glossaryView" style="display:none;width:100%;">
   <div class="glossary">
     <div class="gloss-entry">
@@ -1917,17 +1919,17 @@ const S = {
   isFrozen:    false,
   isMuted:     false,
   statusMsg:   '',
-  density:     20,
-  grainSize:   0.1,
+  density:     65,
+  grainSize:   0.35,
   position:    0.5,
-  pitch:       1.0,
-  spread:      0.5,
-  reverbWet:   0.3,
-  preserve:    0.0,
-  volume:      1.5,
-  h1Rate:      1.0,
-  h2Rate:      0.5,
-  pitchDrift:  0.0,
+  pitch:       0.85,
+  spread:      0.8,
+  reverbWet:   0.7,
+  preserve:    0.2,
+  volume:      0.6,
+  h1Rate:      0.25,
+  h2Rate:     -0.15,
+  pitchDrift:  0.12,
   headJump:    0.0,
   h1Active:    true,
   h2Active:    true,
@@ -2805,8 +2807,8 @@ window._gsHideHelp = hideHelp;
 
 // ─── Bottom section toggle ──────────────────────────────────────────────────────
 function showTab(active) {
-  const tabs = ['showVisual', 'showGlossary'];
-  const views = { showVisual: 'visualView', showGlossary: 'glossaryView' };
+  const tabs = ['showVisual', 'showControls', 'showGlossary'];
+  const views = { showVisual: 'visualView', showControls: 'controlsView', showGlossary: 'glossaryView' };
   tabs.forEach(id => {
     $$(id).classList.toggle('active', id === active);
     $$(views[id]).style.display = id === active ? '' : 'none';
@@ -2816,6 +2818,7 @@ function showTab(active) {
 }
 
 $$('showVisual').addEventListener('click',   () => showTab('showVisual'));
+$$('showControls').addEventListener('click', () => showTab('showControls'));
 $$('showGlossary').addEventListener('click', () => showTab('showGlossary'));
 
 if (document.getElementById('gs-panel').style.display !== 'none') requestAnimationFrame(() => window._gsBhStart?.());
