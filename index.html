@@ -2378,15 +2378,21 @@ function drawWaveform(t) {
   ctx.strokeStyle = 'rgba(255,255,255,0.22)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(posX, 0); ctx.lineTo(posX, h); ctx.stroke();
-  // Diamond at center
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  // Rotating star at center
+  ctx.save();
+  ctx.translate(posX, h / 2);
+  ctx.rotate(-t * Math.PI / 4);
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 1;
+  const arm = 10;
+  const d = arm * 0.707;
   ctx.beginPath();
-  ctx.moveTo(posX, h / 2 - 5);
-  ctx.lineTo(posX + 4, h / 2);
-  ctx.lineTo(posX, h / 2 + 5);
-  ctx.lineTo(posX - 4, h / 2);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(-arm, 0); ctx.lineTo(arm, 0);
+  ctx.moveTo(0, -arm); ctx.lineTo(0, arm);
+  ctx.moveTo(-d, -d); ctx.lineTo(d, d);
+  ctx.moveTo(-d, d); ctx.lineTo(d, -d);
+  ctx.stroke();
+  ctx.restore();
 
   // Write head
   const writeX = (S.writeIdx / S.BUF_SIZE) * w;
