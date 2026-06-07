@@ -2378,21 +2378,28 @@ function drawWaveform(t) {
   ctx.strokeStyle = 'rgba(255,255,255,0.22)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(posX, 0); ctx.lineTo(posX, h); ctx.stroke();
-  // Rotating star at center
-  ctx.save();
-  ctx.translate(posX, h / 2);
-  ctx.rotate(-t * Math.PI / 4);
-  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-  ctx.lineWidth = 1;
-  const arm = 10;
-  const d = arm * 0.707;
-  ctx.beginPath();
-  ctx.moveTo(-arm, 0); ctx.lineTo(arm, 0);
-  ctx.moveTo(0, -arm); ctx.lineTo(0, arm);
-  ctx.moveTo(-d, -d); ctx.lineTo(d, d);
-  ctx.moveTo(-d, d); ctx.lineTo(d, -d);
-  ctx.stroke();
-  ctx.restore();
+  // Playhead rectangle — strobes/flashes with audio amplitude
+  {
+    const rh = 20, rw = 10;
+    let audioAmp = 0;
+    if (activeAnalyser) {
+      let peak = 0;
+      for (let i = 0; i < waveData.length; i++) {
+        const v = Math.abs(waveData[i]);
+        if (v > peak) peak = v;
+      }
+      audioAmp = peak;
+    }
+    const flashAlpha = 0.2 + Math.min(audioAmp * 2.5, 0.8);
+    ctx.save();
+    ctx.translate(posX, h / 2);
+    ctx.shadowBlur = audioAmp * 40;
+    ctx.shadowColor = '#fff';
+    ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+    ctx.fillRect(-rw / 2, -rh / 2, rw, rh);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
 
   // Write head
   const writeX = (S.writeIdx / S.BUF_SIZE) * w;
