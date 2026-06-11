@@ -2876,6 +2876,29 @@ window.asgBpmSync = (bpm) => {
   window._asgMidi?.updateClockBpm?.(bpm);
 };
 
+// Expose granular spectral levels so bloom's auto mode can sink beneath the
+// texture and rest when the mix is dense.
+let _glBuf = null;
+window.asgGetGranularLevels = () => {
+  if (!analyserOut) return { bass: 0, mid: 0, rms: 0, active: false };
+  const bins = analyserOut.frequencyBinCount;
+  if (!_glBuf || _glBuf.length !== bins) _glBuf = new Uint8Array(bins);
+  analyserOut.getByteFrequencyData(_glBuf);
+  const bassEnd = Math.floor(bins * 0.1), midEnd = Math.floor(bins * 0.4);
+  let bass = 0, mid = 0, rms = 0;
+  for (let i = 0; i < bins; i++) {
+    if (i < bassEnd) bass += _glBuf[i];
+    else if (i < midEnd) mid += _glBuf[i];
+    rms += _glBuf[i];
+  }
+  return {
+    bass: bass / (bassEnd * 255),
+    mid:  mid  / ((midEnd - bassEnd) * 255),
+    rms:  rms  / (bins * 255),
+    active: S.isRecording,
+  };
+};
+
 function showExportModal() {
   if ($$('export-modal')) return;
 
@@ -3247,6 +3270,43 @@ window.asgGetGridStream = async () => {
 
 // Bloom auto-mode reads playing + bpm to schedule sparse complementary bursts
 window.asgGetGridState = () => ({ playing: S.playing, bpm: S.bpm });
+
+// ── Live harmony tracking — feeds bloom auto's complementary pad choice ──
+// Every played note is logged (pitch class + midi + audio-clock time). The
+// getter returns a recency-weighted pitch-class profile, a root anchor, and an
+// activity estimate, all in grid's audio-clock domain so bloom can consume
+// plain numbers without touching grid's AudioContext.
+const _noteHist = [];
+function _recordPlayedNote(freq, when) {
+  if (!isFinite(freq) || freq <= 0) return;
+  const mn = Math.round(69 + 12 * Math.log2(freq / 440));
+  if (mn < 0 || mn > 127) return;
+  _noteHist.push({ pc: ((mn % 12) + 12) % 12, midi: mn, t: when ?? (audioCtx ? audioCtx.currentTime : 0) });
+  if (_noteHist.length > 96) _noteHist.shift();
+}
+window.asgGetGridHarmony = () => {
+  const now = audioCtx ? audioCtx.currentTime : 0;
+  const pcWeights = new Float32Array(12);
+  const HALF_LIFE = 2.0;       // seconds — older notes fade from the profile
+  let wSum = 0, recent = 0, bassPc = null, bassMidi = 999;
+  for (let i = _noteHist.length - 1; i >= 0; i--) {
+    const h = _noteHist[i];
+    const age = now - h.t;
+    if (age > 6) break;         // chronological — everything earlier is older still
+    const w = Math.pow(0.5, age / HALF_LIFE);
+    pcWeights[h.pc] += w;
+    wSum += w;
+    if (age < 1.5) recent++;
+    if (age < 3 && h.midi < bassMidi) { bassMidi = h.midi; bassPc = h.pc; }
+  }
+  if (wSum > 0) for (let i = 0; i < 12; i++) pcWeights[i] /= wSum;
+  return {
+    scale: S.scale, transpose: S.transpose,
+    pcWeights, bassPc,
+    density: Math.min(1, recent / 8),   // ~8 notes / 1.5s ≈ "busy"
+    playing: S.playing,
+  };
+};
 
 /* ── §IG01:topo  topographic draw loop ── */
 (function () {
@@ -4048,6 +4108,7 @@ function _getPhysWave(type) {
 }
 
 function playTone(freq, note, when) {
+  _recordPlayedNote(freq, when);
   const adsr_ = note.adsr ?? FX.adsr ?? null;
   const dur   = adsr_ ? (adsr_.a + adsr_.d + adsr_.h + adsr_.r) : note.decay;
   const atk   = adsr_ ? Math.max(adsr_.a, 0.001) : Math.max(note.attack ?? FX.attack, 0.001);
@@ -5091,6 +5152,13 @@ $$('randRefresh').addEventListener('click', (e) => {
     if (tremoloDepthNode) tremoloDepthNode.gain.setTargetAtTime(gTremolo > 0 ? 0.18 : 0, t, 0.01);
     if (delayFeedbackNode) delayFeedbackNode.gain.setTargetAtTime(gFeedback, t, 0.01);
   }
+
+  // ── Let bloom re-voice itself complementary to this fresh pattern ──
+  // Fired for both single-page and full-song generation (before the branch).
+  window.asgOnGridGenerate?.({
+    mood, adsrStyle: prof.adsrStyle, bpm: S.bpm, transpose: S.transpose,
+    gridCutoff: gCutoff, gridLPF: gLPF, gridReverb: gReverb, gridAtk: gAtk,
+  });
 
   // ── Pattern-level shared modifiers (coherence) ──────
   const patternLfoBase  = rngR(prof.lfoRateRange[0], prof.lfoRateRange[1]);
@@ -7301,29 +7369,67 @@ let bmAutoTimer    = null;
 let bmAutoCooldown = 0;        // bars to skip after a burst (prevents clustering)
 let _autoPidCounter = 7000;
 
-const AUTO_PROB_PER_BAR = 0.15; // base trigger chance — combined w/ cooldown ≈ 5%/bar effective
+const AUTO_PROB_PER_BAR = 0.22; // base trigger chance, scaled down by mix activity
+
+// Map a target pitch class to a Y on the touch canvas. buildFreqs() is
+// ascending (index 0 = lowest) and yToPitchIdx maps top→highest index, so a low
+// regFrac (→ low index) lands the pad near the bottom = a low drone.
+function bmFreqsMidi() {
+  return buildFreqs().map(f => Math.round(69 + 12 * Math.log2(f / 440)));
+}
+function bmPickIdxForPc(pc, regFrac) {
+  const ms = bmFreqsMidi();
+  const target = Math.round(regFrac * (ms.length - 1));
+  let best = -1, bestDist = Infinity;
+  for (let i = 0; i < ms.length; i++) {
+    if ((((ms[i] % 12) + 12) % 12) !== pc) continue;   // keep the target pitch class
+    const d = Math.abs(i - target);
+    if (d < bestDist) { bestDist = d; best = i; }
+  }
+  // pc not in bloom's scale (e.g. odd grid transpose) → nearest scale tone in band
+  return { idx: best >= 0 ? best : target, len: ms.length };
+}
+function bmIdxToY(idx, len) { return touchH * (1 - idx / Math.max(1, len - 1)); }
 
 function fireAutoBurst(bpm) {
   const beatMs = (60 / bpm) * 1000;
-  // 1–3 touches per burst, weighted toward 1 (sparse)
-  const n = Math.random() < 0.6 ? 1 : (Math.random() < 0.6 ? 2 : 3);
-  // Anchor X/Y for the burst — touches cluster around an axis to form a motif,
-  // not scatter across the whole canvas. Broadened range for calmer, warmer tones.
-  const baseX = 0.20 + Math.random() * 0.60; // middle 60% of width
-  const baseY = 0.20 + Math.random() * 0.45; // upper-mid 45% of height
-  for (let i = 0; i < n; i++) {
-    const delay = i * beatMs * (0.5 + Math.random() * 0.5); // 0.5–1 beats apart
-    const hold  = beatMs * (1 + Math.random() * 2);          // 1–3 beats hold
-    const x = Math.max(0, Math.min(touchW, (baseX + (Math.random() - 0.5) * 0.25) * touchW));
-    const y = Math.max(0, Math.min(touchH, (baseY + (Math.random() - 0.5) * 0.20) * touchH));
-    const pid = 'auto_' + (_autoPidCounter++);
+  const h = window.asgGetGridHarmony?.();
+  const g = window.asgGetGranularLevels?.();
+
+  // Harmonic anchor — grid's current root, else its strongest pitch class.
+  let rootPc = h?.bassPc ?? null;
+  if (rootPc == null && h?.pcWeights) {
+    let bw = 0, bi = -1;
+    for (let i = 0; i < 12; i++) if (h.pcWeights[i] > bw) { bw = h.pcWeights[i]; bi = i; }
+    if (bi >= 0) rootPc = bi;
+  }
+
+  // Drone register — low / low-mid. Sink lower when granular is bright so bloom
+  // adds warmth underneath rather than fighting in the same band.
+  let regFrac = 0.16 + Math.random() * 0.18;
+  if (g?.active && g.mid > g.bass) regFrac *= 0.7;
+
+  // Sparse by design: almost always one sustained tone; occasionally a root +
+  // fifth dyad for a fuller pedal.
+  const dyad = Math.random() < 0.28 && rootPc != null;
+  const pcs = [rootPc];
+  if (dyad) pcs.push((rootPc + 7) % 12);
+
+  pcs.forEach((pc, i) => {
+    let y;
+    if (pc != null) { const p = bmPickIdxForPc(pc, regFrac); y = bmIdxToY(p.idx, p.len); }
+    else            { y = touchH * (1 - regFrac); }      // no harmony yet → low scale tone
+    const x     = touchW * (0.5 + (Math.random() - 0.5) * (dyad ? 0.5 : 0.3));
+    const hold  = beatMs * (4 + Math.random() * 6);      // long pads: 4–10 beats
+    const delay = i * beatMs * (0.5 + Math.random());    // dyad tones nearly together
+    const pid   = 'auto_' + (_autoPidCounter++);
     setTimeout(() => {
       if (!bmAutoActive) return;
       bmHandleDown(x, y, pid);
       // Always release on its own timer, even if user toggles auto off mid-burst
       setTimeout(() => bmHandleUp(pid), hold);
     }, delay);
-  }
+  });
 }
 
 function tickAuto() {
@@ -7331,11 +7437,16 @@ function tickAuto() {
   const state = window.asgGetGridState?.() || { playing: false, bpm: 120 };
   const barMs = (60 / Math.max(40, state.bpm)) * 4 * 1000;
   if (state.playing) {
+    const h = window.asgGetGridHarmony?.();
+    const g = window.asgGetGranularLevels?.();
+    // Busier mix → bloom recedes. It fills the quiet, it doesn't crowd.
+    const activity = Math.min(1, (h?.density ?? 0) + (g?.active ? g.rms * 0.8 : 0));
+    const prob = AUTO_PROB_PER_BAR * (1 - activity * 0.85);
     if (bmAutoCooldown > 0) {
       bmAutoCooldown--;
-    } else if (Math.random() < AUTO_PROB_PER_BAR) {
+    } else if (Math.random() < prob) {
       fireAutoBurst(state.bpm);
-      bmAutoCooldown = 1 + (Math.random() * 2 | 0); // skip next 1–3 bars
+      bmAutoCooldown = 3 + (Math.random() * 4 | 0); // rest 3–6 bars after a pad
     }
   }
   bmAutoTimer = setTimeout(tickAuto, barMs);
@@ -7506,6 +7617,42 @@ $$('volSlider').addEventListener('input', function () {
 document.getElementById('bm-panel').querySelectorAll('input[type=range]').forEach(el => {
   el.addEventListener('dblclick', () => { el.value = el.defaultValue; el.dispatchEvent(new Event('input')); });
 });
+
+// ── Complementary macro re-voicing ───────────────────────
+// When grid generates a fresh pattern it calls this. Bloom retunes its macro
+// sliders to sit *with* the new material rather than fight it: a warm register
+// below grid, a slow pad envelope (slowest against a staccato grid), and a
+// shared reverb space. Dispatching 'input' makes every change apply live —
+// octave retunes held voices, reverb/volume ramp on their nodes.
+function bmSetSlider(id, val) {
+  const el = $$(id);
+  if (!el) return;
+  el.value = Math.max(+el.min, Math.min(+el.max, Math.round(val)));
+  el.dispatchEvent(new Event('input'));
+}
+window.asgOnGridGenerate = (info = {}) => {
+  const bright    = Math.max(0, Math.min(1, ((info.gridLPF ?? 12000) - 2000) / 16000));
+  const transpose = info.transpose ?? 0;
+  const reverb    = Math.max(0, Math.min(1, info.gridReverb ?? 0.5));
+  const style     = info.adsrStyle || '';
+  const staccato  = /short|wood|chime|glass|bell/.test(style);
+  const sustained = style === 'long' || style === 'bowl';
+
+  // Octave — drop the drone under grid; deeper when grid sits high/bright.
+  bmSetSlider('octSlider', (transpose >= 5 || bright > 0.6) ? -2 : -1);
+  // Cutoff — fill the band grid leaves open: darker when grid is bright.
+  bmSetSlider('cutSlider', (0.10 + 0.20 * (1 - bright)) * 100);
+  // Detune — a touch more chorus width when grid is warm.
+  bmSetSlider('detSlider', 6 + (1 - bright) * 8);
+  // Attack — slow pad; slowest against a staccato grid for contrast.
+  bmSetSlider('atkSlider', staccato ? 2200 : sustained ? 1200 : 1600);
+  // Release — long tails, stretched to match grid's reverb space.
+  bmSetSlider('relSlider', 5000 + reverb * 5000);
+  // Reverb — share grid's space, generously floored for the wash.
+  bmSetSlider('revbSlider', reverb * 100 + 15);
+  // Volume — supportive bed level: present, but under the grid.
+  bmSetSlider('volSlider', 22 + reverb * 8);
+};
 
 /* ── Scale link ──────────────────────────────────────── */
 function sizeScaleSelect() {
