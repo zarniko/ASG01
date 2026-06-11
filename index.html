@@ -2899,6 +2899,44 @@ window.asgGetGranularLevels = () => {
   };
 };
 
+// When grid generates fresh material, re-grain it into a complementary layer.
+// Because granular's default source IS the grid, an octave pitch-shift stays
+// perfectly consonant — it adds body underneath or shimmer on top of the same
+// audio. Texture (density/size) is set against grid's articulation; reverb is
+// matched to its space. Preserve, heads, and volume are left to the performer.
+function _gsSetSlider(id, val) {
+  const el = $$(id);
+  if (!el) return;
+  el.value = Math.max(+el.min, Math.min(+el.max, Math.round(val)));
+  el.dispatchEvent(new Event('input'));
+}
+window.asgOnGridGenerateGranular = (info = {}) => {
+  const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const bright    = cl(((info.gridLPF ?? 12000) - 2000) / 16000, 0, 1);
+  const transpose = info.transpose ?? 0;
+  const reverb    = cl(info.gridReverb ?? 0.5, 0, 1);
+  const style     = info.adsrStyle || '';
+  const staccato  = /short|wood|chime|glass|bell/.test(style);
+  const sustained = style === 'long' || style === 'bowl';
+
+  // Octave-shift the re-grained grid audio: grid sitting high/bright → granular
+  // drops an octave for body; grid dark/low → granular lifts an octave for air.
+  const goLow = bright > 0.45 || transpose >= 3;
+  _gsSetSlider('pitchSlider', goLow ? 50 : 200);   // 0.5× or 2.0×
+
+  // Texture vs grid articulation — slow continuous wash to fill a staccato
+  // grid's gaps; shorter, busier grains for motion against a sustained grid.
+  _gsSetSlider('densSlider', staccato ? 22 : sustained ? 55 : 38);
+  _gsSetSlider('sizeSlider', staccato ? 420 : sustained ? 220 : 320);
+
+  // Width + organic drift — more when the grid is sparse / staccato.
+  _gsSetSlider('spreadSlider',     staccato ? 85 : 60);
+  _gsSetSlider('pitchDriftSlider', staccato ? 18 : 10);
+
+  // Reverb — share grid's space, generously floored for the wash.
+  _gsSetSlider('reverbSlider', cl(reverb * 100 + 10, 45, 92));
+};
+
 function showExportModal() {
   if ($$('export-modal')) return;
 
@@ -5153,12 +5191,14 @@ $$('randRefresh').addEventListener('click', (e) => {
     if (delayFeedbackNode) delayFeedbackNode.gain.setTargetAtTime(gFeedback, t, 0.01);
   }
 
-  // ── Let bloom re-voice itself complementary to this fresh pattern ──
+  // ── Let bloom + granular re-voice complementary to this fresh pattern ──
   // Fired for both single-page and full-song generation (before the branch).
-  window.asgOnGridGenerate?.({
+  const _genInfo = {
     mood, adsrStyle: prof.adsrStyle, bpm: S.bpm, transpose: S.transpose,
     gridCutoff: gCutoff, gridLPF: gLPF, gridReverb: gReverb, gridAtk: gAtk,
-  });
+  };
+  window.asgOnGridGenerate?.(_genInfo);
+  window.asgOnGridGenerateGranular?.(_genInfo);
 
   // ── Pattern-level shared modifiers (coherence) ──────
   const patternLfoBase  = rngR(prof.lfoRateRange[0], prof.lfoRateRange[1]);
