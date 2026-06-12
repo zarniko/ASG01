@@ -2930,6 +2930,11 @@ window.asgGetGranularWave = () => {
   return _gwBuf;
 };
 
+// Live grain read positions (0–1 across the buffer) so bloom's granular-status
+// strip can light up its micro-grid where grains currently sit. Empty until the
+// engine is running.
+window.asgGetGranularGrains = () => (S.isRecording ? S.grainPos : null);
+
 // When grid generates fresh material, re-grain it into a complementary layer.
 // Because granular's default source IS the grid, an octave pitch-shift stays
 // perfectly consonant — it adds body underneath or shimmer on top of the same
@@ -7714,11 +7719,27 @@ function drawGranWave() {
 
   // Background micro-grid — echoes the grid summary's inactive 1px lines, but
   // chopped into fine column segments so it reads as a near-single-pixel grid.
-  ctx.fillStyle = 'rgba(255,255,255,0.10)';
   const segW = 2, segGap = 2, rowH = 1, rowGap = 1;
+  const colPitch = segW + segGap;
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
   for (let y = 0; y < granH; y += rowH + rowGap)
-    for (let x = 0; x < granW; x += segW + segGap)
+    for (let x = 0; x < granW; x += colPitch)
       ctx.fillRect(x, y, segW, rowH);
+
+  // Grain movement — light up the micro-grid columns where granular's read
+  // grains currently sit, so the strip pulses with the live grain cloud.
+  const grains = window.asgGetGranularGrains?.();
+  if (grains && grains.length) {
+    const litCols = new Set();
+    for (const p of grains) {
+      const gx = Math.max(0, Math.min(1, p)) * granW;
+      litCols.add(Math.floor(gx / colPitch) * colPitch);
+    }
+    ctx.fillStyle = hexToRgba(lineColor, 0.55);
+    for (let y = 0; y < granH; y += rowH + rowGap)
+      for (const x of litCols)
+        ctx.fillRect(x, y, segW, rowH);
+  }
 
   const wave = window.asgGetGranularWave?.();
   const mid = granH / 2;
