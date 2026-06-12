@@ -132,6 +132,7 @@
       width: 100%; height: 100%; touch-action: none;
     }
     .bm-ctrl-strip { grid-column: 2; grid-row: 4; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.06); border-top: none; padding: 8px; }
+    .bm-ctrl-col { display: contents; }
 
     .bm-overlay-left {
       grid-column: 1; grid-row: 1;
@@ -209,11 +210,9 @@
         border-top: 1px solid rgba(255,255,255,0.06);
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: repeat(4, auto);
-        grid-auto-flow: column;
         column-gap: 24px;
-        row-gap: 4px;
       }
+      .bm-ctrl-col { display: flex; flex-direction: column; gap: 4px; }
     }
 
     /* ── §CSS:shared  Shared component styles ── */
@@ -1207,45 +1206,49 @@
         <canvas id="bm-touch-cv"></canvas>
       </div>
       <div class="bm-ctrl-strip">
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Cutoff — low-pass filter cutoff for all bloom voices. Controls overall brightness">cut</span>
-          <input type="range" id="bm-cutSlider" min="0" max="100" value="5">
-          <span class="ctrl-val" id="bm-cutVal">0.05</span>
+        <div class="bm-ctrl-col">
+          <div class="ctrl-row slider" data-bmlfo="cut">
+            <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-cut" title="Cutoff — low-pass filter cutoff for all bloom voices. Controls overall brightness. Click to open LFO modulation">cut<span class="lfo-chev">›</span></span>
+            <input type="range" id="bm-cutSlider" min="0" max="100" value="5">
+            <span class="ctrl-val" id="bm-cutVal">0.05</span>
+          </div>
+          <div class="ctrl-row slider" data-bmlfo="det">
+            <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-det" title="Detune — pitch spread in cents across voices for a chorus-like ensemble effect. Click to open LFO modulation">det<span class="lfo-chev">›</span></span>
+            <input type="range" id="bm-detSlider" min="0" max="50" value="5">
+            <span class="ctrl-val" id="bm-detVal">5¢</span>
+          </div>
+          <div class="ctrl-row slider">
+            <span class="ctrl-key" title="Octave — transposes all voices up or down in full octave steps">oct</span>
+            <input type="range" id="bm-octSlider" min="-2" max="2" value="0" step="1">
+            <span class="ctrl-val" id="bm-octVal">0</span>
+          </div>
+          <div class="ctrl-row slider" data-bmlfo="atk">
+            <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-atk" title="Attack — how long each voice fades in when a touch begins. Click to open the ADSR envelope editor">atk<span class="lfo-chev">›</span></span>
+            <input type="range" id="bm-atkSlider" min="100" max="4000" value="800" step="50">
+            <span class="ctrl-val" id="bm-atkVal">0.8s</span>
+          </div>
         </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Detune — pitch spread in cents across voices for a chorus-like ensemble effect">det</span>
-          <input type="range" id="bm-detSlider" min="0" max="50" value="5">
-          <span class="ctrl-val" id="bm-detVal">5¢</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Octave — transposes all voices up or down in full octave steps">oct</span>
-          <input type="range" id="bm-octSlider" min="-2" max="2" value="0" step="1">
-          <span class="ctrl-val" id="bm-octVal">0</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Attack — how long each voice fades in when a touch begins">atk</span>
-          <input type="range" id="bm-atkSlider" min="100" max="4000" value="800" step="50">
-          <span class="ctrl-val" id="bm-atkVal">0.8s</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Release — how long each voice fades out after a touch ends">rel</span>
-          <input type="range" id="bm-relSlider" min="500" max="12000" value="4000" step="100">
-          <span class="ctrl-val" id="bm-relVal">4.0s</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Reverb — wet mix of the reverb effect on all bloom voices">revb</span>
-          <input type="range" id="bm-revbSlider" min="0" max="100" value="60">
-          <span class="ctrl-val" id="bm-revbVal">0.60</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Volume — overall output level of the bloom engine">vol</span>
-          <input type="range" id="bm-volSlider" min="0" max="100" value="20">
-          <span class="ctrl-val" id="bm-volVal">0.20</span>
-        </div>
-        <div class="ctrl-row slider">
-          <span class="ctrl-key" title="Shimmer — a glowing octave-up halo layered above each voice, fed into the reverb. Adds upper-harmonic radiance even when the filter is dark">shmr</span>
-          <input type="range" id="bm-shmrSlider" min="0" max="100" value="30">
-          <span class="ctrl-val" id="bm-shmrVal">0.30</span>
+        <div class="bm-ctrl-col">
+          <div class="ctrl-row slider">
+            <span class="ctrl-key" title="Release — how long each voice fades out after a touch ends">rel</span>
+            <input type="range" id="bm-relSlider" min="500" max="12000" value="4000" step="100">
+            <span class="ctrl-val" id="bm-relVal">4.0s</span>
+          </div>
+          <div class="ctrl-row slider" data-bmlfo="revb">
+            <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-revb" title="Reverb — wet mix of the reverb effect on all bloom voices. Click to open LFO modulation">revb<span class="lfo-chev">›</span></span>
+            <input type="range" id="bm-revbSlider" min="0" max="100" value="60">
+            <span class="ctrl-val" id="bm-revbVal">0.60</span>
+          </div>
+          <div class="ctrl-row slider" data-bmlfo="vol">
+            <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-vol" title="Volume — overall output level of the bloom engine. Click to open LFO modulation">vol<span class="lfo-chev">›</span></span>
+            <input type="range" id="bm-volSlider" min="0" max="100" value="20">
+            <span class="ctrl-val" id="bm-volVal">0.20</span>
+          </div>
+          <div class="ctrl-row slider" data-bmlfo="shmr">
+            <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-shmr" title="Shimmer — a glowing octave-up halo layered above each voice, fed into the reverb. Adds upper-harmonic radiance even when the filter is dark. Click to open LFO modulation">shmr<span class="lfo-chev">›</span></span>
+            <input type="range" id="bm-shmrSlider" min="0" max="100" value="30">
+            <span class="ctrl-val" id="bm-shmrVal">0.30</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2493,6 +2496,13 @@ function drawCloud(t) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, w, h);
 
+  // Background micro-grid — echoes the bloom granular strip's fine pixel grid.
+  const segW = 2, segGap = 2, rowH = 1, rowGap = 1;
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  for (let y = 0; y < h; y += rowH + rowGap)
+    for (let x = 0; x < w; x += segW + segGap)
+      ctx.fillRect(x, y, segW, rowH);
+
   // Grain dots
   S.grainPos.forEach((pos, i) => {
     const x   = pos * w;
@@ -2506,11 +2516,6 @@ function drawCloud(t) {
     ctx.fill();
     ctx.shadowBlur = 0;
   });
-
-  // Grain density bar (bottom 2px)
-  const bw = (Math.min(S.grainCount, 64) / 64) * w;
-  ctx.fillStyle = 'rgba(255,255,255,0.08)';
-  ctx.fillRect(0, h - 2, bw, 2);
 
   // Count label
   $$('grainCount').textContent = S.grainCount + (S.grainCount === 1 ? ' grain' : ' grains');
@@ -7140,6 +7145,44 @@ function drawGrainFrame() {
 let audioCtx = null, masterGain = null, reverbConv = null, reverbSendGain = null, bloomStreamDest = null, limiter = null;
 let bmTremoloOsc = null, bmTremoloDepth = null;
 
+// ── Per-control LFO modulation (cut / det / revb / vol / shmr) ──
+// Audio-rate oscillators feeding a depth gain into each param's AudioParam.
+// vol/revb modulate the shared master/reverb nodes directly; cut/det/shmr
+// connect into each voice's own nodes at spawn time (see spawnVoice).
+const BM_LFO_PARAMS = ['cut', 'det', 'revb', 'vol', 'shmr'];
+const BM_LFO_DEPTH_SCALE = { cut: 3000, det: 50, revb: 0.5, vol: 0.3, shmr: 0.25 };
+const bmLfo = {};
+const bmLfoState = {};
+BM_LFO_PARAMS.forEach(p => bmLfoState[p] = { rate: 0, depth: 0, shape: 'sine' });
+
+// ── ADSR envelope (atk panel) ──
+// a/r mirror the atk/rel sliders (seconds); d (decay, seconds) and s (sustain
+// level 0-1) are only adjustable via the envelope editor. Applies to newly
+// spawned voices, like the other macro params.
+const BM_DFLT_ADSR = { a: 0.8, d: 0.3, s: 0.7, r: 4.0 };
+const bmAdsr = {
+  a: $$('atkSlider').value / 1000,
+  d: BM_DFLT_ADSR.d,
+  s: BM_DFLT_ADSR.s,
+  r: $$('relSlider').value / 1000,
+};
+
+function initBmLfos() {
+  BM_LFO_PARAMS.forEach(param => {
+    const st = bmLfoState[param];
+    const osc = audioCtx.createOscillator();
+    osc.type = st.shape;
+    osc.frequency.value = st.rate || 0.001; // 0Hz oscillators are silent — keep a tiny crawl
+    const depthGain = audioCtx.createGain();
+    depthGain.gain.value = st.depth * BM_LFO_DEPTH_SCALE[param];
+    osc.connect(depthGain);
+    osc.start();
+    bmLfo[param] = { osc, depthGain };
+  });
+  bmLfo.vol.depthGain.connect(masterGain.gain);
+  bmLfo.revb.depthGain.connect(reverbSendGain.gain);
+}
+
 function buildReverbIR(ctx) {
   const len = ctx.sampleRate * 5.0;
   const buf = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -7172,6 +7215,7 @@ function ensureCtx() {
   limiter.connect(audioCtx.destination);
   bloomStreamDest = audioCtx.createMediaStreamDestination();
   limiter.connect(bloomStreamDest);
+  initBmLfos();
   // Tremolo LFO (depth=0 = off)
   bmTremoloOsc   = audioCtx.createOscillator();
   bmTremoloDepth = audioCtx.createGain();
@@ -7196,8 +7240,12 @@ let displayPatIdx = 0;
 
 function getVisualEnv(v) {
   const now = performance.now();
-  if (v.state === 'active' || v.state === 'held')
-    return Math.min(1, (now - v.spawnTime) / 1000 / v.atk);
+  if (v.state === 'active' || v.state === 'held') {
+    const elapsed = (now - v.spawnTime) / 1000;
+    if (elapsed < v.atk) return elapsed / v.atk;
+    if (elapsed < v.atk + bmAdsr.d) return 1 - ((elapsed - v.atk) / bmAdsr.d) * (1 - bmAdsr.s);
+    return bmAdsr.s;
+  }
   if (v.state === 'releasing')
     return Math.max(0, v.peakEnv * (1 - (now - v.releaseTime) / 1000 / v.rel));
   return 0;
@@ -7237,9 +7285,12 @@ function spawnVoice(pointerId, x, y) {
   const targetCut = yToCutoff(y);
   filter.frequency.linearRampToValueAtTime(targetCut, audioCtx.currentTime + atk);
 
+  // ADSR: attack to peak, decay to sustain level, hold while touched, release on lift
+  const envPeak = 0.4;
   const envGain = audioCtx.createGain();
   envGain.gain.setValueAtTime(0, audioCtx.currentTime);
-  envGain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + atk);
+  envGain.gain.linearRampToValueAtTime(envPeak, audioCtx.currentTime + atk);
+  envGain.gain.linearRampToValueAtTime(envPeak * bmAdsr.s, audioCtx.currentTime + atk + bmAdsr.d);
 
   const panner = audioCtx.createStereoPanner();
   panner.pan.value = pan;
@@ -7265,8 +7316,10 @@ function spawnVoice(pointerId, x, y) {
     shimmerOsc.frequency.value = freq * 2;   // +12 semitones (octave up)
     shimmerOsc.detune.value = det;           // share the chorus detune
     shimmerGain = audioCtx.createGain();
+    const shimmerPeak = 0.4 * shmrAmt * 0.6;
     shimmerGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    shimmerGain.gain.linearRampToValueAtTime(0.4 * shmrAmt * 0.6, audioCtx.currentTime + atk);
+    shimmerGain.gain.linearRampToValueAtTime(shimmerPeak, audioCtx.currentTime + atk);
+    shimmerGain.gain.linearRampToValueAtTime(shimmerPeak * bmAdsr.s, audioCtx.currentTime + atk + bmAdsr.d);
     shimmerOsc.connect(shimmerGain);
     shimmerGain.connect(panner);
     shimmerOsc.start();
@@ -7274,9 +7327,25 @@ function spawnVoice(pointerId, x, y) {
 
   osc1.start(); osc2.start();
 
+  // Hook this voice's params into the shared cut/det/shmr LFOs (if active)
+  const lfoTargets = [];
+  if (bmLfo.cut) {
+    bmLfo.cut.depthGain.connect(filter.frequency);
+    lfoTargets.push([bmLfo.cut.depthGain, filter.frequency]);
+  }
+  if (bmLfo.det) {
+    bmLfo.det.depthGain.connect(osc1.detune);
+    bmLfo.det.depthGain.connect(osc2.detune);
+    lfoTargets.push([bmLfo.det.depthGain, osc1.detune], [bmLfo.det.depthGain, osc2.detune]);
+  }
+  if (bmLfo.shmr && shimmerGain) {
+    bmLfo.shmr.depthGain.connect(shimmerGain.gain);
+    lfoTargets.push([bmLfo.shmr.depthGain, shimmerGain.gain]);
+  }
+
   voices.set(pointerId, {
     osc1, osc2, filter, envGain, panner, reverbGain, shimmerOsc, shimmerGain,
-    x, y, pan, atk, rel, a, b,
+    x, y, pan, atk, rel, a, b, lfoTargets,
     precomp: precomputePattern(n, m),
     state: 'active',
     spawnTime: performance.now(),
@@ -7333,6 +7402,7 @@ function killVoice(pointerId) {
     if (v.shimmerOsc) v.shimmerOsc.stop(now + 0.025);
   } catch (_) {}
   setTimeout(() => {
+    v.lfoTargets?.forEach(([g, p]) => { try { g.disconnect(p); } catch (_) {} });
     [v.osc1, v.osc2, v.filter, v.envGain, v.panner, v.reverbGain, v.shimmerOsc, v.shimmerGain]
       .forEach(n => { try { n.disconnect(); } catch (_) {} });
   }, 35);
@@ -7726,19 +7796,23 @@ function drawGranWave() {
     for (let x = 0; x < granW; x += colPitch)
       ctx.fillRect(x, y, segW, rowH);
 
-  // Grain movement — light up the micro-grid columns where granular's read
-  // grains currently sit, so the strip pulses with the live grain cloud.
+  // Grain movement — scatter a lit micro-grid cell per grain, echoing the
+  // granular tab's grain-cloud cloud of dots but snapped to this grid's pixels.
   const grains = window.asgGetGranularGrains?.();
   if (grains && grains.length) {
-    const litCols = new Set();
-    for (const p of grains) {
+    const rowPitch = rowH + rowGap;
+    const numRows = Math.max(1, Math.floor(granH / rowPitch));
+    grains.forEach((p, i) => {
       const gx = Math.max(0, Math.min(1, p)) * granW;
-      litCols.add(Math.floor(gx / colPitch) * colPitch);
-    }
-    ctx.fillStyle = hexToRgba(lineColor, 0.55);
-    for (let y = 0; y < granH; y += rowH + rowGap)
-      for (const x of litCols)
-        ctx.fillRect(x, y, segW, rowH);
+      const x = Math.floor(gx / colPitch) * colPitch;
+      const osc = Math.sin(timePh * 2.5 + i * 0.8) * 0.3;
+      const row = Math.min(numRows - 1, Math.max(0, Math.floor((0.5 + osc * 0.45) * numRows)));
+      const y = row * rowPitch;
+      ctx.globalAlpha = 0.35 + Math.abs(osc) * 0.5;
+      ctx.fillStyle = hexToRgba(lineColor, 1);
+      ctx.fillRect(x, y, segW, rowH);
+    });
+    ctx.globalAlpha = 1;
   }
 
   const wave = window.asgGetGranularWave?.();
@@ -7826,9 +7900,13 @@ $$('octSlider').addEventListener('input', function () {
 });
 $$('atkSlider').addEventListener('input', function () {
   $$('atkVal').textContent = (this.value / 1000).toFixed(1) + 's';
+  bmAdsr.a = this.value / 1000;
+  $$('lfo-panel-atk')?._draw?.();
 });
 $$('relSlider').addEventListener('input', function () {
   $$('relVal').textContent = (this.value / 1000).toFixed(1) + 's';
+  bmAdsr.r = this.value / 1000;
+  $$('lfo-panel-atk')?._draw?.();
 });
 $$('revbSlider').addEventListener('input', function () {
   $$('revbVal').textContent = (this.value / 100).toFixed(2);
@@ -7846,6 +7924,242 @@ document.getElementById('bm-panel').querySelectorAll('input[type=range]').forEac
   el.addEventListener('dblclick', () => { el.value = el.defaultValue; el.dispatchEvent(new Event('input')); });
 });
 
+/* ── Per-control LFO panels (cut/det/revb/vol/shmr) + ADSR (atk) ── */
+const BM_PANEL_PARAMS = [...BM_LFO_PARAMS, 'atk'];
+
+function bmToggleOpen(param, panel, row) {
+  const opening = !panel.classList.contains('open');
+  BM_PANEL_PARAMS.forEach(p => {
+    if (p === param) return;
+    const op = $$(`lfo-panel-${p}`);
+    if (op?.classList.contains('open')) {
+      op.classList.remove('open');
+      document.getElementById('bm-panel').querySelector(`.ctrl-row[data-bmlfo="${p}"] .lfo-toggle`)?.classList.remove('open');
+    }
+  });
+  panel.classList.toggle('open', opening);
+  row.querySelector('.lfo-toggle').classList.toggle('open', opening);
+}
+
+function updateBmLfoActive(param) {
+  const lbl = $$(`lfo-lbl-${param}`);
+  if (!lbl) return;
+  const st = bmLfoState[param];
+  const active = st.rate > 0 && st.depth > 0;
+  lbl.classList.toggle('lfo-active', active);
+  if (active) lbl.style.animationDuration = `${1 / st.rate}s`;
+}
+
+function buildBmLfoPanels() {
+  BM_LFO_PARAMS.forEach(param => {
+    const row = document.getElementById('bm-panel').querySelector(`.ctrl-row[data-bmlfo="${param}"]`);
+    if (!row) return;
+    const panel = document.createElement('div');
+    panel.className = 'lfo-panel';
+    panel.id = `bm-lfo-panel-${param}`;
+    panel.innerHTML = `
+      <div class="ctrl-row slider">
+        <span class="lfo-sub-key">rate</span>
+        <span class="s-brk">◄</span>
+        <input type="range" id="bm-lfo-${param}-rate" min="0" max="100" value="0" step="1">
+        <span class="s-brk">►</span>
+        <span class="ctrl-val" id="bm-lfo-${param}-rate-val" style="min-width:42px">off</span>
+      </div>
+      <div class="ctrl-row slider">
+        <span class="lfo-sub-key">dpt</span>
+        <span class="s-brk">◄</span>
+        <input type="range" id="bm-lfo-${param}-depth" min="0" max="100" value="0" step="1">
+        <span class="s-brk">►</span>
+        <span class="ctrl-val" id="bm-lfo-${param}-depth-val" style="min-width:42px">0%</span>
+      </div>
+      <div class="ctrl-row" style="gap:4px;align-items:center;">
+        <span class="lfo-sub-key">shp</span>
+        <button class="tui-btn lfo-shape sel" data-shape="sine"     tabindex="-1">sin</button>
+        <button class="tui-btn lfo-shape"     data-shape="triangle" tabindex="-1">tri</button>
+        <button class="tui-btn lfo-shape"     data-shape="square"   tabindex="-1">sqr</button>
+        <button class="tui-btn lfo-shape"     data-shape="sawtooth" tabindex="-1">saw</button>
+        <button class="tui-btn" data-reset="${param}" tabindex="-1" style="margin-left:auto">reset</button>
+      </div>`;
+    row.insertAdjacentElement('afterend', panel);
+
+    row.querySelector('.lfo-toggle').addEventListener('click', e => {
+      e.stopPropagation();
+      bmToggleOpen(param, panel, row);
+    });
+
+    const rateEl  = $$(`lfo-${param}-rate`);
+    const depthEl = $$(`lfo-${param}-depth`);
+    rateEl.addEventListener('input', function () {
+      const rate = this.value / 10;
+      $$(`lfo-${param}-rate-val`).textContent = rate === 0 ? 'off' : `${rate.toFixed(1)}Hz`;
+      bmLfoState[param].rate = rate;
+      if (bmLfo[param]) bmLfo[param].osc.frequency.setTargetAtTime(rate || 0.001, audioCtx.currentTime, 0.05);
+      updateBmLfoActive(param);
+    });
+    depthEl.addEventListener('input', function () {
+      const depth = this.value / 100;
+      $$(`lfo-${param}-depth-val`).textContent = `${this.value}%`;
+      bmLfoState[param].depth = depth;
+      if (bmLfo[param]) bmLfo[param].depthGain.gain.setTargetAtTime(depth * BM_LFO_DEPTH_SCALE[param], audioCtx.currentTime, 0.05);
+      updateBmLfoActive(param);
+    });
+    panel.querySelectorAll('.lfo-shape').forEach(btn => {
+      btn.addEventListener('click', () => {
+        panel.querySelectorAll('.lfo-shape').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        const shape = btn.dataset.shape;
+        bmLfoState[param].shape = shape;
+        if (bmLfo[param]) bmLfo[param].osc.type = shape;
+      });
+    });
+    panel.querySelector(`[data-reset="${param}"]`).addEventListener('click', () => {
+      rateEl.value = 0;  rateEl.dispatchEvent(new Event('input'));
+      depthEl.value = 0; depthEl.dispatchEvent(new Event('input'));
+      panel.querySelectorAll('.lfo-shape').forEach(b => b.classList.toggle('sel', b.dataset.shape === 'sine'));
+      bmLfoState[param].shape = 'sine';
+      if (bmLfo[param]) bmLfo[param].osc.type = 'sine';
+    });
+  });
+}
+/* ── ADSR envelope editor (atk) ──────────────────────────── */
+// Draggable canvas, modeled on grid's per-note ADSR editor but for a
+// sustained voice: attack ramps to peak, decay falls to the sustain level,
+// the voice holds there indefinitely while touched, then release falls to 0.
+function buildBmAdsrPanel() {
+  const param = 'atk';
+  const row = document.getElementById('bm-panel').querySelector(`.ctrl-row[data-bmlfo="${param}"]`);
+  if (!row) return;
+  const panel = document.createElement('div');
+  panel.className = 'lfo-panel';
+  panel.id = `bm-lfo-panel-${param}`;
+  const isMobile = window.matchMedia('(hover: none)').matches;
+  const hr   = isMobile ? 11 : 4.5;
+  const CV_H = Math.round(68 * hr / 4.5), T_MAX = 2.0, PAD = 10, HOLD_W = 24;
+  const DH   = CV_H - PAD * 2;
+  const hitR = hr + 6;
+  const dpr  = window.devicePixelRatio || 1;
+  panel.innerHTML = `<canvas id="bm-adsr-cv" style="display:block;width:100%;height:${CV_H}px;cursor:crosshair;"></canvas><div class="ctrl-row" style="margin-top:4px;justify-content:flex-end"><button class="tui-btn" data-reset="atk" tabindex="-1">reset</button></div>`;
+  row.insertAdjacentElement('afterend', panel);
+  const cv = $$('adsr-cv');
+  const ATK_MAX = (+$$('atkSlider').max) / 1000;
+  const REL_MAX = (+$$('relSlider').max) / 1000;
+  const DEC_MAX = 2.0;
+
+  function toPoints(dw) {
+    const total  = bmAdsr.a + bmAdsr.d + bmAdsr.r;
+    const usable = Math.max(1, dw - HOLD_W);
+    const sc     = usable / Math.max(T_MAX, total);
+    const py     = PAD + (1 - Math.max(0.01, Math.min(0.99, bmAdsr.s))) * DH;
+    const p1x = PAD + bmAdsr.a * sc;
+    const p2x = p1x + bmAdsr.d * sc;
+    const p3x = p2x + HOLD_W + bmAdsr.r * sc;
+    return [
+      [PAD,            PAD + DH], // start
+      [p1x,            PAD],      // attack peak
+      [p2x,            py],       // decay -> sustain level
+      [p2x + HOLD_W,   py],       // hold (indefinite, drawn at fixed width)
+      [p3x,            PAD + DH], // release end
+    ];
+  }
+  function draw() {
+    const ctx  = cv.getContext('2d');
+    const cssW = cv.offsetWidth || 200;
+    const dw   = cssW - PAD * 2;
+    cv.width  = cssW * dpr;
+    cv.height = CV_H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, CV_H);
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
+
+    // dots at grid intersections
+    const step = Math.round(DH / 8);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    for (let x = PAD; x <= PAD + dw + 0.5; x += step) {
+      for (let y = PAD; y <= PAD + DH + 0.5; y += step) {
+        ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // curve
+    const p = toPoints(dw);
+    ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.5;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+    ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+    // border
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, cssW - 1, CV_H - 1);
+
+    // handles — attack peak (1), decay/sustain (2), release end (4)
+    ctx.fillStyle = accent;
+    [1, 2, 4].forEach(i => {
+      ctx.beginPath(); ctx.arc(p[i][0], p[i][1], hr, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+  panel._draw = draw;
+
+  function evPos(e) {
+    const r = cv.getBoundingClientRect(), src = e.touches ? e.touches[0] : e;
+    return [src.clientX - r.left, src.clientY - r.top];
+  }
+  let dragIdx = null;
+  function hitTest(mx, my) {
+    const dw = cv.offsetWidth - PAD * 2;
+    const p = toPoints(dw);
+    for (const i of [1, 2, 4]) {
+      if (Math.abs(mx - p[i][0]) <= hitR && Math.abs(my - p[i][1]) <= hitR) return i;
+    }
+    return null;
+  }
+  function clp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function applyDrag(idx, mx, my) {
+    const dw     = cv.offsetWidth - PAD * 2;
+    const usable = Math.max(1, dw - HOLD_W);
+    const total  = bmAdsr.a + bmAdsr.d + bmAdsr.r;
+    const sc     = usable / Math.max(T_MAX, total);
+    const MIN_T  = 4 / sc;
+    if (idx === 1) {
+      bmAdsr.a = clp((mx - PAD) / sc, MIN_T, ATK_MAX);
+      bmSetSlider('atkSlider', bmAdsr.a * 1000);
+    } else if (idx === 2) {
+      bmAdsr.d = clp((mx - PAD) / sc - bmAdsr.a, MIN_T, DEC_MAX);
+      bmAdsr.s = clp(1 - (my - PAD) / DH, 0.01, 0.99);
+    } else if (idx === 4) {
+      const before = PAD + bmAdsr.a * sc + bmAdsr.d * sc + HOLD_W;
+      bmAdsr.r = clp((mx - before) / sc, MIN_T, REL_MAX);
+      bmSetSlider('relSlider', bmAdsr.r * 1000);
+    }
+    draw();
+  }
+  cv.addEventListener('mousedown', e => { dragIdx = hitTest(...evPos(e)); if (dragIdx !== null) e.preventDefault(); });
+  window.addEventListener('mousemove', e => { if (dragIdx !== null) applyDrag(dragIdx, ...evPos(e)); });
+  window.addEventListener('mouseup', () => { dragIdx = null; });
+  cv.addEventListener('touchstart', e => { dragIdx = hitTest(...evPos(e)); if (dragIdx !== null) e.preventDefault(); }, { passive: false });
+  cv.addEventListener('touchmove', e => { if (dragIdx === null) return; e.preventDefault(); applyDrag(dragIdx, ...evPos(e)); }, { passive: false });
+  cv.addEventListener('touchend', () => { dragIdx = null; });
+  const _adsrRO = new ResizeObserver(() => { if (panel.classList.contains('open')) draw(); });
+  _adsrRO.observe(cv);
+
+  row.querySelector('.lfo-toggle').addEventListener('click', e => {
+    e.stopPropagation();
+    bmToggleOpen(param, panel, row);
+    if (panel.classList.contains('open')) draw();
+  });
+  panel.querySelector('[data-reset="atk"]').addEventListener('click', () => {
+    bmAdsr.d = BM_DFLT_ADSR.d;
+    bmAdsr.s = BM_DFLT_ADSR.s;
+    bmSetSlider('atkSlider', BM_DFLT_ADSR.a * 1000);
+    bmSetSlider('relSlider', BM_DFLT_ADSR.r * 1000);
+    draw();
+  });
+}
+
+buildBmLfoPanels();
+buildBmAdsrPanel();
+
 // ── Complementary macro re-voicing ───────────────────────
 // When grid generates a fresh pattern it calls this. Bloom retunes its macro
 // sliders to sit *with* the new material rather than fight it: a warm register
@@ -7857,6 +8171,18 @@ function bmSetSlider(id, val) {
   if (!el) return;
   el.value = Math.max(+el.min, Math.min(+el.max, Math.round(val)));
   el.dispatchEvent(new Event('input'));
+}
+// Drive an LFO panel from generation — sets rate/depth/shape via the panel's own
+// sliders/buttons so the UI, state and audio nodes all stay in sync.
+function bmSetLfo(param, rateHz, depthPct, shape) {
+  const rEl = $$(`lfo-${param}-rate`);
+  const dEl = $$(`lfo-${param}-depth`);
+  if (!rEl || !dEl) return;
+  rEl.value = Math.max(+rEl.min, Math.min(+rEl.max, Math.round(rateHz * 10)));
+  rEl.dispatchEvent(new Event('input'));
+  dEl.value = Math.max(+dEl.min, Math.min(+dEl.max, Math.round(depthPct)));
+  dEl.dispatchEvent(new Event('input'));
+  if (shape) document.querySelector(`#bm-lfo-panel-${param} .lfo-shape[data-shape="${shape}"]`)?.click();
 }
 window.asgOnGridGenerate = (info = {}) => {
   const bright    = Math.max(0, Math.min(1, ((info.gridLPF ?? 12000) - 2000) / 16000));
@@ -7882,20 +8208,57 @@ window.asgOnGridGenerate = (info = {}) => {
   bmSetSlider('volSlider', 22 + reverb * 8);
   // Shimmer — more upper-harmonic halo when grid is dark, less when it's bright.
   bmSetSlider('shmrSlider', 15 + (1 - bright) * 35);
+
+  // ── Modifier layers ──────────────────────────────────────
+  // Very slow, shallow movement so the bed drifts rather than sitting static —
+  // ambient-subtle, not a wobble. Long cycles (5–10s) and low depths: cut
+  // swings only ~±180–480Hz, det only a few cents. Darker grids get a touch
+  // more motion to keep the wash alive. All sine for smoothness; vol/revb
+  // LFOs are zeroed so the bed never pumps.
+  bmSetLfo('cut',  0.1, 6 + (1 - bright) * 10, 'sine');    // slow filter drift
+  bmSetLfo('det',  0.2, 5 + (1 - bright) *  7, 'sine');    // faint chorus widen
+  bmSetLfo('shmr', 0.1, 5 + (1 - bright) *  7, 'sine');    // breathing halo
+  bmSetLfo('vol',  0, 0, 'sine');                          // no tremolo on the bed
+  bmSetLfo('revb', 0, 0, 'sine');                          // steady reverb space
+
+  // ADSR decay/sustain — fill the gaps of a staccato grid with a higher,
+  // slower-decaying sustain; sit a touch lower under a sustained grid.
+  bmAdsr.d = staccato ? 0.5 : sustained ? 0.3 : 0.35;
+  bmAdsr.s = staccato ? 0.85 : sustained ? 0.68 : 0.75;
+  $$('lfo-panel-atk')?._draw?.();
 };
 
-// Session save/restore — snapshot every bloom slider by id, and re-apply by
-// dispatching 'input' so each slider's handler updates labels + audio nodes.
+// Session save/restore — snapshot every bloom slider by id (covers the 8 base
+// sliders plus the injected LFO rate/depth sliders), and re-apply by dispatching
+// 'input' so each handler updates labels + audio nodes. Two modifier values have
+// no range input, so we snapshot them separately under reserved _bm* keys:
+// the LFO waveform shapes (buttons) and the ADSR decay/sustain (canvas state).
 window.asgGetBloomState = () => {
   const out = {};
   document.querySelectorAll('#bm-panel input[type=range]').forEach(el => { out[el.id] = el.value; });
+  out._bmLfoShapes = {};
+  BM_LFO_PARAMS.forEach(p => { out._bmLfoShapes[p] = bmLfoState[p].shape; });
+  out._bmAdsr = { d: bmAdsr.d, s: bmAdsr.s };
   return out;
 };
 window.asgSetBloomState = (state) => {
   if (!state) return;
   for (const id in state) {
+    if (id === '_bmLfoShapes' || id === '_bmAdsr') continue;
     const el = document.getElementById(id);
     if (el) { el.value = state[id]; el.dispatchEvent(new Event('input')); }
+  }
+  // LFO shapes — click the matching button so state, osc type and UI all sync.
+  if (state._bmLfoShapes) {
+    for (const p in state._bmLfoShapes) {
+      document.querySelector(`#bm-lfo-panel-${p} .lfo-shape[data-shape="${state._bmLfoShapes[p]}"]`)?.click();
+    }
+  }
+  // ADSR decay/sustain — atk/rel already came from their sliders above.
+  if (state._bmAdsr) {
+    if (typeof state._bmAdsr.d === 'number') bmAdsr.d = state._bmAdsr.d;
+    if (typeof state._bmAdsr.s === 'number') bmAdsr.s = state._bmAdsr.s;
+    $$('lfo-panel-atk')?._draw?.();
   }
 };
 
