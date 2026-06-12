@@ -94,14 +94,22 @@
     .bm-body {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto auto auto auto;
       column-gap: 12px; row-gap: 0;
       height: auto; margin-bottom: 24px;
     }
+    /* Status visualizers — grid summary (left) + granular waveform (right) */
+    #bm-grid-mini, #bm-gran-wave {
+      border: 1px solid rgba(255,255,255,0.14);
+      padding: 2px; box-sizing: border-box; margin-bottom: 8px;
+    }
+    #bm-grid-mini { grid-column: 1; grid-row: 2; }
+    #bm-gran-wave { grid-column: 2; grid-row: 2; }
+    #bm-grid-mini-cv, #bm-gran-wave-cv { display: block; width: 100%; height: 31px; }
     .bm-left  { display: contents; }
     .bm-right { display: contents; }
     #bm-canvas-wrap {
-      grid-column: 1; grid-row: 2;
+      grid-column: 1; grid-row: 3;
       position: relative; aspect-ratio: 1 / 1; width: 100%;
       overflow: hidden; border: 1px solid rgba(255,255,255,0.14);
       cursor: default;
@@ -115,7 +123,7 @@
       pointer-events: none; image-rendering: pixelated;
     }
     #bm-touch-wrap {
-      grid-column: 2; grid-row: 2;
+      grid-column: 2; grid-row: 3;
       position: relative; aspect-ratio: 1 / 1; width: 100%;
       border: 1px solid rgba(255,255,255,0.06); cursor: crosshair;
     }
@@ -123,7 +131,7 @@
       display: block; position: absolute; inset: 0;
       width: 100%; height: 100%; touch-action: none;
     }
-    .bm-ctrl-strip { grid-column: 2; grid-row: 3; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.06); border-top: none; padding: 8px; }
+    .bm-ctrl-strip { grid-column: 2; grid-row: 4; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.06); border-top: none; padding: 8px; }
 
     .bm-overlay-left {
       grid-column: 1; grid-row: 1;
@@ -189,8 +197,10 @@
       .bm-overlay-left  { align-self: stretch; overflow: hidden; padding-bottom: 4px; }
 
       .bm-overlay-right { padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
-      #bm-canvas-wrap   { width: 42vw; height: 42vw; }
-      #bm-touch-wrap    { width: 82vw; height: 82vw; align-self: center; }
+      #bm-canvas-wrap   { width: 100%; height: auto; }
+      #bm-touch-wrap    { width: 100%; height: auto; align-self: stretch; }
+      #bm-grid-mini     { width: 100%; align-self: stretch; }
+      #bm-gran-wave     { width: 100%; align-self: stretch; }
       .bm-ctrl-strip    { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border: none; }
     }
     @media (min-width: 901px) {
@@ -1168,6 +1178,9 @@
         <span style="color:var(--dim);">|</span>
         <span id="bm-pattern-num">00</span>
       </div>
+      <div id="bm-grid-mini" title="Grid status — live summary of the grid sequencer's current page">
+        <canvas id="bm-grid-mini-cv"></canvas>
+      </div>
       <div id="bm-canvas-wrap">
         <canvas id="bm-cv"></canvas>
         <canvas id="bm-grain"></canvas>
@@ -1186,6 +1199,9 @@
         <span style="color:var(--dim);">|</span>
         <button class="btn-action" id="bm-autoBtn" title="Auto — automatically cycles through Chladni patterns at a slow interval">auto</button>
         <span style="flex:1;"></span>
+      </div>
+      <div id="bm-gran-wave" title="Granular status — live output waveform of the granular engine">
+        <canvas id="bm-gran-wave-cv"></canvas>
       </div>
       <div id="bm-touch-wrap">
         <canvas id="bm-touch-cv"></canvas>
@@ -1225,6 +1241,11 @@
           <span class="ctrl-key" title="Volume — overall output level of the bloom engine">vol</span>
           <input type="range" id="bm-volSlider" min="0" max="100" value="20">
           <span class="ctrl-val" id="bm-volVal">0.20</span>
+        </div>
+        <div class="ctrl-row slider">
+          <span class="ctrl-key" title="Shimmer — a glowing octave-up halo layered above each voice, fed into the reverb. Adds upper-harmonic radiance even when the filter is dark">shmr</span>
+          <input type="range" id="bm-shmrSlider" min="0" max="100" value="30">
+          <span class="ctrl-val" id="bm-shmrVal">0.30</span>
         </div>
       </div>
     </div>
@@ -2899,6 +2920,16 @@ window.asgGetGranularLevels = () => {
   };
 };
 
+// Time-domain output for bloom's granular-status waveform. Returns a shared
+// Float32Array (or null when granular hasn't been initialised yet).
+let _gwBuf = null;
+window.asgGetGranularWave = () => {
+  if (!analyserOut) return null;
+  if (!_gwBuf || _gwBuf.length !== analyserOut.fftSize) _gwBuf = new Float32Array(analyserOut.fftSize);
+  analyserOut.getFloatTimeDomainData(_gwBuf);
+  return _gwBuf;
+};
+
 // When grid generates fresh material, re-grain it into a complementary layer.
 // Because granular's default source IS the grid, an octave pitch-shift stays
 // perfectly consonant — it adds body underneath or shimmer on top of the same
@@ -3345,6 +3376,10 @@ window.asgGetGridHarmony = () => {
     playing: S.playing,
   };
 };
+
+// Read-only pattern snapshot for bloom's grid-status visualizer. Returns a live
+// reference to the current page's cells (truthy = note present) — cheap, no copy.
+window.asgGetGridSnapshot = () => ({ cells: S.cells, step: S.step, playing: S.playing, page: S.page });
 
 /* ── §IG01:topo  topographic draw loop ── */
 (function () {
@@ -6955,6 +6990,13 @@ let touchW = 1, touchH = 1;
 const touchCv  = document.getElementById('bm-touch-cv');
 const touchCtx = touchCv.getContext('2d');
 
+// Status visualizers — grid summary (left) + granular waveform (right)
+let miniW = 1, miniH = 1, granW = 1, granH = 1;
+const gridMiniCv  = $$('grid-mini-cv');
+const gridMiniCtx = gridMiniCv.getContext('2d');
+const granWaveCv  = $$('gran-wave-cv');
+const granWaveCtx = granWaveCv.getContext('2d');
+
 const DOT_SP = 4;
 let dotsCv   = null;
 function rebuildDots() {
@@ -6981,6 +7023,15 @@ function resize() {
   touchW = tw.clientWidth || 1; touchH = tw.clientHeight || 1;
   touchCv.width = touchW * dpr; touchCv.height = touchH * dpr;
   rebuildDots();
+  // Status visualizer canvases — back-buffer sized to CSS box × dpr
+  if (gridMiniCv.clientWidth) {
+    miniW = gridMiniCv.clientWidth; miniH = gridMiniCv.clientHeight;
+    gridMiniCv.width = miniW * dpr; gridMiniCv.height = miniH * dpr;
+  }
+  if (granWaveCv.clientWidth) {
+    granW = granWaveCv.clientWidth; granH = granWaveCv.clientHeight;
+    granWaveCv.width = granW * dpr; granWaveCv.height = granH * dpr;
+  }
 }
 window.addEventListener('resize', resize);
 window.asgBmResize = resize;
@@ -7176,10 +7227,29 @@ function spawnVoice(pointerId, x, y) {
   panner.connect(masterGain);
   panner.connect(reverbGain);
   reverbGain.connect(reverbConv);
+
+  // Shimmer — an octave-up halo that bypasses the lowpass, so it stays bright
+  // even when cut is dark. Rides the same attack/release envelope and reaches
+  // the panner directly, blooming a glow above the fundamental into the reverb.
+  const shmrAmt = (parseFloat($$('shmrSlider').value) || 0) / 100;
+  let shimmerOsc = null, shimmerGain = null;
+  if (shmrAmt > 0) {
+    shimmerOsc = audioCtx.createOscillator();
+    shimmerOsc.type = 'triangle';
+    shimmerOsc.frequency.value = freq * 2;   // +12 semitones (octave up)
+    shimmerOsc.detune.value = det;           // share the chorus detune
+    shimmerGain = audioCtx.createGain();
+    shimmerGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    shimmerGain.gain.linearRampToValueAtTime(0.4 * shmrAmt * 0.6, audioCtx.currentTime + atk);
+    shimmerOsc.connect(shimmerGain);
+    shimmerGain.connect(panner);
+    shimmerOsc.start();
+  }
+
   osc1.start(); osc2.start();
 
   voices.set(pointerId, {
-    osc1, osc2, filter, envGain, panner, reverbGain,
+    osc1, osc2, filter, envGain, panner, reverbGain, shimmerOsc, shimmerGain,
     x, y, pan, atk, rel, a, b,
     precomp: precomputePattern(n, m),
     state: 'active',
@@ -7215,6 +7285,12 @@ function releaseVoice(pointerId) {
   v.filter.frequency.cancelScheduledValues(now);
   v.osc1.stop(now + v.rel + 0.1);
   v.osc2.stop(now + v.rel + 0.1);
+  if (v.shimmerGain) {
+    v.shimmerGain.gain.cancelScheduledValues(now);
+    v.shimmerGain.gain.setValueAtTime(v.shimmerGain.gain.value, now);
+    v.shimmerGain.gain.linearRampToValueAtTime(0, now + v.rel);
+  }
+  if (v.shimmerOsc) v.shimmerOsc.stop(now + v.rel + 0.1);
 }
 
 function killVoice(pointerId) {
@@ -7228,9 +7304,10 @@ function killVoice(pointerId) {
     v.envGain.gain.linearRampToValueAtTime(0, now + 0.02);
     v.osc1.stop(now + 0.025);
     v.osc2.stop(now + 0.025);
+    if (v.shimmerOsc) v.shimmerOsc.stop(now + 0.025);
   } catch (_) {}
   setTimeout(() => {
-    [v.osc1, v.osc2, v.filter, v.envGain, v.panner, v.reverbGain]
+    [v.osc1, v.osc2, v.filter, v.envGain, v.panner, v.reverbGain, v.shimmerOsc, v.shimmerGain]
       .forEach(n => { try { n.disconnect(); } catch (_) {} });
   }, 35);
   voices.delete(pointerId);
@@ -7581,6 +7658,68 @@ function drawDots() {
   }
 }
 
+/* ── Status visualizers ──────────────────────────────── */
+// Left: a 16×16 dot-matrix summary of the grid's current page. Each row is a
+// 1px bar with a 1px gap; columns are spaced to fill the width. The playhead
+// column is highlighted brighter while the grid plays.
+function drawGridMini() {
+  const ctx = gridMiniCtx;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, miniW, miniH);
+  const snap = window.asgGetGridSnapshot?.();
+  const ROWS = 16, COLS = 16, rowH = 1, rowGap = 1, colGap = 2;
+  const colW = Math.max(1, (miniW - colGap * (COLS - 1)) / COLS);
+  const dim = hexToRgba(lineColor, 0.55);
+  for (let r = 0; r < ROWS; r++) {
+    const y = r * (rowH + rowGap);
+    for (let c = 0; c < COLS; c++) {
+      const x = c * (colW + colGap);
+      const on = !!snap?.cells?.[r]?.[c];
+      const isStep = !!snap?.playing && c === snap.step;
+      ctx.fillStyle = on
+        ? (isStep ? lineColor : dim)
+        : (isStep ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.13)');
+      ctx.fillRect(x, y, colW, rowH);
+    }
+  }
+}
+
+// Right: live output waveform of the granular engine. Falls back to a flat idle
+// line when granular hasn't been started.
+function drawGranWave() {
+  const ctx = granWaveCtx;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, granW, granH);
+
+  // Background micro-grid — echoes the grid summary's inactive 1px lines, but
+  // chopped into fine column segments so it reads as a near-single-pixel grid.
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  const segW = 2, segGap = 2, rowH = 1, rowGap = 1;
+  for (let y = 0; y < granH; y += rowH + rowGap)
+    for (let x = 0; x < granW; x += segW + segGap)
+      ctx.fillRect(x, y, segW, rowH);
+
+  const wave = window.asgGetGranularWave?.();
+  const mid = granH / 2;
+  ctx.strokeStyle = lineColor;
+  ctx.shadowColor = lineColor;
+  ctx.shadowBlur = 4;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = wave ? 0.9 : 0.25;
+  ctx.beginPath();
+  if (wave) {
+    const N = wave.length;
+    for (let i = 0; i < granW; i++) {
+      const y = mid + wave[(i / granW * (N - 1)) | 0] * mid * 0.9;
+      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+    }
+  } else {
+    ctx.moveTo(0, mid); ctx.lineTo(granW, mid);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+}
+
 /* ── Cleanup expired releases ────────────────────────── */
 function cleanupDead() {
   const toDelete = [];
@@ -7621,6 +7760,9 @@ function frame(ts) {
   if (dotsCv) touchCtx.drawImage(dotsCv, 0, 0);
   drawDots();
   drawGrainFrame();
+  // Status visualizers — grid summary + granular waveform
+  drawGridMini();
+  drawGranWave();
   // Pattern number — only write to DOM when value actually changes
   if (_patNumEl && displayPatIdx !== _lastPatIdx) {
     _lastPatIdx = displayPatIdx;
@@ -7653,6 +7795,10 @@ $$('revbSlider').addEventListener('input', function () {
 $$('volSlider').addEventListener('input', function () {
   $$('volVal').textContent = (this.value / 100).toFixed(2);
   if (masterGain) masterGain.gain.setTargetAtTime(this.value / 100, audioCtx.currentTime, 0.05);
+});
+$$('shmrSlider').addEventListener('input', function () {
+  $$('shmrVal').textContent = (this.value / 100).toFixed(2);
+  // Applies to newly spawned voices (like det/atk/rel) — current voices keep their halo.
 });
 document.getElementById('bm-panel').querySelectorAll('input[type=range]').forEach(el => {
   el.addEventListener('dblclick', () => { el.value = el.defaultValue; el.dispatchEvent(new Event('input')); });
@@ -7692,6 +7838,8 @@ window.asgOnGridGenerate = (info = {}) => {
   bmSetSlider('revbSlider', reverb * 100 + 15);
   // Volume — supportive bed level: present, but under the grid.
   bmSetSlider('volSlider', 22 + reverb * 8);
+  // Shimmer — more upper-harmonic halo when grid is dark, less when it's bright.
+  bmSetSlider('shmrSlider', 15 + (1 - bright) * 35);
 };
 
 /* ── Scale link ──────────────────────────────────────── */
@@ -7729,6 +7877,7 @@ function retuneVoices() {
     const freq = yToFreq(v.y);
     v.osc1.frequency.setTargetAtTime(freq, now, 0.08);
     v.osc2.frequency.setTargetAtTime(freq, now, 0.08);
+    if (v.shimmerOsc) v.shimmerOsc.frequency.setTargetAtTime(freq * 2, now, 0.08);
   }
 }
 
@@ -7764,6 +7913,7 @@ const BM_HELP = [
   ['row',  'rel',  'release time'],
   ['row',  'revb', 'reverb send'],
   ['row',  'vol',  'output volume'],
+  ['row',  'shmr', 'octave-up shimmer halo'],
   ['gap'],
   ['head', 'RECORD', ''],
   ['row',  'rec',    'start / stop recording gesture'],
