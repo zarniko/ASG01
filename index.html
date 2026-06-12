@@ -1135,7 +1135,7 @@
         <button class="btn-action" id="bm-bpmSync" title="BPM sync — locks Chladni resonance frequency to a harmonic of the current grid BPM">bpm sync</button>
         <span style="color:var(--dim);">|</span>
         <span style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
-        <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;" title="Scale link — when active [o], bloom uses the same scale as the grid. Toggle off for an independent bloom scale">[o]</button>
+        <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;" title="Scale link — when active ●, bloom uses the same scale as the grid. Toggle off ○ for an independent bloom scale">●</button>
         <span class="ctrl-key" style="width:auto;">scale</span>
         <select id="bm-scaleSelect">
             <option value="chromatic">chromatic</option>
@@ -2966,6 +2966,21 @@ window.asgOnGridGenerateGranular = (info = {}) => {
 
   // Reverb — share grid's space, generously floored for the wash.
   _gsSetSlider('reverbSlider', cl(reverb * 100 + 10, 45, 92));
+};
+
+// Session save/restore — snapshot every granular slider by id, and re-apply by
+// dispatching 'input' so each slider's handler updates state + worklet/nodes.
+window.asgGetGranularState = () => {
+  const out = {};
+  document.querySelectorAll('#gs-panel input[type=range]').forEach(el => { out[el.id] = el.value; });
+  return out;
+};
+window.asgSetGranularState = (state) => {
+  if (!state) return;
+  for (const id in state) {
+    const el = document.getElementById(id);
+    if (el) { el.value = state[id]; el.dispatchEvent(new Event('input')); }
+  }
 };
 
 function showExportModal() {
@@ -6137,6 +6152,8 @@ function serializeState() {
     fx:      {...FX},
     accent:  lineColor,
     mutedRows: [...mutedRows],
+    granular: window.asgGetGranularState?.(),
+    bloom:    window.asgGetBloomState?.(),
   };
 }
 
@@ -6235,6 +6252,10 @@ function restoreState(data) {
   const targetPage = data.page ?? 0;
   S.page = targetPage;
   pageBtns.forEach((btn, i) => btn.classList.toggle('active', i === targetPage));
+
+  // restore complementary instrument controls (granular + bloom sliders)
+  window.asgSetGranularState?.(data.granular);
+  window.asgSetBloomState?.(data.bloom);
 
   clearSel();
   renderAll();
@@ -7842,6 +7863,21 @@ window.asgOnGridGenerate = (info = {}) => {
   bmSetSlider('shmrSlider', 15 + (1 - bright) * 35);
 };
 
+// Session save/restore — snapshot every bloom slider by id, and re-apply by
+// dispatching 'input' so each slider's handler updates labels + audio nodes.
+window.asgGetBloomState = () => {
+  const out = {};
+  document.querySelectorAll('#bm-panel input[type=range]').forEach(el => { out[el.id] = el.value; });
+  return out;
+};
+window.asgSetBloomState = (state) => {
+  if (!state) return;
+  for (const id in state) {
+    const el = document.getElementById(id);
+    if (el) { el.value = state[id]; el.dispatchEvent(new Event('input')); }
+  }
+};
+
 /* ── Scale link ──────────────────────────────────────── */
 function sizeScaleSelect() {
   const sel = $$('scaleSelect');
@@ -7862,7 +7898,7 @@ sizeScaleSelect();
 
 $$('scaleLink').addEventListener('click', function () {
   scaleLinked = !scaleLinked;
-  this.textContent = scaleLinked ? '[o]' : '[-]';
+  this.textContent = scaleLinked ? '●' : '○';
   this.classList.toggle('active', scaleLinked);
   $$('scaleSelect').disabled = scaleLinked;
   $$('scaleSelect').style.opacity = scaleLinked ? '0.4' : '';
