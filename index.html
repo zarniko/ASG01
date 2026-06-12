@@ -1197,6 +1197,10 @@
         <button class="btn-action" id="bm-refreshBtn" title="Clear — kills all active voices and stops replay. Use this if voices get stuck">clear</button>
         <span style="color:var(--dim);">|</span>
         <button class="btn-action" id="bm-autoBtn" title="Auto — automatically cycles through Chladni patterns at a slow interval">auto</button>
+        <span id="bm-autoModes" style="display:inline-flex;gap:8px;align-items:center;margin-left:2px;">
+          <button class="btn-action active" id="bm-autoModeA" title="Auto mode A — halo: airy mid-register single tones (default)">A</button>
+          <button class="btn-action" id="bm-autoModeB" title="Auto mode B — deep: low sustained drones">B</button>
+        </span>
         <span style="flex:1;"></span>
       </div>
       <div id="bm-gran-wave" title="Granular status — live output waveform of the granular engine">
@@ -1563,9 +1567,11 @@ window._asgBuildHelpOverlay = function(inst, items, color, cols, maxW, onHide) {
 <script>
 // ── §SHARED:midi  MIDI Manager (_asgMidi) + MIDI panel builder ───────────────
 (function () {
-  let _access = null, _outId = null;
+  let _access = null, _outId = null, _inId = null;
   let _clockOn = false, _clockTimer = null;
-  const _ch = { grid: 0, bloom: 1 };
+  let _bendRange = 1.0; // 0–1 — fraction of full ±8191 pitch bend range used by bloom's x position
+  const _ch = { grid: 0, bloom: 1, bloomIn: -1 };
+  const _msgHandlers = [];
 
   function _send(data, ts) {
     if (!_access || !_outId) return;
@@ -1574,16 +1580,37 @@ window._asgBuildHelpOverlay = function(inst, items, color, cols, maxW, onHide) {
     ts != null ? out.send(data, ts) : out.send(data);
   }
 
+  function _attachInput(id) {
+    if (_access) {
+      for (const inp of _access.inputs.values()) inp.onmidimessage = null;
+    }
+    _inId = id;
+    if (_access && id) {
+      const inp = _access.inputs.get(id);
+      if (inp) inp.onmidimessage = (e) => _msgHandlers.forEach(h => h(e.data));
+    }
+  }
+
   window._asgMidi = {
     ready:    () => !!_access,
     sendRaw:  (data, ts) => _send(data, ts),
     noteOn:   (mn, vel, ch, ts) => _send([0x90 | (ch & 0xF), mn & 0x7F, vel & 0x7F], ts),
     noteOff:  (mn, ch, ts)      => _send([0x80 | (ch & 0xF), mn & 0x7F, 0], ts),
+    pitchBend: (val, ch, ts) => {
+      const v = Math.max(0, Math.min(16383, val | 0));
+      _send([0xE0 | (ch & 0xF), v & 0x7F, (v >> 7) & 0x7F], ts);
+    },
     ch:       (inst) => _ch[inst] ?? 0,
     setCh:    (inst, v) => { _ch[inst] = v; },
+    bendRange: () => _bendRange,
+    setBendRange: (v) => { _bendRange = Math.max(0.1, Math.min(1, v)); },
     outputs:  () => _access ? [..._access.outputs.values()] : [],
     outId:    () => _outId,
     setOut:   (id) => { _outId = id; },
+    inputs:   () => _access ? [..._access.inputs.values()] : [],
+    inId:     () => _inId,
+    setIn:    (id) => _attachInput(id),
+    onMessage: (fn) => { _msgHandlers.push(fn); },
     clockOn:  () => _clockOn,
     setClock: (bpm, on) => {
       _clockOn = on;
@@ -1705,6 +1732,38 @@ function _buildMidiContent(container) {
     return wrap;
   }
 
+  // Bloom pitch bend range selector — steps in 10% increments of the full ±8191 range
+  function makeBendRangeSelector() {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:10px;';
+    const dec = makeBtn('◄');
+    const val = document.createElement('span');
+    const label = () => Math.round(m.bendRange() * 100) + '%';
+    val.textContent = label();
+    val.style.cssText = 'min-width:36px;text-align:center;';
+    const inc = makeBtn('►');
+    dec.addEventListener('click', () => { m.setBendRange(m.bendRange() - 0.1); val.textContent = label(); });
+    inc.addEventListener('click', () => { m.setBendRange(m.bendRange() + 0.1); val.textContent = label(); });
+    wrap.append(dec, val, inc);
+    return wrap;
+  }
+
+  // Channel selector that allows -1 = omni (listens on all channels)
+  function makeOmniChSelector(inst) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:10px;';
+    const dec = makeBtn('◄');
+    const val = document.createElement('span');
+    const label = () => m.ch(inst) === -1 ? 'omni' : String(m.ch(inst) + 1);
+    val.textContent = label();
+    val.style.cssText = 'min-width:36px;text-align:center;';
+    const inc = makeBtn('►');
+    dec.addEventListener('click', () => { m.setCh(inst, Math.max(-1, m.ch(inst) - 1)); val.textContent = label(); });
+    inc.addEventListener('click', () => { m.setCh(inst, Math.min(15, m.ch(inst) + 1)); val.textContent = label(); });
+    wrap.append(dec, val, inc);
+    return wrap;
+  }
+
   // ── STATUS ───────────────────────────────────────────
   section('STATUS');
   const supported = !!navigator.requestMIDIAccess;
@@ -1740,10 +1799,20 @@ function _buildMidiContent(container) {
         id => m.setOut(id)
       ));
 
+      // ── INPUT ──────────────────────────────────────────
+      section('INPUT');
+      row('device', makeDeviceSelect(
+        m.inputs().map(i => ({ id: i.id, name: i.name })),
+        m.inId(),
+        id => m.setIn(id)
+      ));
+
       // ── CHANNELS ───────────────────────────────────────
       section('CHANNELS');
       row('grid out', makeChSelector('grid'));
       row('bloom out', makeChSelector('bloom'));
+      row('bloom in', makeOmniChSelector('bloomIn'));
+      row('bend range', makeBendRangeSelector());
 
       // ── OPTIONS ────────────────────────────────────────
       section('OPTIONS');
@@ -1770,7 +1839,7 @@ function _buildMidiContent(container) {
   section('NOTES');
   const note = document.createElement('div');
   note.style.cssText = `color:${DIMMER};font-size:11px;letter-spacing:1px;line-height:1.9;max-width:440px;margin-top:4px;`;
-  note.textContent = 'grid sends note on/off per sequencer step with velocity from note volume. bloom sends note on/off per touch with x-axis as pitch bend. midi clock sends 24 ppq when grid is playing.';
+  note.textContent = 'grid sends note on/off per sequencer step with velocity from note volume. bloom sends note on/off per touch and continuous pitch bend from x position, scaled by bend range (% of full ±8191 swing — match this to your synth’s pitch bend range setting). midi clock sends 24 ppq when grid is playing. bloom in: incoming notes spawn touches (pitch from note, position from velocity) and pitch bend nudges them; set channel to omni to listen on all channels.';
   container.appendChild(note);
 }
 
@@ -7237,6 +7306,7 @@ const MAX_VOICES = 24;
 const voices = new Map();
 let timePh = 0;
 let displayPatIdx = 0;
+let _spawnGainScale = 1; // auto mode D spawns quieter voices; reset to 1 after each auto spawn
 
 function getVisualEnv(v) {
   const now = performance.now();
@@ -7286,7 +7356,7 @@ function spawnVoice(pointerId, x, y) {
   filter.frequency.linearRampToValueAtTime(targetCut, audioCtx.currentTime + atk);
 
   // ADSR: attack to peak, decay to sustain level, hold while touched, release on lift
-  const envPeak = 0.4;
+  const envPeak = 0.4 * _spawnGainScale;
   const envGain = audioCtx.createGain();
   envGain.gain.setValueAtTime(0, audioCtx.currentTime);
   envGain.gain.linearRampToValueAtTime(envPeak, audioCtx.currentTime + atk);
@@ -7316,7 +7386,7 @@ function spawnVoice(pointerId, x, y) {
     shimmerOsc.frequency.value = freq * 2;   // +12 semitones (octave up)
     shimmerOsc.detune.value = det;           // share the chorus detune
     shimmerGain = audioCtx.createGain();
-    const shimmerPeak = 0.4 * shmrAmt * 0.6;
+    const shimmerPeak = 0.4 * shmrAmt * 0.6 * _spawnGainScale;
     shimmerGain.gain.setValueAtTime(0, audioCtx.currentTime);
     shimmerGain.gain.linearRampToValueAtTime(shimmerPeak, audioCtx.currentTime + atk);
     shimmerGain.gain.linearRampToValueAtTime(shimmerPeak * bmAdsr.s, audioCtx.currentTime + atk + bmAdsr.d);
@@ -7356,6 +7426,8 @@ function spawnVoice(pointerId, x, y) {
     const mn = Math.round(69 + 12 * Math.log2(freq / 440));
     if (mn >= 0 && mn <= 127) {
       const ch = window._asgMidi.ch('bloom');
+      const bend = Math.round(8192 + pan * 8191 * window._asgMidi.bendRange());
+      window._asgMidi.pitchBend(bend, ch);
       window._asgMidi.sendRaw([0x90 | ch, mn, 80]);
       voices.get(pointerId)._midiNote = mn;
     }
@@ -7368,7 +7440,10 @@ function releaseVoice(pointerId) {
   if (!v || v.state === 'releasing') return;
   // MIDI note-off
   if (window._asgMidi?.ready() && v._midiNote != null) {
-    window._asgMidi.sendRaw([0x80 | window._asgMidi.ch('bloom'), v._midiNote, 0]);
+    const ch = window._asgMidi.ch('bloom');
+    window._asgMidi.sendRaw([0x80 | ch, v._midiNote, 0]);
+    const anyOther = [...voices.values()].some(o => o !== v && o._midiNote != null && o.state !== 'releasing');
+    if (!anyOther) window._asgMidi.pitchBend(8192, ch);
   }
   v.peakEnv    = getVisualEnv(v);
   v.releaseTime = performance.now();
@@ -7486,6 +7561,11 @@ function bmHandleMove(x, y, pid) {
   if (elapsed > v.atk && v.filter) {
     v.filter.frequency.setTargetAtTime(yToCutoff(v.y), audioCtx.currentTime, 0.08);
   }
+  // MIDI pitch bend follows x position
+  if (window._asgMidi?.ready() && v._midiNote != null) {
+    const bend = Math.round(8192 + v.pan * 8191 * window._asgMidi.bendRange());
+    window._asgMidi.pitchBend(bend, window._asgMidi.ch('bloom'));
+  }
 }
 
 let nextHeldKey = 1;
@@ -7501,6 +7581,40 @@ function bmHandleUp(pid) {
   if (holdMode) { rekeyHeld(pid); return; }
   releaseVoice(pid);
 }
+
+/* ── MIDI input → bloom touches ─────────────────────────
+   incoming notes spawn a touch (pitch from note number → x,
+   velocity → y); pitch bend nudges that touch's x position. */
+const midiInPids = new Map(); // midi note -> synthetic pointer id
+window._asgMidi?.onMessage((data) => {
+  const status = data[0] & 0xF0;
+  const ch     = data[0] & 0x0F;
+  const inCh   = window._asgMidi.ch('bloomIn');
+  if (inCh !== -1 && ch !== inCh) return;
+
+  if (status === 0x90 && data[2] > 0) {
+    const mn  = data[1], vel = data[2];
+    const x   = Math.max(0, Math.min(touchW, ((mn - 36) / 60) * touchW));
+    const y   = Math.max(0, Math.min(touchH, touchH * (1 - vel / 127)));
+    const pid = 'midiIn_' + mn;
+    bmHandleDown(x, y, pid);
+    midiInPids.set(mn, pid);
+  } else if (status === 0x80 || (status === 0x90 && data[2] === 0)) {
+    const mn  = data[1];
+    const pid = midiInPids.get(mn);
+    if (pid) { bmHandleUp(pid); midiInPids.delete(mn); }
+  } else if (status === 0xE0) {
+    const bend = ((data[2] << 7) | data[1]) - 8192; // -8192..8191
+    const norm = bend / 8192;
+    for (const [mn, pid] of midiInPids) {
+      const v = voices.get(pid);
+      if (!v) continue;
+      const baseX = ((mn - 36) / 60) * touchW;
+      const x = Math.max(0, Math.min(touchW, baseX + norm * touchW * 0.1));
+      bmHandleMove(x, v.y, pid);
+    }
+  }
+});
 
 /* ── Record / Replay ─────────────────────────────────── */
 let bmRecording = false, bmRecordStart = 0, bmRecordedEvents = [];
@@ -7584,6 +7698,17 @@ let _autoPidCounter = 7000;
 
 const AUTO_PROB_PER_BAR = 0.22; // base trigger chance, scaled down by mix activity
 
+// Auto-mode flavors. Each shapes register (how low the drone sits), brightSink
+// (extra dip when granular is busy), hold length, dyad density/interval, voice
+// level, and rest between bursts.
+//   A = halo — airy mid-register single tones (default)
+//   B = deep — low sustained drones (the original auto behavior)
+const AUTO_MODES = {
+  A: { regBase: 0.55, regRand: 0.23, brightSink: 1.0, holdBase: 2.5, holdRand: 2.5, dyadChance: 0.12, dyadInterval: 12, voiceGain: 1.0, cooldownBase: 4, cooldownRand: 5 }, // halo (default)
+  B: { regBase: 0.16, regRand: 0.18, brightSink: 0.7, holdBase: 4,   holdRand: 6,   dyadChance: 0.28, dyadInterval: 7,  voiceGain: 1.0, cooldownBase: 3, cooldownRand: 4 }, // deep
+};
+let bmAutoMode = 'A';
+
 // Map a target pitch class to a Y on the touch canvas. buildFreqs() is
 // ascending (index 0 = lowest) and yToPitchIdx maps top→highest index, so a low
 // regFrac (→ low index) lands the pad near the bottom = a low drone.
@@ -7606,6 +7731,7 @@ function bmIdxToY(idx, len) { return touchH * (1 - idx / Math.max(1, len - 1)); 
 
 function fireAutoBurst(bpm) {
   const beatMs = (60 / bpm) * 1000;
+  const M = AUTO_MODES[bmAutoMode] || AUTO_MODES.A;
   const h = window.asgGetGridHarmony?.();
   const g = window.asgGetGranularLevels?.();
 
@@ -7617,28 +7743,30 @@ function fireAutoBurst(bpm) {
     if (bi >= 0) rootPc = bi;
   }
 
-  // Drone register — low / low-mid. Sink lower when granular is bright so bloom
+  // Drone register — per mode. Sink lower when granular is bright so bloom
   // adds warmth underneath rather than fighting in the same band.
-  let regFrac = 0.16 + Math.random() * 0.18;
-  if (g?.active && g.mid > g.bass) regFrac *= 0.7;
+  let regFrac = M.regBase + Math.random() * M.regRand;
+  if (g?.active && g.mid > g.bass) regFrac *= M.brightSink;
 
-  // Sparse by design: almost always one sustained tone; occasionally a root +
-  // fifth dyad for a fuller pedal.
-  const dyad = Math.random() < 0.28 && rootPc != null;
+  // Sparse by design: almost always one sustained tone; occasionally a dyad
+  // (interval per mode — a fifth below the register, or an octave for air).
+  const dyad = Math.random() < M.dyadChance && rootPc != null;
   const pcs = [rootPc];
-  if (dyad) pcs.push((rootPc + 7) % 12);
+  if (dyad) pcs.push((rootPc + M.dyadInterval) % 12);
 
   pcs.forEach((pc, i) => {
     let y;
     if (pc != null) { const p = bmPickIdxForPc(pc, regFrac); y = bmIdxToY(p.idx, p.len); }
     else            { y = touchH * (1 - regFrac); }      // no harmony yet → low scale tone
     const x     = touchW * (0.5 + (Math.random() - 0.5) * (dyad ? 0.5 : 0.3));
-    const hold  = beatMs * (4 + Math.random() * 6);      // long pads: 4–10 beats
+    const hold  = beatMs * (M.holdBase + Math.random() * M.holdRand);
     const delay = i * beatMs * (0.5 + Math.random());    // dyad tones nearly together
     const pid   = 'auto_' + (_autoPidCounter++);
     setTimeout(() => {
       if (!bmAutoActive) return;
+      _spawnGainScale = M.voiceGain;   // recessed for mode D; reset right after spawn
       bmHandleDown(x, y, pid);
+      _spawnGainScale = 1;
       // Always release on its own timer, even if user toggles auto off mid-burst
       setTimeout(() => bmHandleUp(pid), hold);
     }, delay);
@@ -7659,7 +7787,8 @@ function tickAuto() {
       bmAutoCooldown--;
     } else if (Math.random() < prob) {
       fireAutoBurst(state.bpm);
-      bmAutoCooldown = 3 + (Math.random() * 4 | 0); // rest 3–6 bars after a pad
+      const M = AUTO_MODES[bmAutoMode] || AUTO_MODES.A;
+      bmAutoCooldown = M.cooldownBase + (Math.random() * M.cooldownRand | 0); // rest between pads
     }
   }
   bmAutoTimer = setTimeout(tickAuto, barMs);
@@ -7676,6 +7805,18 @@ autoBtn.addEventListener('click', () => {
     clearTimeout(bmAutoTimer);
     bmAutoTimer = null;
   }
+});
+
+// Auto mode A/B — mutually exclusive flavor selector (A = halo, default)
+const autoModeBtns = {
+  A: $$('autoModeA'), B: $$('autoModeB'),
+};
+Object.entries(autoModeBtns).forEach(([mode, btn]) => {
+  btn?.addEventListener('click', () => {
+    bmAutoMode = mode;
+    Object.values(autoModeBtns).forEach(b => b?.classList.remove('active'));
+    btn.classList.add('active');
+  });
 });
 
 touchCv.addEventListener('pointerdown', e => {
