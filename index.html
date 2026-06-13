@@ -103,9 +103,16 @@
       border: 1px solid rgba(255,255,255,0.14);
       padding: 2px; box-sizing: border-box; margin-bottom: 8px;
     }
-    #bm-grid-mini { grid-column: 1; grid-row: 2; }
+    #bm-grid-mini { grid-column: 1; grid-row: 2; display: flex; align-items: stretch; gap: 4px; }
     #bm-gran-wave { grid-column: 2; grid-row: 2; }
     #bm-grid-mini-cv, #bm-gran-wave-cv { display: block; width: 100%; height: 31px; }
+    #bm-grid-mini-cv { flex: 1; min-width: 0; }
+    #bm-grid-mini-page {
+      flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+      width: 20px; font-family: 'Share Tech Mono', monospace; font-size: 13px;
+      letter-spacing: 1px; color: var(--accent); text-shadow: 0 0 6px var(--accent);
+      border-left: 1px solid rgba(255,255,255,0.14);
+    }
     .bm-left  { display: contents; }
     .bm-right { display: contents; }
     #bm-canvas-wrap {
@@ -1381,6 +1388,7 @@
       </div>
       <div id="bm-grid-mini" title="Grid status — live summary of the grid sequencer's current page">
         <canvas id="bm-grid-mini-cv"></canvas>
+        <div id="bm-grid-mini-page">1</div>
       </div>
       <div id="bm-gran-wave" title="Granular status — live output waveforms of synthesis A (top) and B (bottom)">
         <canvas id="bm-gran-wave-cv"></canvas>
@@ -8066,6 +8074,7 @@ const touchCtx = touchCv.getContext('2d');
 let miniW = 1, miniH = 1, granW = 1, granH = 1;
 const gridMiniCv  = $$('grid-mini-cv');
 const gridMiniCtx = gridMiniCv.getContext('2d');
+const gridMiniPageEl = $$('grid-mini-page');
 const granWaveCv  = $$('gran-wave-cv');
 const granWaveCtx = granWaveCv.getContext('2d');
 
@@ -8876,6 +8885,8 @@ function drawGridMini() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, miniW, miniH);
   const snap = window.asgGetGridSnapshot?.();
+  const pageLabel = String((snap?.page ?? 0) + 1).padStart(2, '0');
+  if (gridMiniPageEl.textContent !== pageLabel) gridMiniPageEl.textContent = pageLabel;
   const ROWS = 16, COLS = 16, rowH = 1, rowGap = 1, colGap = 2;
   const colW = Math.max(1, (miniW - colGap * (COLS - 1)) / COLS);
   const dim = hexToRgba(lineColor, 0.55);
