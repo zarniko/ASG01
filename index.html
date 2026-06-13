@@ -110,7 +110,7 @@
     #bm-grid-mini-page {
       flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
       width: 20px; font-family: 'Share Tech Mono', monospace; font-size: 13px;
-      letter-spacing: 1px; color: var(--accent); text-shadow: 0 0 6px var(--accent);
+      letter-spacing: 1px; padding-left: 1px; color: var(--accent); text-shadow: 0 0 6px var(--accent);
       border-left: 1px solid rgba(255,255,255,0.14);
     }
     .bm-left  { display: contents; }
@@ -8889,6 +8889,7 @@ function drawGridMini() {
   if (gridMiniPageEl.textContent !== pageLabel) gridMiniPageEl.textContent = pageLabel;
   const ROWS = 16, COLS = 16, rowH = 1, rowGap = 1, colGap = 2;
   const colW = Math.max(1, (miniW - colGap * (COLS - 1)) / COLS);
+  gridMiniPageEl.style.width = colW + 'px';
   const dim = hexToRgba(lineColor, 0.55);
   for (let r = 0; r < ROWS; r++) {
     const y = r * (rowH + rowGap);
