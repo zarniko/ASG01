@@ -2656,8 +2656,8 @@ ro.observe(waveCV.parentElement);
 function resizeCanvases() {
   const w = waveCV.offsetWidth;
   if (!w) return;
-  waveCV.width  = w * dpr; waveCV.height  = 100 * dpr;
-  cloudCV.width = w * dpr; cloudCV.height = 52 * dpr;
+  waveCV.width  = w * dpr; waveCV.height  = waveCV.offsetHeight * dpr;
+  cloudCV.width = w * dpr; cloudCV.height = cloudCV.offsetHeight * dpr;
 }
 resizeCanvases();
 
@@ -3957,8 +3957,8 @@ ro.observe(waveCV.parentElement);
 function resizeCanvases() {
   const w = waveCV.offsetWidth;
   if (!w) return;
-  waveCV.width  = w * dpr; waveCV.height  = 100 * dpr;
-  cloudCV.width = w * dpr; cloudCV.height = 52 * dpr;
+  waveCV.width  = w * dpr; waveCV.height  = waveCV.offsetHeight * dpr;
+  cloudCV.width = w * dpr; cloudCV.height = cloudCV.offsetHeight * dpr;
 }
 resizeCanvases();
 
