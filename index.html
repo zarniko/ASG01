@@ -360,6 +360,8 @@
     .gs-acc:not(.open) .gs-acc-chev { transform: rotate(-90deg); }
     .gs-acc-body { display: none; padding: 4px 0 20px; }
     .gs-acc.open > .gs-acc-body { display: block; }
+    .gs-acc-summary-cv { display: none; flex: 1; height: 24px; min-width: 0; border-radius: 2px; }
+    .gs-acc:not(.open) > .gs-acc-head .gs-acc-summary-cv { display: block; }
     .gs-controls .ctrl-grid { padding-top: 4px; }
     @media (hover: none) { .gs-acc-head { min-height: 44px; } }
     .ctrl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 48px; }
@@ -632,7 +634,7 @@
 
   <!-- ── §GS01 Synthesis A accordion ── -->
   <div class="gs-acc open" id="gs-accA">
-  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-chev">▾</span> synthesis a</button>
+  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-chev">▾</span> synthesis a<canvas class="gs-acc-summary-cv" id="gs-accSummary-cv"></canvas></button>
   <div class="gs-acc-body">
 
   <!-- Header -->
@@ -786,7 +788,7 @@
 
   <!-- ── §GS01 Synthesis B accordion ── -->
   <div class="gs-acc" id="gs2-accB">
-  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-chev">▾</span> synthesis b</button>
+  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-chev">▾</span> synthesis b<canvas class="gs-acc-summary-cv" id="gs2-accSummary-cv"></canvas></button>
   <div class="gs-acc-body">
 
   <!-- Header -->
@@ -1455,6 +1457,67 @@
 const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
 const POOL   = '.,:;+*#@0123456789';
 const rc     = () => POOL[Math.random() * POOL.length | 0];
+
+// Shared by GS01/GS02's collapsed-accordion summary visualizers and bloom's
+// granular status strip.
+function asgHexToRgba(hex, a) {
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// Draws a single-engine waveform + grain summary into a small canvas, used by
+// the synthesis a/b accordion headers when collapsed. Mirrors bloom's
+// drawGranWave micro-grid + dimmed waveform + grain-dot style.
+function asgDrawAccSummary(cv, ctx, wave, grains, t, color) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.offsetWidth, h = cv.offsetHeight;
+  if (!w || !h) return;
+  if (cv.width !== w * dpr || cv.height !== h * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const segW = 2, segGap = 2, rowH = 1, rowGap = 1;
+  const colPitch = segW + segGap, rowPitch = rowH + rowGap;
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  for (let y = 0; y < h; y += rowPitch)
+    for (let x = 0; x < w; x += colPitch)
+      ctx.fillRect(x, y, segW, rowH);
+
+  if (grains && grains.length) {
+    const midRow = Math.round((h * 0.5) / rowPitch);
+    const numRows = Math.max(1, Math.floor(h / rowPitch));
+    grains.forEach((p, i) => {
+      const gx = Math.max(0, Math.min(1, p)) * w;
+      const x = Math.floor(gx / colPitch) * colPitch;
+      const osc = Math.sin(t * 2.5 + i * 0.8) * 0.3;
+      const row = Math.min(numRows - 1, Math.max(0, midRow + Math.round(osc * 0.45 * numRows)));
+      ctx.globalAlpha = 0.35 + Math.abs(osc) * 0.5;
+      ctx.fillStyle = asgHexToRgba(color, 1);
+      ctx.fillRect(x, row * rowPitch, segW, rowH);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.strokeStyle = asgHexToRgba(color, 0.55);
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = wave ? 0.9 : 0.25;
+  ctx.beginPath();
+  if (wave) {
+    const N = wave.length;
+    for (let i = 0; i < w; i++) {
+      const y = h / 2 + wave[(i / w * (N - 1)) | 0] * (h * 0.45);
+      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+    }
+  } else {
+    ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
 
 const _panels = [
   { panel: 'gs-panel',   btn: 'toggleGs' },
@@ -2575,6 +2638,9 @@ const waveCV  = $$('waveform-cv');
 const waveCtx = waveCV.getContext('2d');
 const cloudCV = $$('cloud-cv');
 const cloudCtx = cloudCV.getContext('2d');
+const accSummaryCV  = $$('accSummary-cv');
+const accSummaryCtx = accSummaryCV.getContext('2d');
+const accA = $$('accA');
 
 const ro = new ResizeObserver(() => resizeCanvases());
 ro.observe(waveCV.parentElement);
@@ -2848,6 +2914,11 @@ function animate(ts) {
   drawWaveform(t);
   drawCloud(t);
   window._gs2DrawFrame?.(t); // drive synthesis B's waveform + cloud
+
+  if (!accA.classList.contains('open')) {
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
+    asgDrawAccSummary(accSummaryCV, accSummaryCtx, window.asgGetGranularWaveA?.(), S.grainPos, t, accent);
+  }
 
   if (t - lastGrainT > 0.08) {
     drawGrainNoise();
@@ -3868,6 +3939,9 @@ const waveCV  = $$('waveform-cv');
 const waveCtx = waveCV.getContext('2d');
 const cloudCV = $$('cloud-cv');
 const cloudCtx = cloudCV.getContext('2d');
+const accSummaryCV  = $$('accSummary-cv');
+const accSummaryCtx = accSummaryCV.getContext('2d');
+const accB = $$('accB');
 
 const ro = new ResizeObserver(() => resizeCanvases());
 ro.observe(waveCV.parentElement);
@@ -4102,7 +4176,13 @@ function drawCloud(t) {
 }
 
 // ── Per-frame draw — driven by GS01's shared animate loop ──
-window._gs2DrawFrame   = (t) => { ghostT = t; drawWaveform(t); drawCloud(t); };
+window._gs2DrawFrame   = (t) => {
+  ghostT = t; drawWaveform(t); drawCloud(t);
+  if (!accB.classList.contains('open')) {
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fff';
+    asgDrawAccSummary(accSummaryCV, accSummaryCtx, window.asgGetGranularWaveB?.(), S.grainPos, t, accent);
+  }
+};
 window._gs2IsRecording = () => S.isRecording;
 window._gs2Grains      = () => (S.isRecording ? S.grainPos : null);
 
