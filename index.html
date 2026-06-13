@@ -320,7 +320,7 @@
     #gs-panel .hdr-mid { display: flex; align-items: center; gap: 14px; letter-spacing: 0; }
     #gs-panel .main-layout { display: flex; flex-direction: row; gap: 20px; align-items: flex-start; }
     #gs-panel .canvas-col { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    #gs-waveform-cv, #gs2-waveform-cv { width: 100%; height: 200px; display: block; border: 1px solid #111; border-radius: 4px; cursor: crosshair; }
+    #gs-waveform-cv, #gs2-waveform-cv { width: 100%; height: 100px; display: block; border: 1px solid #111; border-radius: 4px; cursor: crosshair; }
     #gs-cloud-cv, #gs2-cloud-cv { width: 100%; height: 52px; display: block; border: 1px solid #111; border-radius: 4px; }
     .buf-bar-wrap { position: relative; height: 2px; background: #111; border-radius: 1px; overflow: visible; }
     #gs-bufWriteBar, #gs2-bufWriteBar { position: absolute; left: 0; top: 0; height: 100%; background: var(--accent); box-shadow: 0 0 6px var(--accent); transition: width 0.05s linear; border-radius: 1px; }
@@ -1380,7 +1380,7 @@
       <div id="bm-grid-mini" title="Grid status — live summary of the grid sequencer's current page">
         <canvas id="bm-grid-mini-cv"></canvas>
       </div>
-      <div id="bm-gran-wave" title="Granular status — live output waveform of the granular engine">
+      <div id="bm-gran-wave" title="Granular status — live output waveforms of synthesis A (top) and B (bottom)">
         <canvas id="bm-gran-wave-cv"></canvas>
       </div>
       <div id="bm-canvas-wrap">
@@ -2222,6 +2222,7 @@ const S = {
 
 // ─── Audio ─────────────────────────────────────────────────────────────────────
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
+let _waveAnalyserA = null;
 let _captureStream = null; // holds full getDisplayMedia stream so we can stop it later
 
 // ── Shared AudioContext + worklet + summing analyser ────────────────────────
@@ -2363,6 +2364,8 @@ async function initAudio(srcType) {
   reverbWetGain.connect(masterGain);
   masterGain.connect(audioCtx.destination);
   if (_sumAnalyser) masterGain.connect(_sumAnalyser); // feed shared A+B visual/meter
+  _waveAnalyserA = audioCtx.createAnalyser(); _waveAnalyserA.fftSize = 2048;
+  masterGain.connect(_waveAnalyserA); // feed bloom's per-engine waveform strip
 
   S.isRecording = true;
   updateRecBtn();
@@ -2479,8 +2482,11 @@ $$('muteBtn').addEventListener('click', () => {
 });
 
 // REC button
+let _initInProgress = false;
 $$('recBtn').addEventListener('click', async () => {
   if (!S.isRecording) {
+    if (_initInProgress) return;
+    _initInProgress = true;
     try {
       const src = $$('srcSelect').value;
       await initAudio(src);
@@ -2488,6 +2494,8 @@ $$('recBtn').addEventListener('click', async () => {
     } catch (e) {
       console.error('[GS01]', e);
       setStatus('err: ' + (e.message || e));
+    } finally {
+      _initInProgress = false;
     }
   } else {
     // Per-engine pause — the AudioContext is shared with synthesis B, so we
@@ -2538,6 +2546,7 @@ $$('clearSplicesBtn').addEventListener('click', () => {
 
 function renderSplices() {
   const list = $$('spliceList');
+  $$('clearSplicesBtn').style.display = S.splices.length ? '' : 'none';
   if (!S.splices.length) {
     list.innerHTML = '<span class="splice-empty"></span>';
     return;
@@ -2573,7 +2582,7 @@ ro.observe(waveCV.parentElement);
 function resizeCanvases() {
   const w = waveCV.offsetWidth;
   if (!w) return;
-  waveCV.width  = w * dpr; waveCV.height  = 200 * dpr;
+  waveCV.width  = w * dpr; waveCV.height  = 100 * dpr;
   cloudCV.width = w * dpr; cloudCV.height = 52 * dpr;
 }
 resizeCanvases();
@@ -2638,7 +2647,7 @@ function drawWaveform(t) {
     ctx.beginPath();
     for (let i = 0; i < 2048; i++) {
       const x = (i / 2048) * w;
-      const y = h / 2 + waveData[i] * h * 0.45;
+      const y = h / 2 + waveData[i] * h * 0.48;
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
     ctx.stroke();
@@ -2678,7 +2687,7 @@ function drawWaveform(t) {
   ctx.beginPath(); ctx.moveTo(posX, 0); ctx.lineTo(posX, h); ctx.stroke();
   // Playhead rectangle — strobes/flashes with audio amplitude
   {
-    const rh = 20, rw = 10;
+    const rh = 18, rw = 9;
     let audioAmp = 0;
     if (activeAnalyser) {
       let peak = 0;
@@ -2724,7 +2733,7 @@ function drawWaveform(t) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.55); ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.fillText('h1', x + 4, h * 0.55 - 6);
+    ctx.fillText('h1', x + 4, h * 0.55);
   }
 
   // Head 2
@@ -2733,10 +2742,10 @@ function drawWaveform(t) {
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1;
     ctx.shadowBlur = 3; ctx.shadowColor = '#fff';
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.45); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.275); ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillText('h2', x + 4, h * 0.45 - 6);
+    ctx.fillText('h2', x + 4, h * 0.275);
   }
 
   ctx.letterSpacing = '0px';
@@ -3215,6 +3224,15 @@ window.asgGetGranularWave = () => {
   return _gwBuf;
 };
 
+// Per-engine time-domain output for bloom's stacked A/B waveform strips.
+let _gwBufA = null;
+window.asgGetGranularWaveA = () => {
+  if (!_waveAnalyserA) return null;
+  if (!_gwBufA || _gwBufA.length !== _waveAnalyserA.fftSize) _gwBufA = new Float32Array(_waveAnalyserA.fftSize);
+  _waveAnalyserA.getFloatTimeDomainData(_gwBufA);
+  return _gwBufA;
+};
+
 // Live grain read positions (0–1 across the buffer) so bloom's granular-status
 // strip can light up its micro-grid where grains currently sit. Combines both
 // engines' active grains. Empty until at least one engine is running.
@@ -3224,6 +3242,7 @@ window.asgGetGranularGrains = () => {
   if (a && b) return a.concat(b);
   return a || b || null;
 };
+window.asgGetGranularGrainsA = () => (S.isRecording ? S.grainPos : null);
 
 // When grid generates fresh material, re-grain it into a complementary layer.
 // Because granular's default source IS the grid, an octave pitch-shift stays
@@ -3539,6 +3558,7 @@ const S = {
 
 // ─── Audio (own nodes; shared context) ──────────────────────────────────────
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
+let _waveAnalyserB = null;
 let _captureStream = null;
 
 async function initAudio(srcType) {
@@ -3637,6 +3657,8 @@ async function initAudio(srcType) {
   reverbWetGain.connect(masterGain);
   masterGain.connect(audioCtx.destination);
   { const _sum = window.asgGetGranularSum?.(); if (_sum) masterGain.connect(_sum); } // feed shared A+B visual/meter
+  _waveAnalyserB = audioCtx.createAnalyser(); _waveAnalyserB.fftSize = 2048;
+  masterGain.connect(_waveAnalyserB); // feed bloom's per-engine waveform strip
 
   S.isRecording = true;
   updateRecBtn();
@@ -3753,8 +3775,11 @@ $$('muteBtn').addEventListener('click', () => {
 });
 
 // REC button
+let _initInProgress = false;
 $$('recBtn').addEventListener('click', async () => {
   if (!S.isRecording) {
+    if (_initInProgress) return;
+    _initInProgress = true;
     try {
       const src = $$('srcSelect').value;
       await initAudio(src);
@@ -3762,6 +3787,8 @@ $$('recBtn').addEventListener('click', async () => {
     } catch (e) {
       console.error('[GS02]', e);
       setStatus('err: ' + (e.message || e));
+    } finally {
+      _initInProgress = false;
     }
   } else {
     // Per-engine pause — the AudioContext is shared with synthesis B, so we
@@ -3812,6 +3839,7 @@ $$('clearSplicesBtn').addEventListener('click', () => {
 
 function renderSplices() {
   const list = $$('spliceList');
+  $$('clearSplicesBtn').style.display = S.splices.length ? '' : 'none';
   if (!S.splices.length) {
     list.innerHTML = '<span class="splice-empty"></span>';
     return;
@@ -3847,7 +3875,7 @@ ro.observe(waveCV.parentElement);
 function resizeCanvases() {
   const w = waveCV.offsetWidth;
   if (!w) return;
-  waveCV.width  = w * dpr; waveCV.height  = 200 * dpr;
+  waveCV.width  = w * dpr; waveCV.height  = 100 * dpr;
   cloudCV.width = w * dpr; cloudCV.height = 52 * dpr;
 }
 resizeCanvases();
@@ -3912,7 +3940,7 @@ function drawWaveform(t) {
     ctx.beginPath();
     for (let i = 0; i < 2048; i++) {
       const x = (i / 2048) * w;
-      const y = h / 2 + waveData[i] * h * 0.45;
+      const y = h / 2 + waveData[i] * h * 0.48;
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
     ctx.stroke();
@@ -3952,7 +3980,7 @@ function drawWaveform(t) {
   ctx.beginPath(); ctx.moveTo(posX, 0); ctx.lineTo(posX, h); ctx.stroke();
   // Playhead rectangle — strobes/flashes with audio amplitude
   {
-    const rh = 20, rw = 10;
+    const rh = 18, rw = 9;
     let audioAmp = 0;
     if (activeAnalyser) {
       let peak = 0;
@@ -3998,7 +4026,7 @@ function drawWaveform(t) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.55); ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.fillText('h1', x + 4, h * 0.55 - 6);
+    ctx.fillText('h1', x + 4, h * 0.55);
   }
 
   // Head 2
@@ -4007,10 +4035,10 @@ function drawWaveform(t) {
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1;
     ctx.shadowBlur = 3; ctx.shadowColor = '#fff';
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.45); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.275); ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillText('h2', x + 4, h * 0.45 - 6);
+    ctx.fillText('h2', x + 4, h * 0.275);
   }
 
   ctx.letterSpacing = '0px';
@@ -4077,6 +4105,15 @@ function drawCloud(t) {
 window._gs2DrawFrame   = (t) => { ghostT = t; drawWaveform(t); drawCloud(t); };
 window._gs2IsRecording = () => S.isRecording;
 window._gs2Grains      = () => (S.isRecording ? S.grainPos : null);
+
+// Per-engine time-domain output for bloom's stacked A/B waveform strips.
+let _gwBufB = null;
+window.asgGetGranularWaveB = () => {
+  if (!_waveAnalyserB) return null;
+  if (!_gwBufB || _gwBufB.length !== _waveAnalyserB.fftSize) _gwBufB = new Float32Array(_waveAnalyserB.fftSize);
+  _waveAnalyserB.getFloatTimeDomainData(_gwBufB);
+  return _gwBufB;
+};
 
 // ── Export — reuses GS01's shared export modal with this engine's nodes ──
 $$('exportBtn').addEventListener('click',
@@ -8794,42 +8831,49 @@ function drawGranWave() {
 
   // Grain movement — scatter a lit micro-grid cell per grain, echoing the
   // granular tab's grain-cloud cloud of dots but snapped to this grid's pixels.
-  const grains = window.asgGetGranularGrains?.();
-  if (grains && grains.length) {
-    const rowPitch = rowH + rowGap;
-    const numRows = Math.max(1, Math.floor(granH / rowPitch));
+  // Synthesis A grains center on the top waveform's line; B on the bottom's.
+  const rowPitch = rowH + rowGap;
+  const numRowsHalf = Math.max(1, Math.floor((granH * 0.5) / rowPitch));
+  [window.asgGetGranularGrainsA?.(), window._gs2Grains?.()].forEach((grains, idx) => {
+    if (!grains || !grains.length) return;
+    const midRow = Math.round((granH * (idx === 0 ? 0.25 : 0.75)) / rowPitch);
     grains.forEach((p, i) => {
       const gx = Math.max(0, Math.min(1, p)) * granW;
       const x = Math.floor(gx / colPitch) * colPitch;
       const osc = Math.sin(timePh * 2.5 + i * 0.8) * 0.3;
-      const row = Math.min(numRows - 1, Math.max(0, Math.floor((0.5 + osc * 0.45) * numRows)));
+      const rowOffset = Math.round(osc * 0.45 * numRowsHalf);
+      const row = Math.min(granH / rowPitch - 1, Math.max(0, midRow + rowOffset));
       const y = row * rowPitch;
       ctx.globalAlpha = 0.35 + Math.abs(osc) * 0.5;
       ctx.fillStyle = hexToRgba(lineColor, 1);
       ctx.fillRect(x, y, segW, rowH);
     });
-    ctx.globalAlpha = 1;
-  }
+  });
+  ctx.globalAlpha = 1;
 
-  const wave = window.asgGetGranularWave?.();
-  const mid = granH / 2;
-  ctx.strokeStyle = lineColor;
-  ctx.shadowColor = lineColor;
-  ctx.shadowBlur = 4;
+  // Synthesis A (top half) + B (bottom half), stacked in the same strip
+  const waveA = window.asgGetGranularWaveA?.();
+  const waveB = window.asgGetGranularWaveB?.();
+  const dim = hexToRgba(lineColor, 0.55);
+  ctx.strokeStyle = dim;
+  ctx.shadowBlur = 0;
   ctx.lineWidth = 1;
-  ctx.globalAlpha = wave ? 0.9 : 0.25;
-  ctx.beginPath();
-  if (wave) {
-    const N = wave.length;
-    for (let i = 0; i < granW; i++) {
-      const y = mid + wave[(i / granW * (N - 1)) | 0] * mid * 0.9;
-      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+  [waveA, waveB].forEach((wave, idx) => {
+    const mid = granH * (idx === 0 ? 0.25 : 0.75);
+    ctx.globalAlpha = wave ? 0.9 : 0.25;
+    ctx.beginPath();
+    if (wave) {
+      const N = wave.length;
+      for (let i = 0; i < granW; i++) {
+        const y = mid + wave[(i / granW * (N - 1)) | 0] * (granH * 0.25) * 0.9;
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+      }
+    } else {
+      ctx.moveTo(0, mid); ctx.lineTo(granW, mid);
     }
-  } else {
-    ctx.moveTo(0, mid); ctx.lineTo(granW, mid);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
 }
 
 /* ── Cleanup expired releases ────────────────────────── */
