@@ -197,7 +197,7 @@
       .bm-right { display: flex; flex-direction: column; gap: 8px; }
       .bm-overlay-left  { align-self: stretch; overflow: hidden; padding-bottom: 4px; }
 
-      .bm-overlay-right { padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+      .bm-overlay-right { align-self: stretch; padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
       #bm-canvas-wrap   { width: 100%; height: auto; }
       #bm-touch-wrap    { width: 100%; height: auto; align-self: stretch; }
       #bm-grid-mini     { width: 100%; align-self: stretch; }
@@ -320,10 +320,10 @@
     #gs-panel .hdr-mid { display: flex; align-items: center; gap: 14px; letter-spacing: 0; }
     #gs-panel .main-layout { display: flex; flex-direction: row; gap: 20px; align-items: flex-start; }
     #gs-panel .canvas-col { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    #gs-waveform-cv { width: 100%; height: 200px; display: block; border: 1px solid #111; border-radius: 4px; cursor: crosshair; }
-    #gs-cloud-cv { width: 100%; height: 52px; display: block; border: 1px solid #111; border-radius: 4px; }
+    #gs-waveform-cv, #gs2-waveform-cv { width: 100%; height: 200px; display: block; border: 1px solid #111; border-radius: 4px; cursor: crosshair; }
+    #gs-cloud-cv, #gs2-cloud-cv { width: 100%; height: 52px; display: block; border: 1px solid #111; border-radius: 4px; }
     .buf-bar-wrap { position: relative; height: 2px; background: #111; border-radius: 1px; overflow: visible; }
-    #gs-bufWriteBar { position: absolute; left: 0; top: 0; height: 100%; background: var(--accent); box-shadow: 0 0 6px var(--accent); transition: width 0.05s linear; border-radius: 1px; }
+    #gs-bufWriteBar, #gs2-bufWriteBar { position: absolute; left: 0; top: 0; height: 100%; background: var(--accent); box-shadow: 0 0 6px var(--accent); transition: width 0.05s linear; border-radius: 1px; }
     .splice-bar { display: flex; gap: 8px; align-items: center; letter-spacing: 0; flex-wrap: wrap; min-height: 22px; margin-top: 2px; }
     .splice-label { color: var(--dim); letter-spacing: 2px; }
     .splice-chip { color: var(--dim); cursor: pointer; transition: color .1s, text-shadow .1s; font-size: 11px; letter-spacing: 1px; }
@@ -337,12 +337,12 @@
     #app-legend { display: flex; gap: 0; letter-spacing: 0; align-items: center; }
     #app-legend span { cursor: pointer; transition: opacity .1s; font-size: 13px; padding: 6px 5px; }
     #app-legend span:hover { opacity: 0.7; }
-    #gs-grainCount { font-size: inherit; color: var(--dim); letter-spacing: 2px; }
+    #gs-grainCount, #gs2-grainCount { font-size: inherit; color: var(--dim); letter-spacing: 2px; }
     .src-wrap { position: relative; display: flex; align-items: center; }
     .src-wrap::after { content: '▾'; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.25); font-size: 10px; pointer-events: none; letter-spacing: 0; }
-    #gs-srcSelect { -webkit-appearance: none; appearance: none; background: none; border: none; border-bottom: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.75); font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; cursor: pointer; outline: none; padding-right: 14px; vertical-align: middle; }
-    #gs-srcSelect:focus { color: #fff; border-bottom-color: rgba(255,255,255,0.5); }
-    #gs-srcSelect option { background: #000; color: #fff; letter-spacing: 1px; }
+    #gs-srcSelect, #gs2-srcSelect { -webkit-appearance: none; appearance: none; background: none; border: none; border-bottom: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.75); font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; cursor: pointer; outline: none; padding-right: 14px; vertical-align: middle; }
+    #gs-srcSelect:focus, #gs2-srcSelect:focus { color: #fff; border-bottom-color: rgba(255,255,255,0.5); }
+    #gs-srcSelect option, #gs2-srcSelect option { background: #000; color: #fff; letter-spacing: 1px; }
     .rec-grp { display: flex; align-items: center; gap: 14px; }
     #gs-panel .footer-right { font-size: 11px; color: var(--dimmer); letter-spacing: 2px; }
     #gs-panel .bottom-section { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 20px; width: 100%; }
@@ -351,6 +351,17 @@
     .view-toggle-btn.active { color: rgba(255,255,255,0.85); }
     .view-toggle-btn:hover { color: rgba(255,255,255,0.6); }
     .view-toggle-sep { color: var(--dimmer); font-size: 13px; }
+    /* Synthesis accordions (A / B) */
+    .gs-acc { width: 100%; border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; margin-bottom: 12px; padding: 0 12px; }
+    .gs-acc-head { all: unset; display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%; padding: 12px 2px; letter-spacing: 3px; font-size: 13px; color: rgba(255,255,255,0.5); transition: color .1s; }
+    .gs-acc-head:hover { color: rgba(255,255,255,0.85); }
+    .gs-acc.open > .gs-acc-head { color: rgba(255,255,255,0.85); }
+    .gs-acc-chev { display: inline-block; transition: transform .12s; color: rgba(255,255,255,0.35); font-size: 11px; }
+    .gs-acc:not(.open) .gs-acc-chev { transform: rotate(-90deg); }
+    .gs-acc-body { display: none; padding: 4px 0 20px; }
+    .gs-acc.open > .gs-acc-body { display: block; }
+    .gs-controls .ctrl-grid { padding-top: 4px; }
+    @media (hover: none) { .gs-acc-head { min-height: 44px; } }
     .ctrl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 48px; }
     .ctrl-group { display: flex; flex-direction: column; gap: 2px; }
     .glossary { column-count: 2; column-gap: 48px; }
@@ -362,7 +373,7 @@
     #gs-bh-grain { position: absolute; top: 0; left: 0; opacity: 0.04; pointer-events: none; }
     @media (max-width: 840px) {
       #gs-panel .main-layout { flex-direction: column; align-items: stretch; gap: 32px; }
-      #gs-waveform-cv { height: 160px; }
+      #gs-waveform-cv, #gs2-waveform-cv { height: 160px; }
       #gs-panel .hdr { flex-direction: column; gap: 20px; align-items: flex-start; }
       #gs-panel .hdr-mid { flex-direction: row; align-items: center; gap: 14px; }
       #gs-panel .hdr-left { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -373,7 +384,7 @@
     }
     @media (max-width: 480px) {
       #gs-panel .hdr { padding: 0 4px; }
-      #gs-srcSelect { font-size: 13px; letter-spacing: 1px; }
+      #gs-srcSelect, #gs2-srcSelect { font-size: 13px; letter-spacing: 1px; }
       #gs-panel .btn-action { font-size: 13px; }
       #gs-panel .ctrl-key { width: 48px; font-size: 12px; }
       #gs-panel .ctrl-val { min-width: 44px; font-size: 11px; }
@@ -571,12 +582,17 @@
        §SHARED:helptabs     _asgMakeHelpTabs
        §SHARED:midi         MIDI Manager (_asgMidi) + MIDI panel builder
 
-     GS01 script block
+     GS01 script block  (synthesis A)
        §GS01                outer IIFE start  ($$ = 'gs-')
        §GS01:worklet        AudioWorklet processor (inlined as Blob)
-       §GS01:state          app state + engine
-       §GS01:bh             black hole visualization
-       §GS01:exports        cross-IIFE exports · asgBpmSync
+       §GS01:state          app state + engine · shared ctx (ensureGranularCtx) + sum analyser
+       §GS01:bh             black hole visualization (reads A+B sum)
+       §GS01:exports        cross-IIFE exports · asgBpmSync · shared export modal
+
+     GS02 script block  (synthesis B)
+       §GS02                parallel granular engine ($$ = 'gs2-') on the shared
+                            ctx; driven by GS01 via window._gs2DrawFrame /
+                            _gs2BpmSync / _gs2OnGridGenerate
 
      IG01 script block
        §IG01                outer IIFE start  ($$ = 'ig-')
@@ -613,6 +629,11 @@
 
 <div id="gs-panel" style="display:none">
 <div class="instrument">
+
+  <!-- ── §GS01 Synthesis A accordion ── -->
+  <div class="gs-acc open" id="gs-accA">
+  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-chev">▾</span> synthesis a</button>
+  <div class="gs-acc-body">
 
   <!-- Header -->
   <div class="hdr">
@@ -671,21 +692,13 @@
 
   </div>
 
-  <div class="footer">
-    <span class="footer-right"></span>
-  </div>
+<!-- control a accordion -->
+ <div class="gs-acc open" id="gs-accCtrlA" style="margin-top: 8px;">
+  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-chev">▾</span> control a</button>
+  <div class="gs-acc-body">
 
-  <div class="bottom-section">
-  <div class="view-toggle">
-    <button class="view-toggle-btn active" id="gs-showVisual">visual</button>
-    <span class="view-toggle-sep">/</span>
-    <button class="view-toggle-btn" id="gs-showControls">controls</button>
-    <span class="view-toggle-sep">/</span>
-    <button class="view-toggle-btn" id="gs-showGlossary">glossary</button>
-  </div>
-
-  <div style="min-height:500px;width:100%;">
-  <div id="gs-controlsView" style="display:none;width:100%;padding-top:20px;">
+  <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
+  <div class="gs-controls" style="width:100%;padding-top:16px;">
     <div class="ctrl-grid">
 
       <div class="ctrl-group">
@@ -764,6 +777,176 @@
 
     </div>
   </div>
+
+  </div><!-- /control a body -->
+  </div><!-- /control a acc -->
+
+  </div><!-- /gs-acc-body A -->
+  </div><!-- /gs-acc A -->
+
+  <!-- ── §GS01 Synthesis B accordion ── -->
+  <div class="gs-acc" id="gs2-accB">
+  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-chev">▾</span> synthesis b</button>
+  <div class="gs-acc-body">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="src-wrap">
+        <select id="gs2-srcSelect">
+          <option value="tab">system audio</option>
+          <option value="mic">mic</option>
+          <option value="grid" selected>grid audio</option>
+          <option value="bloom">bloom audio</option>
+        </select>
+      </div>
+      <button class="btn-action" id="gs2-recBtn">capture audio</button>
+    </div>
+    <div class="hdr-mid">
+      <button class="btn-action" id="gs2-muteBtn">mute</button>
+      <button class="btn-action" id="gs2-exportBtn">export</button>
+    </div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main-layout">
+
+    <!-- Canvas column -->
+    <div class="canvas-col">
+      <!-- Buffer write-head bar -->
+      <div class="buf-bar-wrap">
+        <div id="gs2-bufWriteBar" style="width:0%"></div>
+      </div>
+      <canvas id="gs2-waveform-cv"></canvas>
+      <canvas id="gs2-cloud-cv"></canvas>
+      <div class="splice-bar">
+        <span class="splice-label">splice</span>
+        <button class="btn-action" id="gs2-clearSplicesBtn" style="letter-spacing:2px" title="Clear splices — removes all splice markers from the waveform">clear</button>
+        <div id="gs2-spliceList"><span class="splice-empty"></span></div>
+        <span class="splice-label">|</span>
+        <span style="display:flex; align-items:center; gap:4px;">
+          <span class="splice-label">bpm</span>
+          <button class="btn-action" id="gs2-bpmDens" style="margin-left:4px;" title="Density sync — links grain spawn rate to the global BPM for rhythmic pulsing">density</button>
+          <span class="splice-label">-</span>
+          <button class="btn-action" id="gs2-bpmLfo" title="LFO sync — locks the granular LFO rate to a musical division of the global BPM">lfo</button>
+        </span>
+        <span id="gs2-grainCount" style="margin-left:auto">0 grains</span>
+        <button class="btn-action" id="gs2-freezeBtn" title="Freeze — pauses buffer writing. Grains keep reading from the captured moment indefinitely">freeze</button>
+      </div>
+      <div class="splice-hint" id="gs2-spliceHint" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span>shift+click waveform to add splice marker &nbsp; click marker to jump</span>
+        <span style="white-space:nowrap;letter-spacing:2px;">
+          <span style="color:rgba(255,255,255,0.35);font-size:11px;letter-spacing:2px;">display options:</span>
+          <button class="btn-action" id="gs2-waveViewGrain" style="font-size:11px;">grain</button>
+          <span class="splice-label"> | </span>
+          <button class="btn-action active" id="gs2-waveViewInput" style="font-size:11px;">input</button>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- control b accordion -->
+  <div class="gs-acc open" id="gs2-accCtrlB" style="margin-top: 8px;">
+  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-chev">▾</span> control b</button>
+  <div class="gs-acc-body">
+
+  <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
+  <div class="gs-controls" style="width:100%;padding-top:16px;">
+    <div class="ctrl-grid">
+
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Grain density — grains spawned per second. Higher = denser, more continuous texture">
+          <span class="ctrl-key">dens</span>
+          <input type="range" id="gs2-densSlider" min="1" max="100" value="65" step="1">
+          <span class="ctrl-val" id="gs2-densVal">65</span>
+        </div>
+        <div class="ctrl-row slider" title="Grain size — duration of each grain in milliseconds">
+          <span class="ctrl-key">size</span>
+          <input type="range" id="gs2-sizeSlider" min="10" max="500" value="350" step="5">
+          <span class="ctrl-val" id="gs2-sizeVal">350ms</span>
+        </div>
+        <div class="ctrl-row slider" title="Read position — location in the 4-second buffer where grains are sampled from">
+          <span class="ctrl-key">pos</span>
+          <input type="range" id="gs2-posSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs2-posVal">0.50</span>
+        </div>
+        <div class="ctrl-row slider" title="Pitch — grain playback rate. 1× = original pitch, 2× = one octave up, 0.5× = one octave down">
+          <span class="ctrl-key">ptch</span>
+          <input type="range" id="gs2-pitchSlider" min="25" max="400" value="85" step="1">
+          <span class="ctrl-val" id="gs2-pitchVal">0.85×</span>
+        </div>
+        <div class="ctrl-row slider" title="Spread — randomizes each grain's buffer position and stereo placement around the read head">
+          <span class="ctrl-key">sprd</span>
+          <input type="range" id="gs2-spreadSlider" min="0" max="100" value="80" step="1">
+          <span class="ctrl-val" id="gs2-spreadVal">0.80</span>
+        </div>
+        <div class="ctrl-row slider" title="Pitch drift — random pitch variation added to each grain. Creates an organic, fluctuating texture">
+          <span class="ctrl-key">p.dft</span>
+          <input type="range" id="gs2-pitchDriftSlider" min="0" max="100" value="12" step="1">
+          <span class="ctrl-val" id="gs2-pitchDriftVal">0.12</span>
+        </div>
+        <div class="ctrl-row slider" title="Position jump — chance each grain skips to a random point in the buffer instead of the read head">
+          <span class="ctrl-key">p.jmp</span>
+          <input type="range" id="gs2-headJumpSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs2-headJumpVal">0.00</span>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Reverb — wet mix of the reverb effect">
+          <span class="ctrl-key">revb</span>
+          <input type="range" id="gs2-reverbSlider" min="0" max="100" value="70" step="1">
+          <span class="ctrl-val" id="gs2-reverbVal">0.70</span>
+        </div>
+        <div class="ctrl-row slider" title="Volume — output gain of the granular engine">
+          <span class="ctrl-key">vol</span>
+          <input type="range" id="gs2-volSlider" min="0" max="1000" value="60" step="5">
+          <span class="ctrl-val" id="gs2-volVal">0.60×</span>
+        </div>
+        <div class="ctrl-row slider" title="Preservation — buffer feedback. At 0, incoming audio overwrites the buffer; at 1, old audio never erases and layers accumulate indefinitely">
+          <span class="ctrl-key">prsv</span>
+          <input type="range" id="gs2-preserveSlider" min="0" max="95" value="20" step="1">
+          <span class="ctrl-val" id="gs2-preserveVal">0.20</span>
+        </div>
+        <div class="ctrl-row slider" aria-hidden="true"></div>
+        <div class="ctrl-row slider" title="Read head — toggle H1 and H2 independent scan heads on or off. Each head scans the buffer at its own rate">
+          <span class="ctrl-key">head</span>
+          <div class="tui-group">
+            <button class="tui-btn sel" id="gs2-head1Btn">h1</button>
+            <button class="tui-btn sel" id="gs2-head2Btn">h2</button>
+          </div>
+        </div>
+        <div class="ctrl-row slider" title="Head 1 rate — scan speed and direction for read head 1. Positive = forward, negative = backward, zero = parked">
+          <span class="ctrl-key sm">h1 rt</span>
+          <input type="range" id="gs2-head1Rate" min="-200" max="200" value="25" step="5">
+          <span class="ctrl-val" id="gs2-head1RateVal">+0.3×</span>
+        </div>
+        <div class="ctrl-row slider" title="Head 2 rate — scan speed and direction for read head 2. Positive = forward, negative = backward, zero = parked">
+          <span class="ctrl-key sm">h2 rt</span>
+          <input type="range" id="gs2-head2Rate" min="-200" max="200" value="-15" step="5">
+          <span class="ctrl-val" id="gs2-head2RateVal">−0.2×</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div><!-- /control b body -->
+  </div><!-- /control b acc -->
+
+  </div><!-- /gs-acc-body B -->
+  </div><!-- /gs-acc B -->
+
+  <!-- ── visual / glossary ── -->
+  <div class="bottom-section">
+  <div class="view-toggle">
+    <button class="view-toggle-btn active" id="gs-showVisual">visual</button>
+    <span class="view-toggle-sep">/</span>
+    <button class="view-toggle-btn" id="gs-showGlossary">glossary</button>
+  </div>
+
+  <div style="min-height:500px;width:100%;">
   <div id="gs-glossaryView" style="display:none;width:100%;">
   <div class="glossary">
     <div class="gloss-entry">
@@ -1177,15 +1360,6 @@
         <span style="color:var(--dim);">|</span>
         <span id="bm-pattern-num">00</span>
       </div>
-      <div id="bm-grid-mini" title="Grid status — live summary of the grid sequencer's current page">
-        <canvas id="bm-grid-mini-cv"></canvas>
-      </div>
-      <div id="bm-canvas-wrap">
-        <canvas id="bm-cv"></canvas>
-        <canvas id="bm-grain"></canvas>
-      </div>
-    </div>
-    <div class="bm-right">
       <div class="bm-overlay-right">
         <button class="btn-action" id="bm-holdBtn" title="Hold — sustains all current voices after touches are lifted. New touches add to the held cluster">hold</button>
         <span id="bm-voiceCount" style="color:var(--dim); letter-spacing:1px;">0/24</span>
@@ -1203,9 +1377,18 @@
         </span>
         <span style="flex:1;"></span>
       </div>
+      <div id="bm-grid-mini" title="Grid status — live summary of the grid sequencer's current page">
+        <canvas id="bm-grid-mini-cv"></canvas>
+      </div>
       <div id="bm-gran-wave" title="Granular status — live output waveform of the granular engine">
         <canvas id="bm-gran-wave-cv"></canvas>
       </div>
+      <div id="bm-canvas-wrap">
+        <canvas id="bm-cv"></canvas>
+        <canvas id="bm-grain"></canvas>
+      </div>
+    </div>
+    <div class="bm-right">
       <div id="bm-touch-wrap">
         <canvas id="bm-touch-cv"></canvas>
       </div>
@@ -2041,34 +2224,51 @@ const S = {
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
 let _captureStream = null; // holds full getDisplayMedia stream so we can stop it later
 
-async function initAudio(srcType) {
-  if (!audioCtx) {
-    const ctx = new AudioContext({ sampleRate: 48000 });
-    try {
-      await ctx.resume(); // ensure context is running before loading worklet
-      // Try blob URL first; fall back to data URL (file:// origin in some browsers blocks blob)
-      let loaded = false;
-      try {
-        const blob = new Blob([PROCESSOR_SRC], { type: 'application/javascript' });
-        const blobUrl = URL.createObjectURL(blob);
-        await ctx.audioWorklet.addModule(blobUrl);
-        URL.revokeObjectURL(blobUrl);
-        loaded = true;
-      } catch (e1) {
-        console.warn('[GS01] blob URL worklet load failed, trying data URL:', e1.message);
-      }
-      if (!loaded) {
-        const dataUrl = 'data:application/javascript;base64,' + btoa(PROCESSOR_SRC);
-        await ctx.audioWorklet.addModule(dataUrl);
-      }
-    } catch (e) {
-      try { ctx.close(); } catch (_) {}
-      throw e;
-    }
-    audioCtx = ctx;
-  } else if (audioCtx.state === 'suspended') {
-    await audioCtx.resume();
+// ── Shared AudioContext + worklet + summing analyser ────────────────────────
+// Both granular engines (synthesis A / B) run on ONE AudioContext to stay under
+// iOS Safari's live-context cap. The worklet module is registered once; each
+// engine then instantiates its own AudioWorkletNode on the shared ctx. The sum
+// analyser taps both engines' masterGain (analysis-only — not routed onward, so
+// no double audio) and drives the shared black-hole visual + bloom's meter.
+let _sharedGranCtx = null;
+let _sumAnalyser    = null;
+async function ensureGranularCtx() {
+  if (_sharedGranCtx) {
+    if (_sharedGranCtx.state === 'suspended') await _sharedGranCtx.resume();
+    return _sharedGranCtx;
   }
+  const ctx = new AudioContext({ sampleRate: 48000 });
+  try {
+    await ctx.resume(); // ensure context is running before loading worklet
+    // Try blob URL first; fall back to data URL (file:// origin in some browsers blocks blob)
+    let loaded = false;
+    try {
+      const blob = new Blob([PROCESSOR_SRC], { type: 'application/javascript' });
+      const blobUrl = URL.createObjectURL(blob);
+      await ctx.audioWorklet.addModule(blobUrl);
+      URL.revokeObjectURL(blobUrl);
+      loaded = true;
+    } catch (e1) {
+      console.warn('[GS01] blob URL worklet load failed, trying data URL:', e1.message);
+    }
+    if (!loaded) {
+      const dataUrl = 'data:application/javascript;base64,' + btoa(PROCESSOR_SRC);
+      await ctx.audioWorklet.addModule(dataUrl);
+    }
+  } catch (e) {
+    try { ctx.close(); } catch (_) {}
+    throw e;
+  }
+  _sumAnalyser = ctx.createAnalyser();
+  _sumAnalyser.fftSize = 2048;
+  _sharedGranCtx = ctx;
+  return ctx;
+}
+window.asgGetGranularCtx = ensureGranularCtx;
+window.asgGetGranularSum = () => _sumAnalyser;
+
+async function initAudio(srcType) {
+  audioCtx = await ensureGranularCtx();
 
   let stream;
   if (srcType === 'grid') {
@@ -2162,6 +2362,7 @@ async function initAudio(srcType) {
   reverbDryGain.connect(masterGain);
   reverbWetGain.connect(masterGain);
   masterGain.connect(audioCtx.destination);
+  if (_sumAnalyser) masterGain.connect(_sumAnalyser); // feed shared A+B visual/meter
 
   S.isRecording = true;
   updateRecBtn();
@@ -2289,7 +2490,11 @@ $$('recBtn').addEventListener('click', async () => {
       setStatus('err: ' + (e.message || e));
     }
   } else {
-    if (audioCtx) audioCtx.suspend();
+    // Per-engine pause — the AudioContext is shared with synthesis B, so we
+    // must NOT suspend it (that would freeze both). Silence this engine's
+    // master and cut its input instead; resume rebuilds the graph via initAudio.
+    if (masterGain) masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+    if (sourceNode) { try { sourceNode.disconnect(); } catch (_) {} }
     if (_captureStream) { _captureStream.getTracks().forEach(t => t.stop()); _captureStream = null; }
     S.isRecording = false;
     updateRecBtn();
@@ -2633,6 +2838,7 @@ function animate(ts) {
 
   drawWaveform(t);
   drawCloud(t);
+  window._gs2DrawFrame?.(t); // drive synthesis B's waveform + cloud
 
   if (t - lastGrainT > 0.08) {
     drawGrainNoise();
@@ -2754,10 +2960,11 @@ window._gsHideHelp = hideHelp;
 
   let _fftBuf = null;
   function getAudioLevels() {
-    if (!analyserOut) return { bass: 0, mid: 0, rms: 0 };
-    const bins = analyserOut.frequencyBinCount;
+    // Reacts to the SUM of synthesis A + B (shared sum analyser).
+    if (!_sumAnalyser) return { bass: 0, mid: 0, rms: 0 };
+    const bins = _sumAnalyser.frequencyBinCount;
     if (!_fftBuf || _fftBuf.length !== bins) _fftBuf = new Uint8Array(bins);
-    analyserOut.getByteFrequencyData(_fftBuf);
+    _sumAnalyser.getByteFrequencyData(_fftBuf);
     const bassEnd = Math.floor(bins * 0.1);
     const midEnd  = Math.floor(bins * 0.4);
     let bass = 0, mid = 0, rms = 0;
@@ -2915,8 +3122,8 @@ window._gsHideHelp = hideHelp;
 
 // ─── Bottom section toggle ──────────────────────────────────────────────────────
 function showTab(active) {
-  const tabs = ['showVisual', 'showControls', 'showGlossary'];
-  const views = { showVisual: 'visualView', showControls: 'controlsView', showGlossary: 'glossaryView' };
+  const tabs = ['showVisual', 'showGlossary'];
+  const views = { showVisual: 'visualView', showGlossary: 'glossaryView' };
   tabs.forEach(id => {
     $$(id).classList.toggle('active', id === active);
     $$(views[id]).style.display = id === active ? '' : 'none';
@@ -2926,8 +3133,14 @@ function showTab(active) {
 }
 
 $$('showVisual').addEventListener('click',   () => showTab('showVisual'));
-$$('showControls').addEventListener('click', () => showTab('showControls'));
 $$('showGlossary').addEventListener('click', () => showTab('showGlossary'));
+
+// Accordion headers — each header toggles its own .gs-acc box. Covers the
+// synthesis a/b engines plus their nested control a/b boxes (both gs- and gs2-
+// engines live inside #gs-panel).
+document.querySelectorAll('#gs-panel .gs-acc-head').forEach(head => {
+  head.addEventListener('click', () => head.closest('.gs-acc')?.classList.toggle('open'));
+});
 
 if (document.getElementById('gs-panel').style.display !== 'none') requestAnimationFrame(() => window._gsBhStart?.());
 
@@ -2943,7 +3156,8 @@ function setAccent(col) {
 let _exportFmt = 'wav';
 let _exportDur = 30;
 
-$$('exportBtn').addEventListener('click', showExportModal);
+$$('exportBtn').addEventListener('click',
+  () => _gsShowExportModal(() => ({ ctx: audioCtx, master: masterGain }), $$('exportBtn'), 'gs01'));
 
 // ── BPM sync ─────────────────────────────────────────────
 let _gsBpmDens = false, _gsBpmLfo = false;
@@ -2954,7 +3168,6 @@ $$('bpmDens').addEventListener('click', function () {
 $$('bpmLfo').addEventListener('click', function () {
   _gsBpmLfo = !_gsBpmLfo;
   this.classList.toggle('active', _gsBpmLfo);
-  if (!_gsBpmLfo) _bhLfoMult = 1.0;
 });
 // ── §GS01:exports  cross-IIFE exports · asgBpmSync ──────────────────────────
 window.asgBpmSync = (bpm) => {
@@ -2964,21 +3177,19 @@ window.asgBpmSync = (bpm) => {
     sl.value = dens;
     sl.dispatchEvent(new Event('input'));
   }
-  if (_gsBpmLfo) {
-    _bhLfoMult = bpm / 60;
-  }
+  window._gs2BpmSync?.(bpm);  // synthesis B density sync
   window._asgBpmSyncBm?.(bpm);
   window._asgMidi?.updateClockBpm?.(bpm);
 };
 
 // Expose granular spectral levels so bloom's auto mode can sink beneath the
-// texture and rest when the mix is dense.
+// texture and rest when the mix is dense. Reads the SUM of synthesis A + B.
 let _glBuf = null;
 window.asgGetGranularLevels = () => {
-  if (!analyserOut) return { bass: 0, mid: 0, rms: 0, active: false };
-  const bins = analyserOut.frequencyBinCount;
+  if (!_sumAnalyser) return { bass: 0, mid: 0, rms: 0, active: false };
+  const bins = _sumAnalyser.frequencyBinCount;
   if (!_glBuf || _glBuf.length !== bins) _glBuf = new Uint8Array(bins);
-  analyserOut.getByteFrequencyData(_glBuf);
+  _sumAnalyser.getByteFrequencyData(_glBuf);
   const bassEnd = Math.floor(bins * 0.1), midEnd = Math.floor(bins * 0.4);
   let bass = 0, mid = 0, rms = 0;
   for (let i = 0; i < bins; i++) {
@@ -2990,24 +3201,29 @@ window.asgGetGranularLevels = () => {
     bass: bass / (bassEnd * 255),
     mid:  mid  / ((midEnd - bassEnd) * 255),
     rms:  rms  / (bins * 255),
-    active: S.isRecording,
+    active: S.isRecording || !!window._gs2IsRecording?.(),
   };
 };
 
-// Time-domain output for bloom's granular-status waveform. Returns a shared
-// Float32Array (or null when granular hasn't been initialised yet).
+// Time-domain output for bloom's granular-status waveform — the summed A+B
+// output. Returns a shared Float32Array (or null before any engine is running).
 let _gwBuf = null;
 window.asgGetGranularWave = () => {
-  if (!analyserOut) return null;
-  if (!_gwBuf || _gwBuf.length !== analyserOut.fftSize) _gwBuf = new Float32Array(analyserOut.fftSize);
-  analyserOut.getFloatTimeDomainData(_gwBuf);
+  if (!_sumAnalyser) return null;
+  if (!_gwBuf || _gwBuf.length !== _sumAnalyser.fftSize) _gwBuf = new Float32Array(_sumAnalyser.fftSize);
+  _sumAnalyser.getFloatTimeDomainData(_gwBuf);
   return _gwBuf;
 };
 
 // Live grain read positions (0–1 across the buffer) so bloom's granular-status
-// strip can light up its micro-grid where grains currently sit. Empty until the
-// engine is running.
-window.asgGetGranularGrains = () => (S.isRecording ? S.grainPos : null);
+// strip can light up its micro-grid where grains currently sit. Combines both
+// engines' active grains. Empty until at least one engine is running.
+window.asgGetGranularGrains = () => {
+  const a = S.isRecording ? S.grainPos : null;
+  const b = window._gs2Grains?.();
+  if (a && b) return a.concat(b);
+  return a || b || null;
+};
 
 // When grid generates fresh material, re-grain it into a complementary layer.
 // Because granular's default source IS the grid, an octave pitch-shift stays
@@ -3045,6 +3261,8 @@ window.asgOnGridGenerateGranular = (info = {}) => {
 
   // Reverb — share grid's space, generously floored for the wash.
   _gsSetSlider('reverbSlider', cl(reverb * 100 + 10, 45, 92));
+
+  window._gs2OnGridGenerate?.(info); // synthesis B re-voices too
 };
 
 // Session save/restore — snapshot every granular slider by id, and re-apply by
@@ -3062,8 +3280,10 @@ window.asgSetGranularState = (state) => {
   }
 };
 
-function showExportModal() {
-  if ($$('export-modal')) return;
+// Engine-agnostic export modal. getNodes() returns the live {ctx, master} of
+// whichever engine opened it; reused by synthesis B via window._gsShowExportModal.
+function _gsShowExportModal(getNodes, exportBtn, label) {
+  if (document.getElementById('gs-export-modal')) return;
 
   const ov = document.createElement('div');
   ov.id = 'gs-export-modal';
@@ -3135,12 +3355,13 @@ function showExportModal() {
   goBtn.id = 'exportFileBtn';
   goBtn.textContent = 'export file';
   goBtn.addEventListener('click', () => {
-    if (!audioCtx || !masterGain) {
+    const { ctx, master } = getNodes();
+    if (!ctx || !master) {
       statusEl.textContent = 'start audio capture first';
       return;
     }
     hideExportModal();
-    startExport(_exportFmt, _exportDur);
+    startExport(_exportFmt, _exportDur, ctx, master, exportBtn, label);
   });
   btnRow.appendChild(goBtn);
 
@@ -3157,15 +3378,15 @@ function showExportModal() {
 }
 
 function hideExportModal() {
-  const ov = $$('export-modal');
+  const ov = document.getElementById('gs-export-modal');
   if (ov) ov.remove();
 }
+window._gsShowExportModal = _gsShowExportModal;
 
 const _ALPHA = 'abcdefghijklmnopqrstuvwxyz';
 const _rc = () => _ALPHA[Math.random() * _ALPHA.length | 0];
 
-function startExportFlicker() {
-  const btn = $$('exportBtn');
+function startExportFlicker(btn) {
   btn.disabled = true;
   const len = 'export'.length;
   return setInterval(() => {
@@ -3173,46 +3394,45 @@ function startExportFlicker() {
   }, 80);
 }
 
-function stopExportFlicker(flickerInterval) {
+function stopExportFlicker(flickerInterval, btn) {
   clearInterval(flickerInterval);
-  const btn = $$('exportBtn');
   btn.textContent = 'export';
   btn.disabled = false;
 }
 
-function startExport(fmt, dur) {
-  const flicker = startExportFlicker();
+function startExport(fmt, dur, ctx, master, btn, label) {
+  const flicker = startExportFlicker(btn);
 
   if (fmt === 'webm') {
-    const dest = audioCtx.createMediaStreamDestination();
-    masterGain.connect(dest);
+    const dest = ctx.createMediaStreamDestination();
+    master.connect(dest);
     const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
       ? 'audio/webm;codecs=opus' : 'audio/webm';
     const mr = new MediaRecorder(dest.stream, { mimeType });
     const chunks = [];
     mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
     mr.onstop = () => {
-      masterGain.disconnect(dest);
+      master.disconnect(dest);
       const blob = new Blob(chunks, { type: 'audio/webm' });
-      downloadBlob(blob, `gs01_${dur}s.webm`);
-      stopExportFlicker(flicker);
+      downloadBlob(blob, `${label}_${dur}s.webm`);
+      stopExportFlicker(flicker, btn);
     };
     mr.start(250);
     setTimeout(() => mr.stop(), dur * 1000);
   } else {
     const chunks = { L: [], R: [] };
-    const proc = audioCtx.createScriptProcessor(4096, 2, 2);
-    const sink = audioCtx.createGain();
+    const proc = ctx.createScriptProcessor(4096, 2, 2);
+    const sink = ctx.createGain();
     sink.gain.value = 0;
     proc.connect(sink);
-    sink.connect(audioCtx.destination);
-    masterGain.connect(proc);
+    sink.connect(ctx.destination);
+    master.connect(proc);
     proc.onaudioprocess = e => {
       chunks.L.push(new Float32Array(e.inputBuffer.getChannelData(0)));
       chunks.R.push(new Float32Array(e.inputBuffer.getChannelData(1)));
     };
     setTimeout(() => {
-      masterGain.disconnect(proc);
+      master.disconnect(proc);
       proc.disconnect();
       const total = chunks.L.reduce((n, c) => n + c.length, 0);
       const flatL = new Float32Array(total), flatR = new Float32Array(total);
@@ -3221,9 +3441,9 @@ function startExport(fmt, dur) {
         flatL.set(chunks.L[i], off); flatR.set(chunks.R[i], off);
         off += chunks.L[i].length;
       }
-      const blob = encodeWAV(flatL, flatR, audioCtx.sampleRate);
-      downloadBlob(blob, `gs01_${dur}s.wav`);
-      stopExportFlicker(flicker);
+      const blob = encodeWAV(flatL, flatR, ctx.sampleRate);
+      downloadBlob(blob, `${label}_${dur}s.wav`);
+      stopExportFlicker(flicker, btn);
     }, dur * 1000);
   }
 }
@@ -3274,6 +3494,641 @@ if (document.getElementById('gs-panel').style.display !== 'none') requestAnimati
 
 })();
 
+</script>
+
+<script>
+// ── §GS02  synthesis B · parallel granular engine · $$ = 'gs2-' ─────────────
+// A clone of the GS01 engine running on the SHARED AudioContext
+// (window.asgGetGranularCtx). It reuses GS01's export modal and feeds the
+// shared sum analyser. GS01 drives this engine's per-frame draw via
+// window._gs2DrawFrame and re-voices / bpm-syncs it through
+// window._gs2OnGridGenerate / window._gs2BpmSync.
+(function() {
+'use strict';
+function $$(id) { return document.getElementById('gs2-' + id); }
+
+const S = {
+  isRecording: false,
+  isFrozen:    false,
+  isMuted:     false,
+  statusMsg:   '',
+  density:     65,
+  grainSize:   0.35,
+  position:    0.5,
+  pitch:       0.85,
+  spread:      0.8,
+  reverbWet:   0.7,
+  preserve:    0.2,
+  volume:      0.6,
+  h1Rate:      0.25,
+  h2Rate:     -0.15,
+  pitchDrift:  0.12,
+  headJump:    0.0,
+  h1Active:    true,
+  h2Active:    true,
+  splices:     [],
+  // Worklet feedback
+  writeIdx:    0,
+  h1Idx:       0,
+  h2Idx:       96000,
+  grainCount:  0,
+  grainPos:    [],
+  BUF_SIZE:    192000,
+  waveView:    'input'
+};
+
+// ─── Audio (own nodes; shared context) ──────────────────────────────────────
+let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
+let _captureStream = null;
+
+async function initAudio(srcType) {
+  audioCtx = await window.asgGetGranularCtx();
+
+  let stream;
+  if (srcType === 'grid') {
+    stream = await window.asgGetGridStream?.();
+    if (!stream) throw new Error('grid audio unavailable — switch to grid tab and play a pattern first');
+    setStatus('grid audio active');
+  } else if (srcType === 'bloom') {
+    stream = await window.asgGetBloomStream?.();
+    if (!stream) throw new Error('bloom audio unavailable — open the bloom tab and play some notes first');
+    setStatus('bloom audio active');
+  } else if (srcType === 'mic') {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+    setStatus('mic input active');
+  } else {
+    // First try a virtual audio loopback device (BlackHole, Soundflower, Loopback) —
+    // this is the only reliable path for system audio in Mac app (WKWebView).
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const virtualRe = /blackhole|soundflower|loopback|virtual|system audio/i;
+    const virtualDev = devices.find(d => d.kind === 'audioinput' && virtualRe.test(d.label));
+    if (virtualDev) {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { deviceId: { exact: virtualDev.deviceId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+      setStatus('system audio via ' + virtualDev.label);
+    } else {
+      // Fall back to getDisplayMedia (works in Chrome/Firefox, not in Mac app WKWebView)
+      if (_captureStream) { _captureStream.getTracks().forEach(t => t.stop()); _captureStream = null; }
+      const captureStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: 1, height: 1 }, audio: true });
+      _captureStream = captureStream;
+      const audioTracks = captureStream.getAudioTracks();
+      if (!audioTracks.length) {
+        captureStream.getTracks().forEach(t => t.stop());
+        throw new Error('no audio track — Mac app: install BlackHole and route system audio through it; browser: tick "Share tab audio" in the picker');
+      }
+      // Extract audio into its own stream — do NOT stop the video track,
+      // because stopping any track from getDisplayMedia kills the whole capture session.
+      stream = new MediaStream(audioTracks);
+      audioTracks[0].addEventListener('ended', () => {
+        S.isRecording = false;
+        updateRecBtn();
+        setStatus('system audio ended');
+      });
+      setStatus('system audio active');
+    }
+  }
+
+  setStatus('building audio graph...');
+  if (sourceNode) { try { sourceNode.disconnect(); } catch (_) {} }
+  sourceNode = audioCtx.createMediaStreamSource(stream);
+
+  setStatus('loading worklet...');
+  if (granularNode) { try { granularNode.disconnect(); } catch (_) {} }
+  granularNode = new AudioWorkletNode(audioCtx, 'granular-processor', {
+    numberOfInputs: 1,
+    numberOfOutputs: 1,
+    outputChannelCount: [2]
+  });
+
+  granularNode.port.onmessage = ({ data }) => {
+    if (data.type !== 'state') return;
+    S.writeIdx   = data.writeIdx;
+    S.h1Idx      = data.h1Idx;
+    S.h2Idx      = data.h2Idx;
+    S.grainCount = data.grainCount;
+    S.grainPos   = data.grainPos || [];
+  };
+
+  // Analysers
+  analyserIn  = audioCtx.createAnalyser(); analyserIn.fftSize  = 2048;
+  analyserOut = audioCtx.createAnalyser(); analyserOut.fftSize = 2048;
+
+  // Reverb (convolver with synthetic IR)
+  const convolver = buildReverb(audioCtx);
+
+  reverbDryGain = audioCtx.createGain();
+  reverbWetGain = audioCtx.createGain();
+  reverbDryGain.gain.value = 1 - S.reverbWet;
+  reverbWetGain.gain.value = S.reverbWet;
+
+  // Routing
+  sourceNode.connect(analyserIn);
+  sourceNode.connect(granularNode);
+  granularNode.connect(analyserOut);
+  granularNode.connect(reverbDryGain);
+  granularNode.connect(convolver);
+  convolver.connect(reverbWetGain);
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = S.isMuted ? 0 : S.volume;
+  reverbDryGain.connect(masterGain);
+  reverbWetGain.connect(masterGain);
+  masterGain.connect(audioCtx.destination);
+  { const _sum = window.asgGetGranularSum?.(); if (_sum) masterGain.connect(_sum); } // feed shared A+B visual/meter
+
+  S.isRecording = true;
+  updateRecBtn();
+  sendAllParams();
+}
+
+function buildReverb(ctx) {
+  const conv  = ctx.createConvolver();
+  const len   = ctx.sampleRate * 2.8;
+  const ir    = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = ir.getChannelData(ch);
+    for (let i = 0; i < len; i++) {
+      const decay = Math.pow(1 - i / len, 2.2);
+      d[i] = (Math.random() * 2 - 1) * decay;
+    }
+  }
+  conv.buffer = ir;
+  return conv;
+}
+
+function send(type, value) {
+  if (granularNode) granularNode.port.postMessage({ type, value });
+}
+
+function sendAllParams() {
+  send('density',  S.density);
+  send('grainSz',  S.grainSize);
+  send('position', S.position);
+  send('pitch',    S.pitch);
+  send('spread',   S.spread);
+  send('preserve', S.preserve);
+  send('h1Rate',    S.h1Rate);
+  send('h2Rate',    S.h2Rate);
+  send('pitchDrift',S.pitchDrift);
+  send('headJump',  S.headJump);
+  send('h1Active', S.h1Active);
+  send('h2Active', S.h2Active);
+  send('freeze',   S.isFrozen);
+}
+
+function seekHeads(pos) {
+  S.h1Idx = pos * S.BUF_SIZE;
+  S.h2Idx = ((pos + 0.5) % 1) * S.BUF_SIZE;
+  send('seek', pos);
+}
+
+// ─── UI ────────────────────────────────────────────────────────────────────────
+function setStatus(msg) { S.statusMsg = msg; }
+
+function updateRecBtn() {
+  $$('recBtn').classList.toggle('active', S.isRecording);
+}
+
+function fmtRate(v) {
+  return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '×';
+}
+
+// Bind all sliders
+function bindSlider(id, valId, stateKey, workletKey, toVal, toLabel) {
+  const el  = $$(id);
+  const lbl = $$(valId);
+  el.addEventListener('input', () => {
+    const v     = toVal(+el.value);
+    S[stateKey] = v;
+    lbl.textContent = toLabel(v);
+    send(workletKey, v);
+    if (stateKey === 'reverbWet') {
+      if (reverbDryGain) reverbDryGain.gain.value = 1 - v;
+      if (reverbWetGain) reverbWetGain.gain.value = v;
+    }
+  });
+}
+
+bindSlider('densSlider',    'densVal',    'density',   'density',  v => v,       v => v);
+bindSlider('sizeSlider',    'sizeVal',    'grainSize', 'grainSz',  v => v/1000,  v => (v*1000|0)+'ms');
+bindSlider('posSlider',     'posVal',     'position',  'position', v => v/100,   v => v.toFixed(2));
+bindSlider('pitchSlider',   'pitchVal',   'pitch',     'pitch',    v => v/100,   v => v.toFixed(2)+'×');
+bindSlider('spreadSlider',   'spreadVal',   'spread',      'spread',      v => v/100, v => v.toFixed(2));
+bindSlider('pitchDriftSlider','pitchDriftVal','pitchDrift','pitchDrift',  v => v/100, v => v.toFixed(2));
+bindSlider('headJumpSlider', 'headJumpVal', 'headJump',  'headJump',    v => v/100, v => v.toFixed(2));
+bindSlider('reverbSlider',  'reverbVal',  'reverbWet', 'reverbWet',v => v/100,   v => v.toFixed(2));
+bindSlider('preserveSlider','preserveVal','preserve',  'preserve', v => v/100,   v => v.toFixed(2));
+
+$$('volSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.volume = v;
+  $$('volVal').textContent = v.toFixed(2) + '×';
+  if (masterGain && !S.isMuted) masterGain.gain.value = v;
+});
+
+$$('head1Rate').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.h1Rate = v;
+  $$('head1RateVal').textContent = fmtRate(v);
+  send('h1Rate', v);
+});
+$$('head2Rate').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.h2Rate = v;
+  $$('head2RateVal').textContent = fmtRate(v);
+  send('h2Rate', v);
+});
+
+// MUTE button
+$$('muteBtn').addEventListener('click', () => {
+  S.isMuted = !S.isMuted;
+  const btn = $$('muteBtn');
+  btn.classList.toggle('active', S.isMuted);
+  btn.textContent = S.isMuted ? 'unmute' : 'mute';
+  if (masterGain) {
+    masterGain.gain.setTargetAtTime(S.isMuted ? 0 : S.volume, audioCtx.currentTime, 0.02);
+  }
+});
+
+// REC button
+$$('recBtn').addEventListener('click', async () => {
+  if (!S.isRecording) {
+    try {
+      const src = $$('srcSelect').value;
+      await initAudio(src);
+      setStatus('capturing audio');
+    } catch (e) {
+      console.error('[GS02]', e);
+      setStatus('err: ' + (e.message || e));
+    }
+  } else {
+    // Per-engine pause — the AudioContext is shared with synthesis B, so we
+    // must NOT suspend it (that would freeze both). Silence this engine's
+    // master and cut its input instead; resume rebuilds the graph via initAudio.
+    if (masterGain) masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+    if (sourceNode) { try { sourceNode.disconnect(); } catch (_) {} }
+    if (_captureStream) { _captureStream.getTracks().forEach(t => t.stop()); _captureStream = null; }
+    S.isRecording = false;
+    updateRecBtn();
+    setStatus('paused — click capture audio to resume');
+  }
+});
+
+// FREEZE button
+$$('freezeBtn').addEventListener('click', () => {
+  S.isFrozen = !S.isFrozen;
+  $$('freezeBtn').classList.toggle('active', S.isFrozen);
+  send('freeze', S.isFrozen);
+  setStatus(S.isFrozen ? 'frozen — buffer locked' : 'capturing audio');
+});
+
+// Source select
+
+// Head toggles
+[['head1Btn', 'h1Active', 'h1Active'], ['head2Btn', 'h2Active', 'h2Active']].forEach(([id, stateKey, msgKey]) => {
+  $$(id).addEventListener('click', () => {
+    const btn = $$(id);
+    S[stateKey] = !btn.classList.contains('sel');
+    btn.classList.toggle('sel', S[stateKey]);
+    send(msgKey, S[stateKey]);
+  });
+});
+
+// Clear splices
+$$('clearSplicesBtn').addEventListener('click', () => {
+  S.splices = [];
+  renderSplices();
+});
+
+['waveViewGrain', 'waveViewInput'].forEach(id => {
+  $$(id).addEventListener('click', () => {
+    S.waveView = id === 'waveViewGrain' ? 'grain' : 'input';
+    $$('waveViewGrain').classList.toggle('active', S.waveView === 'grain');
+    $$('waveViewInput').classList.toggle('active', S.waveView === 'input');
+  });
+});
+
+function renderSplices() {
+  const list = $$('spliceList');
+  if (!S.splices.length) {
+    list.innerHTML = '<span class="splice-empty"></span>';
+    return;
+  }
+  list.innerHTML = S.splices.map((m, i) =>
+    `<span class="splice-chip" data-i="${i}">${(m * 100).toFixed(0)}%</span>`
+  ).join('<span class="splice-sep"> / </span>');
+}
+
+// Event delegation — single listener, no duplicates on re-render
+$$('spliceList').addEventListener('click', e => {
+  const chip = e.target.closest('.splice-chip');
+  if (!chip) return;
+  const pos = S.splices[+chip.dataset.i];
+  if (pos == null) return;
+  S.position = pos;
+  $$('posSlider').value = pos * 100;
+  $$('posVal').textContent = pos.toFixed(2);
+  send('position', pos);
+  seekHeads(pos);
+});
+
+// ─── Canvas ────────────────────────────────────────────────────────────────────
+const dpr = window.devicePixelRatio || 1;
+const waveCV  = $$('waveform-cv');
+const waveCtx = waveCV.getContext('2d');
+const cloudCV = $$('cloud-cv');
+const cloudCtx = cloudCV.getContext('2d');
+
+const ro = new ResizeObserver(() => resizeCanvases());
+ro.observe(waveCV.parentElement);
+
+function resizeCanvases() {
+  const w = waveCV.offsetWidth;
+  if (!w) return;
+  waveCV.width  = w * dpr; waveCV.height  = 200 * dpr;
+  cloudCV.width = w * dpr; cloudCV.height = 52 * dpr;
+}
+resizeCanvases();
+
+// Canvas interaction
+waveCV.addEventListener('click', e => {
+  const rect   = waveCV.getBoundingClientRect();
+  const cx     = e.clientX - rect.left;
+  const cy     = e.clientY - rect.top;
+  const pos    = cx / waveCV.offsetWidth;
+
+  if (e.shiftKey) {
+    if (S.splices.length >= 8) return;
+    S.splices.push(pos);
+    S.splices.sort((a, b) => a - b);
+    renderSplices();
+  } else {
+    S.position = pos;
+    $$('posSlider').value = pos * 100;
+    $$('posVal').textContent = pos.toFixed(2);
+    send('position', pos);
+    seekHeads(pos);
+  }
+});
+
+waveCV.addEventListener('mousemove', e => {
+  if (e.buttons !== 1 || e.shiftKey) return;
+  const rect = waveCV.getBoundingClientRect();
+  const pos  = Math.max(0, Math.min(1, (e.clientX - rect.left) / waveCV.offsetWidth));
+  S.position = pos;
+  $$('posSlider').value = pos * 100;
+  $$('posVal').textContent = pos.toFixed(2);
+  send('position', pos);
+});
+
+// ─── Draw ──────────────────────────────────────────────────────────────────────
+const waveData = new Float32Array(2048);
+let   ghostT   = 0;
+
+function drawWaveform(t) {
+  const w = waveCV.width / dpr, h = waveCV.height / dpr;
+  const ctx = waveCtx;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  [0.25, 0.5, 0.75].forEach(x => {
+    ctx.beginPath(); ctx.moveTo(x * w, 0); ctx.lineTo(x * w, h); ctx.stroke();
+  });
+  ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+
+  // Waveform
+  const activeAnalyser = S.waveView === 'grain' ? analyserOut : analyserIn;
+  if (activeAnalyser) {
+    activeAnalyser.getFloatTimeDomainData(waveData);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < 2048; i++) {
+      const x = (i / 2048) * w;
+      const y = h / 2 + waveData[i] * h * 0.45;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  } else {
+    // Ghost waveform before init
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < 256; i++) {
+      const x = (i / 256) * w;
+      const a = (Math.sin((i / 256) * Math.PI * 8 + ghostT * 0.4) * 0.2 +
+                 Math.sin((i / 256) * Math.PI * 3 + ghostT * 0.6) * 0.15) * h * 0.3;
+      i === 0 ? ctx.moveTo(x, h / 2 + a) : ctx.lineTo(x, h / 2 + a);
+    }
+    ctx.stroke();
+  }
+
+  // Splice markers
+  S.splices.forEach((m, i) => {
+    const x = m * w;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.shadowBlur = 4; ctx.shadowColor = '#fff';
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '10px Share Tech Mono, monospace';
+    ctx.fillText('S' + (i + 1), x + 3, 13);
+  });
+
+  // Position cursor
+  const posX = S.position * w;
+  ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(posX, 0); ctx.lineTo(posX, h); ctx.stroke();
+  // Playhead rectangle — strobes/flashes with audio amplitude
+  {
+    const rh = 20, rw = 10;
+    let audioAmp = 0;
+    if (activeAnalyser) {
+      let peak = 0;
+      for (let i = 0; i < waveData.length; i++) {
+        const v = Math.abs(waveData[i]);
+        if (v > peak) peak = v;
+      }
+      audioAmp = peak;
+    }
+    const flashAlpha = 0.2 + Math.min(audioAmp * 2.5, 0.8);
+    ctx.save();
+    ctx.translate(posX, h / 2);
+    ctx.shadowBlur = audioAmp * 40;
+    ctx.shadowColor = '#fff';
+    ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+    ctx.fillRect(-rw / 2, -rh / 2, rw, rh);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // Write head
+  const writeX = (S.writeIdx / S.BUF_SIZE) * w;
+  ctx.strokeStyle = S.isFrozen ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.9)';
+  ctx.lineWidth = 1.5;
+  ctx.shadowBlur = S.isFrozen ? 0 : 10;
+  ctx.shadowColor = '#fff';
+  ctx.beginPath(); ctx.moveTo(writeX, 0); ctx.lineTo(writeX, h); ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Write head label
+  ctx.fillStyle = S.isFrozen ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.6)';
+  ctx.font = '9px Share Tech Mono, monospace';
+  ctx.fillText('W', writeX + 8, 12);
+
+  ctx.font = '14px Share Tech Mono, monospace';
+  ctx.letterSpacing = '3px';
+
+  // Head 1
+  if (S.h1Active) {
+    const x = (S.h1Idx / S.BUF_SIZE) * w;
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 5; ctx.shadowColor = '#fff';
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.55); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText('h1', x + 4, h * 0.55 - 6);
+  }
+
+  // Head 2
+  if (S.h2Active) {
+    const x = (S.h2Idx / S.BUF_SIZE) * w;
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 3; ctx.shadowColor = '#fff';
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.45); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillText('h2', x + 4, h * 0.45 - 6);
+  }
+
+  ctx.letterSpacing = '0px';
+
+  // Status overlay — bottom-left
+  const _statusText = S.statusMsg || (!S.isRecording ? 'no input' : '');
+  if (_statusText) {
+    const frozen = S.isFrozen;
+    ctx.font = '11px Share Tech Mono, monospace';
+    ctx.letterSpacing = '2px';
+    ctx.fillStyle = frozen ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.65)';
+    if (frozen) { ctx.shadowBlur = 8; ctx.shadowColor = '#fff'; }
+    ctx.fillText(_statusText, 8, h - 8);
+    ctx.shadowBlur = 0;
+    // hint line shown only in the uninitialised no-input state
+    if (!S.isRecording && !S.statusMsg) {
+      ctx.font = '10px Share Tech Mono, monospace';
+      ctx.letterSpacing = '1px';
+      ctx.fillStyle = 'rgba(255,255,255,0.28)';
+      ctx.fillText('select a source above · click capture audio to begin', 8, h - 22);
+    }
+    ctx.letterSpacing = '0px';
+  }
+
+}
+
+function drawCloud(t) {
+  const w = cloudCV.width / dpr, h = cloudCV.height / dpr;
+  const ctx = cloudCtx;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+
+  // Background micro-grid — echoes the bloom granular strip's fine pixel grid.
+  const segW = 2, segGap = 2, rowH = 1, rowGap = 1;
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  for (let y = 0; y < h; y += rowH + rowGap)
+    for (let x = 0; x < w; x += segW + segGap)
+      ctx.fillRect(x, y, segW, rowH);
+
+  // Grain dots
+  S.grainPos.forEach((pos, i) => {
+    const x   = pos * w;
+    const osc = Math.sin(t * 2.5 + i * 0.8) * 0.3;
+    const y   = h * (0.5 + osc * 0.35);
+    const r   = 1.5 + Math.abs(osc) * 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${0.4 + Math.abs(osc) * 0.5})`;
+    ctx.shadowBlur = 6; ctx.shadowColor = '#fff';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  // Count label
+  $$('grainCount').textContent = S.grainCount + (S.grainCount === 1 ? ' grain' : ' grains');
+
+  // Buffer write bar
+  const pct = (S.writeIdx / S.BUF_SIZE * 100).toFixed(1);
+  $$('bufWriteBar').style.width = pct + '%';
+}
+
+// ── Per-frame draw — driven by GS01's shared animate loop ──
+window._gs2DrawFrame   = (t) => { ghostT = t; drawWaveform(t); drawCloud(t); };
+window._gs2IsRecording = () => S.isRecording;
+window._gs2Grains      = () => (S.isRecording ? S.grainPos : null);
+
+// ── Export — reuses GS01's shared export modal with this engine's nodes ──
+$$('exportBtn').addEventListener('click',
+  () => window._gsShowExportModal?.(() => ({ ctx: audioCtx, master: masterGain }), $$('exportBtn'), 'gs02'));
+
+// ── BPM sync ──
+let _gsBpmDens = false, _gsBpmLfo = false;
+$$('bpmDens').addEventListener('click', function () {
+  _gsBpmDens = !_gsBpmDens;
+  this.classList.toggle('active', _gsBpmDens);
+});
+$$('bpmLfo').addEventListener('click', function () {
+  _gsBpmLfo = !_gsBpmLfo;
+  this.classList.toggle('active', _gsBpmLfo);
+});
+window._gs2BpmSync = (bpm) => {
+  if (_gsBpmDens) {
+    const sl = $$('densSlider');
+    sl.value = Math.round(bpm / 5);
+    sl.dispatchEvent(new Event('input'));
+  }
+};
+
+// ── Grid-generate complementary re-voicing (mirrors GS01, opposite octave) ──
+function _gsSetSlider(id, val) {
+  const el = $$(id);
+  if (!el) return;
+  el.value = Math.max(+el.min, Math.min(+el.max, Math.round(val)));
+  el.dispatchEvent(new Event('input'));
+}
+window._gs2OnGridGenerate = (info = {}) => {
+  const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const bright    = cl(((info.gridLPF ?? 12000) - 2000) / 16000, 0, 1);
+  const transpose = info.transpose ?? 0;
+  const reverb    = cl(info.gridReverb ?? 0.5, 0, 1);
+  const style     = info.adsrStyle || '';
+  const staccato  = /short|wood|chime|glass|bell/.test(style);
+  const sustained = style === 'long' || style === 'bowl';
+  // B takes the opposite octave to A so the two layers stack as body + air.
+  const goLow = bright > 0.45 || transpose >= 3;
+  _gsSetSlider('pitchSlider', goLow ? 200 : 50);
+  _gsSetSlider('densSlider', staccato ? 30 : sustained ? 62 : 45);
+  _gsSetSlider('sizeSlider', staccato ? 360 : sustained ? 180 : 260);
+  _gsSetSlider('spreadSlider',     staccato ? 75 : 55);
+  _gsSetSlider('pitchDriftSlider', staccato ? 22 : 14);
+  _gsSetSlider('reverbSlider', cl(reverb * 100 + 6, 40, 88));
+};
+
+// ── Boot ──
+renderSplices();
+
+})();
 </script>
 
 <script>
