@@ -471,6 +471,7 @@
     .cell.on.ph::after { background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 30px var(--accent); opacity: 1; }
     .cell.on.sel { outline: 1px solid rgba(255,255,255,0.55); outline-offset: 2px; }
     .cell.kbd-cursor { outline: 2px dashed var(--accent); outline-offset: 1px; }
+    .row-pip.kbd-cursor { outline: 2px dashed var(--accent); outline-offset: 1px; }
     .cell.on.sel:hover::before { content: '×'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 26px; line-height: 1; letter-spacing: 0; color: rgba(255,255,255,0.90); text-shadow: 0 0 6px rgba(255,255,255,0.7); z-index: 2; pointer-events: none; }
     @keyframes flash { 0% { box-shadow: 0 0 24px var(--accent), 0 0 48px var(--accent); opacity: 1; } 100% { box-shadow: 0 0 8px var(--accent); opacity: .75; } }
     .cell.flash::after { animation: flash .28s ease-out forwards; }
@@ -5810,6 +5811,7 @@ function renderAll() {
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++) renderCell(r, c);
   pips.forEach((pip, i) => pip.classList.toggle('lit', i === S.step));
+  rowPips.forEach((pip, r) => pip.classList.toggle('kbd-cursor', gridNavActive && r === curR && curC === COLS));
   updateSelLabel();
 }
 
@@ -6982,20 +6984,22 @@ $$('randRefresh').addEventListener('click', (e) => {
 document.addEventListener('keydown', e => {
   if (document.getElementById('ig-panel').style.display === 'none') return;
   if (gridNavActive) {
-    if (e.key === 'ArrowUp')    { e.preventDefault(); curR = Math.max(0, curR - 1); renderAll(); }
-    if (e.key === 'ArrowDown')  { e.preventDefault(); curR = Math.min(ROWS - 1, curR + 1); renderAll(); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); curC = Math.max(0, curC - 1); renderAll(); }
-    if (e.key === 'ArrowRight') { e.preventDefault(); curC = Math.min(COLS - 1, curC + 1); renderAll(); }
+    if (e.key === 'ArrowUp')    { e.preventDefault(); curR = (curR === 0) ? ROWS - 1 : curR - 1; renderAll(); }
+    if (e.key === 'ArrowDown')  { e.preventDefault(); curR = (curR === ROWS - 1) ? 0 : curR + 1; renderAll(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); curC = (curC === 0) ? COLS : curC - 1; renderAll(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); curC = (curC === COLS) ? 0 : curC + 1; renderAll(); }
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (!S.cells[curR][curC]) activateCell(curR, curC);
+      if (curC === COLS) {
+        spiralToggleMute(curR);
+      } else if (!S.cells[curR][curC]) activateCell(curR, curC);
       else if (selR === curR && selC === curC) clearSel();
       else selectNote(curR, curC);
       renderAll();
     }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
-      if (S.cells[curR][curC]) deactivateCell(curR, curC);
+      if (curC < COLS && S.cells[curR][curC]) deactivateCell(curR, curC);
       renderAll();
     }
     if (e.key === 'Escape') {
