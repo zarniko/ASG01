@@ -16,6 +16,11 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :focus { outline: none; }
     :focus-visible { outline: none; }
+    .kbnav-focus { outline: none; box-shadow: 0 1px 0 0 var(--accent); }
+    .kbnav-focus.kbnav-edit { box-shadow: 0 2px 0 0 var(--accent); }
+    .kbnav-focus[type="range"] { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 6px; }
+    .kbnav-focus.kbnav-edit[type="range"] { outline-width: 2px !important; }
+    #ig-grid.kbnav-focus { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 2px; }
 
 :root {
   --accent: #fff;
@@ -461,6 +466,7 @@
     .cell.on.ph        { background: rgba(255,255,255,0.10); border-color: transparent; }
     .cell.on.ph::after { background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 30px var(--accent); opacity: 1; }
     .cell.on.sel { outline: 1px solid rgba(255,255,255,0.55); outline-offset: 2px; }
+    .cell.kbd-cursor { outline: 2px dashed var(--accent); outline-offset: 1px; }
     .cell.on.sel:hover::before { content: '×'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 26px; line-height: 1; letter-spacing: 0; color: rgba(255,255,255,0.90); text-shadow: 0 0 6px rgba(255,255,255,0.7); z-index: 2; pointer-events: none; }
     @keyframes flash { 0% { box-shadow: 0 0 24px var(--accent), 0 0 48px var(--accent); opacity: 1; } 100% { box-shadow: 0 0 8px var(--accent); opacity: .75; } }
     .cell.flash::after { animation: flash .28s ease-out forwards; }
@@ -1099,7 +1105,7 @@
       </div>
 
       <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
+        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate</button>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
             <option value="stochastic" selected>stochastic</option>
@@ -1116,7 +1122,7 @@
         </div>
       </div>
       <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;" title="Clear — resets the current page to an empty grid. Key: C · Shift+C (or Shift+click / long-press) to clear all 8 pages at once">clear-grid<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span></button>
+        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;" title="Clear — resets the current page to an empty grid. Key: C · Shift+C (or Shift+click / long-press) to clear all 8 pages at once">clear-grid</button>
       </div>
 
       <div class="panel-rule"></div>
@@ -1561,10 +1567,152 @@ document.addEventListener('visibilitychange', () => {
     else if (active?.panel === 'bm-panel') window._bmFrameStart?.();
   }
 });
+// ─── §SHARED:kbnav  arrow-key UI navigation ────────────────────────────────
+const KB_ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+let kbActive = false;     // is the nav highlight currently shown?
+let kbMode = 'nav';       // 'nav' | 'edit' | 'grid'
+let kbItems = [];         // navigable elements in the active panel, DOM order
+let kbIndex = 0;
+const kbLastIndex = {};   // remembered index per panel id
+let kbRepeat = 0;         // accelerating-repeat counter for slider edit mode
+
+function kbActivePanel() {
+  return _panels.find(p => document.getElementById(p.panel)?.style.display !== 'none');
+}
+function kbVisible(el) {
+  if (el.offsetParent === null) return false;
+  if (el.closest('.tab-a-disabled')) return false;
+  return true;
+}
+function buildKbItems(panelId) {
+  const panelEl = document.getElementById(panelId);
+  if (!panelEl) return [];
+  const items = Array.from(panelEl.querySelectorAll('button, input[type=range], select'))
+    .filter(el => !el.disabled && kbVisible(el))
+    .map(el => ({ type: 'control', el }));
+  if (panelId === 'ig-panel') {
+    const grid = document.getElementById('ig-grid');
+    if (grid) items.push({ type: 'grid', el: grid });
+  }
+  items.sort((a, b) => {
+    const pos = a.el.compareDocumentPosition(b.el);
+    if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+    if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+    return 0;
+  });
+  return items;
+}
+function kbClearHighlight() {
+  kbItems[kbIndex]?.el.classList.remove('kbnav-focus', 'kbnav-edit');
+}
+function kbShowHighlight() {
+  const item = kbItems[kbIndex];
+  if (!item) return;
+  item.el.classList.add('kbnav-focus');
+  item.el.classList.toggle('kbnav-edit', kbMode === 'edit');
+}
+function kbActivate(panelId) {
+  kbItems = buildKbItems(panelId);
+  if (!kbItems.length) { kbActive = false; return; }
+  kbIndex = Math.min(kbLastIndex[panelId] ?? 0, kbItems.length - 1);
+  kbActive = true; kbMode = 'nav';
+  kbShowHighlight();
+}
+function kbDeactivate() {
+  kbClearHighlight();
+  kbActive = false; kbMode = 'nav';
+}
+function kbMove(dir) {
+  kbClearHighlight();
+  kbIndex = Math.max(0, Math.min(kbItems.length - 1, kbIndex + dir));
+  kbShowHighlight();
+  const p = kbActivePanel();
+  if (p) kbLastIndex[p.panel] = kbIndex;
+}
+function kbOnPanelSwitch(panelId) {
+  if (kbMode === 'grid') window._igExitGridNav?.();
+  if (!kbActive) return;
+  kbClearHighlight();
+  kbMode = 'nav';
+  kbItems = buildKbItems(panelId);
+  if (!kbItems.length) { kbActive = false; return; }
+  kbIndex = Math.min(kbLastIndex[panelId] ?? 0, kbItems.length - 1);
+  kbShowHighlight();
+}
+function kbAccelStep(e) {
+  kbRepeat = e.repeat ? kbRepeat + 1 : 0;
+  return Math.min(8, 1 + Math.floor(kbRepeat / 8));
+}
+function kbAdjustSlider(el, dir, e) {
+  const min = parseFloat(el.min), max = parseFloat(el.max), step = parseFloat(el.step) || 1;
+  const mult = kbAccelStep(e);
+  let v = parseFloat(el.value) + dir * step * mult;
+  v = Math.max(min, Math.min(max, v));
+  el.value = v;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function kbCycleSelect(el, dir) {
+  const idx = Math.max(0, Math.min(el.options.length - 1, el.selectedIndex + dir));
+  if (idx !== el.selectedIndex) {
+    el.selectedIndex = idx;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+}
+function kbHandleKey(e) {
+  if (kbMode === 'grid') return; // IG01 owns input while the grid cursor is active
+
+  if (!kbActive) {
+    if (KB_ARROWS.includes(e.key)) {
+      const p = kbActivePanel();
+      if (p) { e.preventDefault(); kbActivate(p.panel); }
+    }
+    return;
+  }
+
+  if (kbMode === 'edit') {
+    const el = kbItems[kbIndex]?.el;
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      e.preventDefault();
+      kbMode = 'nav'; kbShowHighlight();
+    } else if (el?.tagName === 'INPUT' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      kbAdjustSlider(el, e.key === 'ArrowRight' ? 1 : -1, e);
+    } else if (el?.tagName === 'SELECT' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      kbCycleSelect(el, e.key === 'ArrowDown' ? 1 : -1);
+    }
+    return;
+  }
+
+  // kbMode === 'nav'
+  if (e.key === 'Escape') { e.preventDefault(); kbDeactivate(); return; }
+  if (e.key === 'ArrowUp' || e.key === 'ArrowLeft')  { e.preventDefault(); kbMove(-1); return; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); kbMove(1); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const item = kbItems[kbIndex];
+    if (!item) return;
+    if (item.type === 'grid') {
+      kbClearHighlight();
+      kbMode = 'grid';
+      window._igEnterGridNav?.();
+    } else if (item.el.tagName === 'BUTTON') {
+      item.el.click();
+    } else {
+      kbMode = 'edit'; kbRepeat = 0; kbShowHighlight();
+    }
+  }
+}
+document.addEventListener('keyup', e => {
+  if (KB_ARROWS.includes(e.key)) kbRepeat = 0;
+});
+window._kbNavReturnFromGrid = () => {
+  kbMode = 'nav';
+  kbShowHighlight();
+};
+
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  const tag = e.target.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   const helpOpen = document.querySelector('#gs-help-ov, #ig-help-ov, #bm-help-ov');
   if (helpOpen) {
     const closeAll = () => { window._gsHideHelp?.(); window._igHideHelp?.(); window._bmHideHelp?.(); };
@@ -1575,9 +1723,10 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'Escape') { e.stopImmediatePropagation(); closeAll(); }
     return;
   }
-  if (e.key === 'q' || e.key === 'Q') _showPanel('ig-panel');
-  else if (e.key === 'w' || e.key === 'W') _showPanel('gs-panel');
-  else if (e.key === 'e' || e.key === 'E') _showPanel('bm-panel');
+  if (e.key === 'q' || e.key === 'Q') { _showPanel('ig-panel'); kbOnPanelSwitch('ig-panel'); }
+  else if (e.key === 'w' || e.key === 'W') { _showPanel('gs-panel'); kbOnPanelSwitch('gs-panel'); }
+  else if (e.key === 'e' || e.key === 'E') { _showPanel('bm-panel'); kbOnPanelSwitch('bm-panel'); }
+  else kbHandleKey(e);
 });
 
 // ─── Shared color legend + ZKO ──────────────────────────────────────────────────
@@ -2941,7 +3090,6 @@ function animate(ts) {
 // ─── Keyboard shortcuts ─────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (document.getElementById('gs-panel').style.display === 'none') return;
-  if (e.target.tagName === 'INPUT') return;
   if (e.code === 'Space') { e.preventDefault(); $$('freezeBtn').click(); }
   if (e.code === 'KeyH')  { helpVisible ? hideHelp() : showHelp(); }
   if (e.code === 'KeyA')  { document.getElementById(e.shiftKey ? 'gs-accCtrlA' : 'gs-accA')?.classList.toggle('open'); }
@@ -4783,6 +4931,12 @@ function buildRowBar() {
 /* ── Selection ──────────────────────────────────────── */
 let selR = -1, selC = -1;
 
+/* ── Keyboard-nav grid cursor ──────────────────────────── */
+let gridNavActive = false;
+let curR = 0, curC = 0;
+window._igEnterGridNav = () => { gridNavActive = true; renderAll(); };
+window._igExitGridNav  = () => { gridNavActive = false; renderAll(); };
+
 function selectNote(r, c) {
   if (selR >= 0) cellEls[selR]?.[selC]?.classList.remove('sel');
   selR = r; selC = c;
@@ -5628,6 +5782,7 @@ function renderCell(r, c) {
   el.classList.toggle('sel', on && r === selR && c === selC);
   el.classList.toggle('ph',  c === S.step);
   el.classList.toggle('muted', mutedRows.has(r));
+  el.classList.toggle('kbd-cursor', gridNavActive && r === curR && c === curC);
   if (!on) el.classList.remove('flash');
 }
 function renderAll() {
@@ -5698,7 +5853,7 @@ function buildPageBar() {
   copyBtn.className = 'copy-btn';
   copyBtn.textContent = '↑';
   copyBtn.tabIndex = -1;
-  copyBtn.title = 'Copy pattern — saves current page for pasting. Key: ↑ (arrow up)';
+  copyBtn.title = 'Copy pattern — saves current page for pasting. Key: ⌘C / Ctrl+C';
   copyBtn.addEventListener('click', () => {
     copiedPage = S.pages[S.page].map(row => row.map(n => n ? {...n} : null));
     pasteBtn.disabled = false;
@@ -5711,7 +5866,7 @@ function buildPageBar() {
   pasteBtn.className = 'copy-btn';
   pasteBtn.textContent = '↓';
   pasteBtn.tabIndex = -1;
-  pasteBtn.title = 'Paste pattern — restores copied pattern to current page. Key: ↓ (arrow down)';
+  pasteBtn.title = 'Paste pattern — restores copied pattern to current page. Key: ⌘V / Ctrl+V';
   pasteBtn.disabled = true;
   pasteBtn.addEventListener('click', () => {
     if (!copiedPage) return;
@@ -6805,27 +6960,51 @@ $$('randRefresh').addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', e => {
   if (document.getElementById('ig-panel').style.display === 'none') return;
-  if (e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault();
-  const tag = e.target.tagName;
-  if (tag === 'INPUT' || tag === 'SELECT') return;
+  if (gridNavActive) {
+    if (e.key === 'ArrowUp')    { e.preventDefault(); curR = Math.max(0, curR - 1); renderAll(); }
+    if (e.key === 'ArrowDown')  { e.preventDefault(); curR = Math.min(ROWS - 1, curR + 1); renderAll(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); curC = Math.max(0, curC - 1); renderAll(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); curC = Math.min(COLS - 1, curC + 1); renderAll(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!S.cells[curR][curC]) activateCell(curR, curC);
+      else if (selR === curR && selC === curC) clearSel();
+      else selectNote(curR, curC);
+      renderAll();
+    }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      if (S.cells[curR][curC]) deactivateCell(curR, curC);
+      renderAll();
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      window._igExitGridNav();
+      window._kbNavReturnFromGrid?.();
+    }
+  }
   if (e.code === 'Space') {
     e.preventDefault(); S.playing ? stopSeq() : startSeq();
   }
   if (e.key === 'h' || e.key === 'H') { helpVisible ? hideHelp() : showHelp(); }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'c' || e.key === 'C')) {
+    e.preventDefault();
+    copiedPage = S.pages[S.page].map(row => row.map(n => n ? {...n} : null));
+    pasteBtn.disabled = false;
+    pasteBtn.classList.add('has-copy');
+    return;
+  }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'v' || e.key === 'V')) {
+    e.preventDefault();
+    if (!copiedPage) return;
+    S.pages[S.page] = copiedPage.map(row => row.map(n => n ? {...n} : null));
+    clearSel(); renderAll();
+    return;
+  }
   if (e.key === 'c' || e.key === 'C') $$('clearRefresh').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: e.shiftKey }));
   if (e.key === 'g' || e.key === 'G') $$('randRefresh').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: e.shiftKey }));
   const pageNum = parseInt(e.key);
   if (pageNum >= 1 && pageNum <= 8) switchPage(pageNum - 1);
-  if (e.code === 'ArrowUp') {
-    copiedPage = S.pages[S.page].map(row => row.map(n => n ? {...n} : null));
-    pasteBtn.disabled = false;
-    pasteBtn.classList.add('has-copy');
-  }
-  if (e.code === 'ArrowDown') {
-    if (!copiedPage) return;
-    S.pages[S.page] = copiedPage.map(row => row.map(n => n ? {...n} : null));
-    clearSel(); renderAll();
-  }
 });
 
 /* ── Help overlay ───────────────────────────────────── */
@@ -6863,8 +7042,8 @@ const HELP_COLS = [
   ['gap'],
   ['head', 'PAGES', ''],
   ['row',  '1 – 8',   'switch page'],
-  ['row',  '↑',       'copy pattern'],
-  ['row',  '↓',       'paste pattern'],
+  ['row',  '⌘C / Ctrl+C', 'copy pattern'],
+  ['row',  '⌘V / Ctrl+V', 'paste pattern'],
   ['row',  '◯',       'toggle spiral sequencer view'],
   ['row',  'auto',    'auto-progress through pages on a 3–8 min arc'],
   ['gap'],
@@ -7668,6 +7847,19 @@ function drawSpiral() {
     }
   }
 
+  // keyboard-nav cursor
+  if (gridNavActive) {
+    const { x, y } = spiralCellXY(curR, curC, geom);
+    spiralCtx.save();
+    spiralCtx.setLineDash([3, 3]);
+    spiralCtx.beginPath();
+    spiralCtx.arc(x, y, dotR * 2.3, 0, 2 * Math.PI);
+    spiralCtx.strokeStyle = accent;
+    spiralCtx.lineWidth = 2;
+    spiralCtx.stroke();
+    spiralCtx.restore();
+  }
+
   // Draw ring highlight for hovered row
   if (hoveredRow >= 0) {
     const r = hoveredRow;
@@ -7848,7 +8040,7 @@ function toggleSpiralView() {
     spiralObs = () => applySpiralSize();
     window.addEventListener('resize', spiralObs);
     spiralBtn.textContent = '□';
-    $$('clearRefresh').innerHTML = 'clear-spiral<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span>';
+    $$('clearRefresh').innerHTML = 'clear-spiral';
   } else {
     gridWrap.style.display = '';
     spiralCv.style.display = 'none';
@@ -7857,7 +8049,7 @@ function toggleSpiralView() {
     if (spiralRaf) { cancelAnimationFrame(spiralRaf); spiralRaf = null; }
     if (spiralObs) { window.removeEventListener('resize', spiralObs); spiralObs = null; }
     spiralBtn.textContent = '◯';
-    $$('clearRefresh').innerHTML = 'clear-grid<span class="tab-key" style="color:rgba(255,255,255,0.35);">(↑)</span>';
+    $$('clearRefresh').innerHTML = 'clear-grid';
   }
 
   spiralBtn.classList.toggle('has-copy', spiralView);
@@ -9531,8 +9723,6 @@ window._bmHideHelp = hideHelp;
 
 document.addEventListener('keydown', e => {
   if (document.getElementById('bm-panel').style.display === 'none') return;
-  const tag = e.target.tagName;
-  if (tag === 'INPUT' || tag === 'SELECT') return;
   if (e.key === 'h' || e.key === 'H') { helpVisible ? hideHelp() : showHelp(); }
   if (e.key === 'a' || e.key === 'A') {
     if (bmAutoActive && bmAutoMode === 'A') setAutoActive(false);
