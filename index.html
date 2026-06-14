@@ -265,6 +265,8 @@
       color: var(--accent);
       text-shadow: 0 0 6px var(--accent), 0 0 18px var(--accent);
     }
+    .btn-action:disabled { color: rgba(255,255,255,0.12); cursor: default; pointer-events: none; }
+    .btn-action.active:disabled { text-shadow: none; }
     .s-brk { letter-spacing: 0; color: var(--dim); flex-shrink: 0; font-size: 12px; }
     .footer {
       display: flex; justify-content: space-between; align-items: baseline;
@@ -360,7 +362,7 @@
     .view-toggle-sep { color: var(--dimmer); font-size: 13px; }
     /* Synthesis accordions (A / B) */
     .gs-acc { width: 100%; border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; margin-bottom: 12px; padding: 0 12px; }
-    .gs-acc-head { all: unset; display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%; padding: 12px 2px; letter-spacing: 3px; font-size: 13px; color: rgba(255,255,255,0.5); transition: color .1s; }
+    .gs-acc-head { all: unset; display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%; padding: 12px 2px; min-height: 24px; box-sizing: content-box; letter-spacing: 3px; font-size: 13px; color: rgba(255,255,255,0.5); transition: color .1s; }
     .gs-acc-head:hover { color: rgba(255,255,255,0.85); }
     .gs-acc.open > .gs-acc-head { color: rgba(255,255,255,0.85); }
     .gs-acc-chev { display: inline-block; transition: transform .12s; color: rgba(255,255,255,0.35); font-size: 11px; }
@@ -641,7 +643,7 @@
 
   <!-- ── §GS01 Synthesis A accordion ── -->
   <div class="gs-acc open" id="gs-accA">
-  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-chev">▾</span> synthesis a<canvas class="gs-acc-summary-cv" id="gs-accSummary-cv"></canvas></button>
+  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-chev">▾</span> synthesis A<canvas class="gs-acc-summary-cv" id="gs-accSummary-cv"></canvas></button>
   <div class="gs-acc-body">
 
   <!-- Header -->
@@ -703,7 +705,7 @@
 
 <!-- control a accordion -->
  <div class="gs-acc open" id="gs-accCtrlA" style="margin-top: 8px;">
-  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-chev">▾</span> control a</button>
+  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-chev">▾</span> control A<span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+A)</span></button>
   <div class="gs-acc-body">
 
   <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
@@ -795,7 +797,7 @@
 
   <!-- ── §GS01 Synthesis B accordion ── -->
   <div class="gs-acc" id="gs2-accB">
-  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-chev">▾</span> synthesis b<canvas class="gs-acc-summary-cv" id="gs2-accSummary-cv"></canvas></button>
+  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-chev">▾</span> synthesis B<canvas class="gs-acc-summary-cv" id="gs2-accSummary-cv"></canvas></button>
   <div class="gs-acc-body">
 
   <!-- Header -->
@@ -857,7 +859,7 @@
 
   <!-- control b accordion -->
   <div class="gs-acc open" id="gs2-accCtrlB" style="margin-top: 8px;">
-  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-chev">▾</span> control b</button>
+  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-chev">▾</span> control B<span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+B)</span></button>
   <div class="gs-acc-body">
 
   <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
@@ -2942,6 +2944,8 @@ document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   if (e.code === 'Space') { e.preventDefault(); $$('freezeBtn').click(); }
   if (e.code === 'KeyH')  { helpVisible ? hideHelp() : showHelp(); }
+  if (e.code === 'KeyA')  { document.getElementById(e.shiftKey ? 'gs-accCtrlA' : 'gs-accA')?.classList.toggle('open'); }
+  if (e.code === 'KeyB')  { document.getElementById(e.shiftKey ? 'gs2-accCtrlB' : 'gs2-accB')?.classList.toggle('open'); }
 });
 
 // ─── Help overlay ───────────────────────────────────────────────────────────────
@@ -2959,6 +2963,10 @@ const HELP_ROWS = [
   ['row',  'space',           'toggle freeze'],
   ['row',  'H',               'toggle this help'],
   ['row',  'ESC',             'close this help'],
+  ['row',  'A',               'toggle synthesis a accordion'],
+  ['row',  'B',               'toggle synthesis b accordion'],
+  ['row',  'shift+A',         'toggle control a accordion'],
+  ['row',  'shift+B',         'toggle control b accordion'],
   ['gap'],
   ['head', 'WAVEFORM', ''],
   ['row',  'shift + click',   'add splice marker'],
@@ -8775,10 +8783,24 @@ function tickAuto() {
   bmAutoTimer = setTimeout(tickAuto, barMs);
 }
 
+// Auto mode A/B — mutually exclusive flavor selector (A = halo, default)
+const autoModeBtns = {
+  A: $$('autoModeA'), B: $$('autoModeB'),
+};
+function setAutoMode(mode) {
+  bmAutoMode = mode;
+  Object.values(autoModeBtns).forEach(b => b?.classList.remove('active'));
+  autoModeBtns[mode]?.classList.add('active');
+}
+Object.entries(autoModeBtns).forEach(([mode, btn]) => {
+  btn?.addEventListener('click', () => setAutoMode(mode));
+});
+
 const autoBtn = $$('autoBtn');
-autoBtn.addEventListener('click', () => {
-  bmAutoActive = !bmAutoActive;
+function setAutoActive(active) {
+  bmAutoActive = active;
   autoBtn.classList.toggle('active', bmAutoActive);
+  Object.values(autoModeBtns).forEach(b => { if (b) b.disabled = !bmAutoActive; });
   if (bmAutoActive) {
     bmAutoCooldown = 0;
     tickAuto();
@@ -8786,19 +8808,9 @@ autoBtn.addEventListener('click', () => {
     clearTimeout(bmAutoTimer);
     bmAutoTimer = null;
   }
-});
-
-// Auto mode A/B — mutually exclusive flavor selector (A = halo, default)
-const autoModeBtns = {
-  A: $$('autoModeA'), B: $$('autoModeB'),
-};
-Object.entries(autoModeBtns).forEach(([mode, btn]) => {
-  btn?.addEventListener('click', () => {
-    bmAutoMode = mode;
-    Object.values(autoModeBtns).forEach(b => b?.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
+}
+setAutoActive(bmAutoActive);
+autoBtn.addEventListener('click', () => setAutoActive(!bmAutoActive));
 
 touchCv.addEventListener('pointerdown', e => {
   e.preventDefault();
@@ -9446,6 +9458,8 @@ const BM_HELP = [
   ['head', 'KEYS', ''],
   ['row',  'H',   'toggle this help'],
   ['row',  'ESC', 'close this help'],
+  ['row',  'A',   'auto mode a (halo) — press again to turn auto off'],
+  ['row',  'B',   'auto mode b (deep) — press again to turn auto off'],
   ['gap'],
   ['head', 'TOUCH', ''],
   ['row',  'tap touch area',   'spawn held tone'],
@@ -9520,6 +9534,14 @@ document.addEventListener('keydown', e => {
   const tag = e.target.tagName;
   if (tag === 'INPUT' || tag === 'SELECT') return;
   if (e.key === 'h' || e.key === 'H') { helpVisible ? hideHelp() : showHelp(); }
+  if (e.key === 'a' || e.key === 'A') {
+    if (bmAutoActive && bmAutoMode === 'A') setAutoActive(false);
+    else { setAutoMode('A'); setAutoActive(true); }
+  }
+  if (e.key === 'b' || e.key === 'B') {
+    if (bmAutoActive && bmAutoMode === 'B') setAutoActive(false);
+    else { setAutoMode('B'); setAutoActive(true); }
+  }
 });
 
 /* ── Boot ────────────────────────────────────────────── */
