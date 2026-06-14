@@ -16,8 +16,8 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :focus { outline: none; }
     :focus-visible { outline: none; }
-    .kbnav-focus { outline: none; box-shadow: 0 1px 0 0 var(--accent); }
-    .kbnav-focus.kbnav-edit { box-shadow: 0 2px 0 0 var(--accent); }
+    .kbnav-focus { outline: none; box-shadow: 0 1px 0 0 var(--accent) !important; }
+    .kbnav-focus.kbnav-edit { box-shadow: 0 2px 0 0 var(--accent) !important; }
     .kbnav-focus[type="range"] { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 6px; }
     .kbnav-focus.kbnav-edit[type="range"] { outline-width: 2px !important; }
     #ig-grid.kbnav-focus { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 2px; }
@@ -370,6 +370,10 @@
     .gs-acc-head { all: unset; display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%; padding: 12px 2px; min-height: 24px; box-sizing: content-box; letter-spacing: 3px; font-size: 13px; color: rgba(255,255,255,0.5); transition: color .1s; }
     .gs-acc-head:hover { color: rgba(255,255,255,0.85); }
     .gs-acc.open > .gs-acc-head { color: rgba(255,255,255,0.85); }
+    .gs-acc-label { display: inline-flex; align-items: center; gap: 8px; }
+    .gs-acc-head.kbnav-focus { box-shadow: none !important; }
+    .gs-acc-head.kbnav-focus .gs-acc-label { box-shadow: 0 1px 0 0 var(--accent) !important; }
+    .gs-acc-head.kbnav-focus.kbnav-edit .gs-acc-label { box-shadow: 0 2px 0 0 var(--accent) !important; }
     .gs-acc-chev { display: inline-block; transition: transform .12s; color: rgba(255,255,255,0.35); font-size: 11px; }
     .gs-acc:not(.open) .gs-acc-chev { transform: rotate(-90deg); }
     .gs-acc-body { display: none; padding: 4px 0 20px; }
@@ -649,7 +653,7 @@
 
   <!-- ── §GS01 Synthesis A accordion ── -->
   <div class="gs-acc open" id="gs-accA">
-  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-chev">▾</span> synthesis A<canvas class="gs-acc-summary-cv" id="gs-accSummary-cv"></canvas></button>
+  <button class="gs-acc-head" id="gs-accHeadA"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> synthesis A</span><canvas class="gs-acc-summary-cv" id="gs-accSummary-cv"></canvas></button>
   <div class="gs-acc-body">
 
   <!-- Header -->
@@ -711,7 +715,7 @@
 
 <!-- control a accordion -->
  <div class="gs-acc open" id="gs-accCtrlA" style="margin-top: 8px;">
-  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-chev">▾</span> control A<span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+A)</span></button>
+  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> control A</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+A)</span></button>
   <div class="gs-acc-body">
 
   <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
@@ -803,7 +807,7 @@
 
   <!-- ── §GS01 Synthesis B accordion ── -->
   <div class="gs-acc" id="gs2-accB">
-  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-chev">▾</span> synthesis B<canvas class="gs-acc-summary-cv" id="gs2-accSummary-cv"></canvas></button>
+  <button class="gs-acc-head" id="gs2-accHeadB"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> synthesis B</span><canvas class="gs-acc-summary-cv" id="gs2-accSummary-cv"></canvas></button>
   <div class="gs-acc-body">
 
   <!-- Header -->
@@ -865,7 +869,7 @@
 
   <!-- control b accordion -->
   <div class="gs-acc open" id="gs2-accCtrlB" style="margin-top: 8px;">
-  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-chev">▾</span> control B<span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+B)</span></button>
+  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> control B</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+B)</span></button>
   <div class="gs-acc-body">
 
   <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
@@ -1610,6 +1614,10 @@ function kbShowHighlight() {
   if (!item) return;
   item.el.classList.add('kbnav-focus');
   item.el.classList.toggle('kbnav-edit', kbMode === 'edit');
+  item.el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const barH = document.querySelector('.app-toggle-bar')?.offsetHeight || 44;
+  const r = item.el.getBoundingClientRect();
+  if (r.top < barH) window.scrollBy(0, r.top - barH);
 }
 function kbActivate(panelId) {
   kbItems = buildKbItems(panelId);
@@ -1624,10 +1632,23 @@ function kbDeactivate() {
 }
 function kbMove(dir) {
   kbClearHighlight();
-  kbIndex = Math.max(0, Math.min(kbItems.length - 1, kbIndex + dir));
+  kbIndex = (kbIndex + dir + kbItems.length) % kbItems.length;
   kbShowHighlight();
   const p = kbActivePanel();
   if (p) kbLastIndex[p.panel] = kbIndex;
+}
+function kbRebuildItems() {
+  if (!kbActive) return;
+  const p = kbActivePanel();
+  if (!p) return;
+  const currentEl = kbItems[kbIndex]?.el;
+  kbClearHighlight();
+  kbItems = buildKbItems(p.panel);
+  if (!kbItems.length) { kbActive = false; return; }
+  const newIdx = currentEl ? kbItems.findIndex(it => it.el === currentEl) : -1;
+  kbIndex = newIdx >= 0 ? newIdx : Math.min(kbIndex, kbItems.length - 1);
+  kbLastIndex[p.panel] = kbIndex;
+  kbShowHighlight();
 }
 function kbOnPanelSwitch(panelId) {
   if (kbMode === 'grid') window._igExitGridNav?.();
@@ -3092,8 +3113,8 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('gs-panel').style.display === 'none') return;
   if (e.code === 'Space') { e.preventDefault(); $$('freezeBtn').click(); }
   if (e.code === 'KeyH')  { helpVisible ? hideHelp() : showHelp(); }
-  if (e.code === 'KeyA')  { document.getElementById(e.shiftKey ? 'gs-accCtrlA' : 'gs-accA')?.classList.toggle('open'); }
-  if (e.code === 'KeyB')  { document.getElementById(e.shiftKey ? 'gs2-accCtrlB' : 'gs2-accB')?.classList.toggle('open'); }
+  if (e.code === 'KeyA')  { document.getElementById(e.shiftKey ? 'gs-accCtrlA' : 'gs-accA')?.classList.toggle('open'); kbRebuildItems(); }
+  if (e.code === 'KeyB')  { document.getElementById(e.shiftKey ? 'gs2-accCtrlB' : 'gs2-accB')?.classList.toggle('open'); kbRebuildItems(); }
 });
 
 // ─── Help overlay ───────────────────────────────────────────────────────────────
@@ -3383,7 +3404,7 @@ $$('showGlossary').addEventListener('click', () => showTab('showGlossary'));
 // synthesis a/b engines plus their nested control a/b boxes (both gs- and gs2-
 // engines live inside #gs-panel).
 document.querySelectorAll('#gs-panel .gs-acc-head').forEach(head => {
-  head.addEventListener('click', () => head.closest('.gs-acc')?.classList.toggle('open'));
+  head.addEventListener('click', () => { head.closest('.gs-acc')?.classList.toggle('open'); kbRebuildItems(); });
 });
 
 if (document.getElementById('gs-panel').style.display !== 'none') requestAnimationFrame(() => window._gsBhStart?.());
