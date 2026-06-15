@@ -1070,20 +1070,14 @@
         <span class="ctrl-key">scale</span>
         <div class="scale-wrap">
           <select id="ig-scaleSelect">
-            <option value="chromatic">chromatic</option>
-            <option value="ionian">ionian</option>
-            <option value="dorian">dorian</option>
-            <option value="phrygian">phrygian</option>
-            <option value="lydian">lydian</option>
-            <option value="mixolydian">mixolydian</option>
             <option value="aeolian">aeolian</option>
-            <option value="locrian">locrian</option>
-            <option value="harmonic_minor">harmonic minor</option>
-            <option value="melodic_minor">melodic minor</option>
+            <option value="dorian">dorian</option>
+            <option value="lydian">lydian</option>
+            <option value="ionian">ionian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="mixolydian">mixolydian</option>
             <option value="major_blues">major blues</option>
             <option value="minor_blues">minor blues</option>
-            <option value="diminished">diminished</option>
-            <option value="comb_diminished">comb. dim.</option>
             <option value="major_pentatonic" selected>major pentatonic</option>
             <option value="minor_pentatonic">minor pentatonic</option>
             <option value="raga_bhairav">raga bhairav</option>
@@ -1105,6 +1099,12 @@
             <option value="fourth">4th interval</option>
             <option value="fifth">5th interval</option>
             <option value="octave">octave</option>
+            <option value="chromatic">chromatic</option>
+            <option value="locrian">locrian</option>
+            <option value="harmonic_minor">harmonic minor</option>
+            <option value="melodic_minor">melodic minor</option>
+            <option value="diminished">diminished</option>
+            <option value="comb_diminished">comb. dim.</option>
           </select>
         </div>
       </div>
@@ -1342,20 +1342,14 @@
         <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;" title="Scale link — when active ●, bloom uses the same scale as the grid. Toggle off ○ for an independent bloom scale">●</button>
         <span class="ctrl-key" style="width:auto;">scale</span>
         <select id="bm-scaleSelect">
-            <option value="chromatic">chromatic</option>
-            <option value="ionian">ionian</option>
-            <option value="dorian">dorian</option>
-            <option value="phrygian">phrygian</option>
-            <option value="lydian">lydian</option>
-            <option value="mixolydian">mixolydian</option>
             <option value="aeolian">aeolian</option>
-            <option value="locrian">locrian</option>
-            <option value="harmonic_minor">harmonic minor</option>
-            <option value="melodic_minor">melodic minor</option>
+            <option value="dorian">dorian</option>
+            <option value="lydian">lydian</option>
+            <option value="ionian">ionian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="mixolydian">mixolydian</option>
             <option value="major_blues">major blues</option>
             <option value="minor_blues">minor blues</option>
-            <option value="diminished">diminished</option>
-            <option value="comb_diminished">comb. dim.</option>
             <option value="major_pentatonic" selected>major pentatonic</option>
             <option value="minor_pentatonic">minor pentatonic</option>
             <option value="raga_bhairav">raga bhairav</option>
@@ -1377,6 +1371,12 @@
             <option value="fourth">4th interval</option>
             <option value="fifth">5th interval</option>
             <option value="octave">octave</option>
+            <option value="chromatic">chromatic</option>
+            <option value="locrian">locrian</option>
+            <option value="harmonic_minor">harmonic minor</option>
+            <option value="melodic_minor">melodic minor</option>
+            <option value="diminished">diminished</option>
+            <option value="comb_diminished">comb. dim.</option>
         </select>
         </span>
         <span style="color:var(--dim);">|</span>
@@ -2481,6 +2481,7 @@ let _captureStream = null; // holds full getDisplayMedia stream so we can stop i
 // no double audio) and drives the shared black-hole visual + bloom's meter.
 let _sharedGranCtx = null;
 let _sumAnalyser    = null;
+let _sharedLimiter  = null;
 async function ensureGranularCtx() {
   if (_sharedGranCtx) {
     if (_sharedGranCtx.state === 'suspended') await _sharedGranCtx.resume();
@@ -2510,11 +2511,20 @@ async function ensureGranularCtx() {
   }
   _sumAnalyser = ctx.createAnalyser();
   _sumAnalyser.fftSize = 2048;
+  // Soft limiter on the combined A+B output to catch peaks when both engines run hot together
+  _sharedLimiter = ctx.createDynamicsCompressor();
+  _sharedLimiter.threshold.value = -6;
+  _sharedLimiter.knee.value      = 6;
+  _sharedLimiter.ratio.value     = 8;
+  _sharedLimiter.attack.value    = 0.003;
+  _sharedLimiter.release.value   = 0.15;
+  _sharedLimiter.connect(ctx.destination);
   _sharedGranCtx = ctx;
   return ctx;
 }
 window.asgGetGranularCtx = ensureGranularCtx;
 window.asgGetGranularSum = () => _sumAnalyser;
+window.asgGetGranularLimiter = () => _sharedLimiter;
 
 async function initAudio(srcType) {
   audioCtx = await ensureGranularCtx();
@@ -2610,7 +2620,7 @@ async function initAudio(srcType) {
   masterGain.gain.value = S.isMuted ? 0 : S.volume;
   reverbDryGain.connect(masterGain);
   reverbWetGain.connect(masterGain);
-  masterGain.connect(audioCtx.destination);
+  masterGain.connect(_sharedLimiter || audioCtx.destination);
   if (_sumAnalyser) masterGain.connect(_sumAnalyser); // feed shared A+B visual/meter
   _waveAnalyserA = audioCtx.createAnalyser(); _waveAnalyserA.fftSize = 2048;
   masterGain.connect(_waveAnalyserA); // feed bloom's per-engine waveform strip
@@ -3916,7 +3926,7 @@ async function initAudio(srcType) {
   masterGain.gain.value = S.isMuted ? 0 : S.volume;
   reverbDryGain.connect(masterGain);
   reverbWetGain.connect(masterGain);
-  masterGain.connect(audioCtx.destination);
+  { const _lim = window.asgGetGranularLimiter?.(); masterGain.connect(_lim || audioCtx.destination); }
   { const _sum = window.asgGetGranularSum?.(); if (_sum) masterGain.connect(_sum); } // feed shared A+B visual/meter
   _waveAnalyserB = audioCtx.createAnalyser(); _waveAnalyserB.fftSize = 2048;
   masterGain.connect(_waveAnalyserB); // feed bloom's per-engine waveform strip
