@@ -471,7 +471,6 @@
     .cell.on.ph::after { background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 30px var(--accent); opacity: 1; }
     .cell.on.sel { outline: 1px solid rgba(255,255,255,0.55); outline-offset: 2px; }
     .cell.kbd-cursor { outline: 2px dashed var(--accent); outline-offset: 1px; }
-    .row-pip.kbd-cursor { outline: 2px dashed var(--accent); outline-offset: 1px; }
     .cell.on.sel:hover::before { content: '×'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 26px; line-height: 1; letter-spacing: 0; color: rgba(255,255,255,0.90); text-shadow: 0 0 6px rgba(255,255,255,0.7); z-index: 2; pointer-events: none; }
     @keyframes flash { 0% { box-shadow: 0 0 24px var(--accent), 0 0 48px var(--accent); opacity: 1; } 100% { box-shadow: 0 0 8px var(--accent); opacity: .75; } }
     .cell.flash::after { animation: flash .28s ease-out forwards; }
@@ -487,6 +486,7 @@
     .row-pip:hover::after { background: var(--accent); box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent); }
     .row-pip.muted::after { opacity: 0; }
     .row-pip.muted:hover::after { opacity: 0.5; background: var(--accent); box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent); }
+    .row-pip.kbd-cursor::after { width: 4px; background: var(--accent); box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent); opacity: 1; }
     /* Viz canvas */
     #ig-viz-cv { flex: 1; width: 100%; min-height: 60px; display: block; cursor: pointer; }
     /* Buttons */
@@ -7881,12 +7881,23 @@ function drawSpiral() {
   if (gridNavActive) {
     const { x, y } = spiralCellXY(curR, curC, geom);
     spiralCtx.save();
-    spiralCtx.setLineDash([3, 3]);
-    spiralCtx.beginPath();
-    spiralCtx.arc(x, y, dotR * 2.3, 0, 2 * Math.PI);
-    spiralCtx.strokeStyle = accent;
-    spiralCtx.lineWidth = 2;
-    spiralCtx.stroke();
+    if (curC === COLS) {
+      // mute-bar cursor: glowing line matching the mute-bar shape
+      const barH = ringSpacing * 0.75;
+      const barW = 4;
+      spiralCtx.translate(x, y);
+      spiralCtx.shadowColor = accent;
+      spiralCtx.shadowBlur = 8;
+      spiralCtx.fillStyle = accent;
+      spiralCtx.fillRect(-barW / 2, -barH / 2, barW, barH);
+    } else {
+      spiralCtx.setLineDash([3, 3]);
+      spiralCtx.beginPath();
+      spiralCtx.arc(x, y, dotR * 2.3, 0, 2 * Math.PI);
+      spiralCtx.strokeStyle = accent;
+      spiralCtx.lineWidth = 2;
+      spiralCtx.stroke();
+    }
     spiralCtx.restore();
   }
 
