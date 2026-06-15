@@ -20,7 +20,7 @@
     .kbnav-focus.kbnav-edit { box-shadow: 0 2px 0 0 var(--accent) !important; }
     .kbnav-focus[type="range"] { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 6px; }
     .kbnav-focus.kbnav-edit[type="range"] { outline-width: 2px !important; }
-    #ig-grid.kbnav-focus { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 2px; }
+    #ig-grid.kbnav-focus, #ig-spiral-cv.kbnav-focus { box-shadow: none; outline: 1px solid var(--accent) !important; outline-offset: 2px; }
 
 :root {
   --accent: #fff;
@@ -1592,11 +1592,14 @@ function kbVisible(el) {
 function buildKbItems(panelId) {
   const panelEl = document.getElementById(panelId);
   if (!panelEl) return [];
-  const items = Array.from(panelEl.querySelectorAll('button, input[type=range], select'))
+  const items = Array.from(document.querySelectorAll('.app-toggle-bar button, #app-legend span'))
     .filter(el => !el.disabled && kbVisible(el))
     .map(el => ({ type: 'control', el }));
+  items.push(...Array.from(panelEl.querySelectorAll('button, input[type=range], select'))
+    .filter(el => !el.disabled && kbVisible(el))
+    .map(el => ({ type: 'control', el })));
   if (panelId === 'ig-panel') {
-    const grid = document.getElementById('ig-grid');
+    const grid = document.getElementById(window._igSpiralViewActive?.() ? 'ig-spiral-cv' : 'ig-grid');
     if (grid) items.push({ type: 'grid', el: grid });
   }
   items.sort((a, b) => {
@@ -1718,10 +1721,11 @@ function kbHandleKey(e) {
       kbClearHighlight();
       kbMode = 'grid';
       window._igEnterGridNav?.();
-    } else if (item.el.tagName === 'BUTTON') {
-      item.el.click();
-    } else {
+    } else if (item.el.tagName === 'INPUT' || item.el.tagName === 'SELECT') {
       kbMode = 'edit'; kbRepeat = 0; kbShowHighlight();
+    } else {
+      item.el.click();
+      kbRebuildItems();
     }
   }
 }
@@ -4958,6 +4962,7 @@ let gridNavActive = false;
 let curR = 0, curC = 0;
 window._igEnterGridNav = () => { gridNavActive = true; renderAll(); };
 window._igExitGridNav  = () => { gridNavActive = false; renderAll(); };
+window._igSpiralViewActive = () => spiralView;
 
 function selectNote(r, c) {
   if (selR >= 0) cellEls[selR]?.[selC]?.classList.remove('sel');
