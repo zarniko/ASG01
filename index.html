@@ -759,9 +759,29 @@
           <input type="range" id="gs-headJumpSlider" min="0" max="100" value="0" step="1">
           <span class="ctrl-val" id="gs-headJumpVal">0.00</span>
         </div>
+        <div class="ctrl-row slider" title="Size scatter — randomizes each grain's duration around the base size. Higher values create a more diffuse, organic texture">
+          <span class="ctrl-key">s.sct</span>
+          <input type="range" id="gs-sizeSctSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs-sizeSctVal">0.00</span>
+        </div>
+        <div class="ctrl-row slider" title="Reverse probability — chance each grain plays in reverse. Mix of forward and backward grains creates a shimmer; 100% fully reverses">
+          <span class="ctrl-key">rev</span>
+          <input type="range" id="gs-revProbSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs-revProbVal">0%</span>
+        </div>
       </div>
 
       <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Shape — shifts the peak of each grain's volume envelope. Left = fast attack long decay; center = symmetric; right = slow swell fast release">
+          <span class="ctrl-key">shpe</span>
+          <input type="range" id="gs-shapeSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs-shapeVal">0.50</span>
+        </div>
+        <div class="ctrl-row slider" title="Mix — blends raw input with the granular effect. 0 = dry pass-through; 1.00 = full granular effect">
+          <span class="ctrl-key">mix</span>
+          <input type="range" id="gs-mixSlider" min="0" max="100" value="100" step="1">
+          <span class="ctrl-val" id="gs-mixVal">1.00</span>
+        </div>
         <div class="ctrl-row slider" title="Reverb — wet mix of the reverb effect">
           <span class="ctrl-key">revb</span>
           <input type="range" id="gs-reverbSlider" min="0" max="100" value="70" step="1">
@@ -769,7 +789,7 @@
         </div>
         <div class="ctrl-row slider" title="Volume — output gain of the granular engine">
           <span class="ctrl-key">vol</span>
-          <input type="range" id="gs-volSlider" min="0" max="1000" value="60" step="5">
+          <input type="range" id="gs-volSlider" min="0" max="1000" value="75" step="5">
           <span class="ctrl-val" id="gs-volVal">0.60×</span>
         </div>
         <div class="ctrl-row slider" title="Preservation — buffer feedback. At 0, incoming audio overwrites the buffer; at 1, old audio never erases and layers accumulate indefinitely">
@@ -777,7 +797,16 @@
           <input type="range" id="gs-preserveSlider" min="0" max="95" value="20" step="1">
           <span class="ctrl-val" id="gs-preserveVal">0.20</span>
         </div>
-        <div class="ctrl-row slider" aria-hidden="true"></div>
+        <div class="ctrl-row slider" title="Filter — low-pass cutoff. Rolls off high frequencies from the granular output for a darker, warmer texture">
+          <span class="ctrl-key">filt</span>
+          <input type="range" id="gs-filterFreqSlider" min="0" max="100" value="80" step="1">
+          <span class="ctrl-val" id="gs-filterFreqVal">8.0k</span>
+        </div>
+        <div class="ctrl-row slider" title="Resonance — filter Q. Boosts frequencies near the cutoff for a resonant peak">
+          <span class="ctrl-key">res</span>
+          <input type="range" id="gs-filterResSlider" min="0" max="100" value="10" step="1">
+          <span class="ctrl-val" id="gs-filterResVal">1.0</span>
+        </div>
         <div class="ctrl-row slider" title="Read head — toggle H1 and H2 independent scan heads on or off. Each head scans the buffer at its own rate">
           <span class="ctrl-key">head</span>
           <div class="tui-group">
@@ -913,9 +942,29 @@
           <input type="range" id="gs2-headJumpSlider" min="0" max="100" value="0" step="1">
           <span class="ctrl-val" id="gs2-headJumpVal">0.00</span>
         </div>
+        <div class="ctrl-row slider" title="Size scatter — randomizes each grain's duration around the base size. Higher values create a more diffuse, organic texture">
+          <span class="ctrl-key">s.sct</span>
+          <input type="range" id="gs2-sizeSctSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs2-sizeSctVal">0.00</span>
+        </div>
+        <div class="ctrl-row slider" title="Reverse probability — chance each grain plays in reverse. Mix of forward and backward grains creates a shimmer; 100% fully reverses">
+          <span class="ctrl-key">rev</span>
+          <input type="range" id="gs2-revProbSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs2-revProbVal">0%</span>
+        </div>
       </div>
 
       <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Shape — shifts the peak of each grain's volume envelope. Left = fast attack long decay; center = symmetric; right = slow swell fast release">
+          <span class="ctrl-key">shpe</span>
+          <input type="range" id="gs2-shapeSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs2-shapeVal">0.50</span>
+        </div>
+        <div class="ctrl-row slider" title="Mix — blends raw input with the granular effect. 0 = dry pass-through; 1.00 = full granular effect">
+          <span class="ctrl-key">mix</span>
+          <input type="range" id="gs2-mixSlider" min="0" max="100" value="100" step="1">
+          <span class="ctrl-val" id="gs2-mixVal">1.00</span>
+        </div>
         <div class="ctrl-row slider" title="Reverb — wet mix of the reverb effect">
           <span class="ctrl-key">revb</span>
           <input type="range" id="gs2-reverbSlider" min="0" max="100" value="70" step="1">
@@ -923,7 +972,7 @@
         </div>
         <div class="ctrl-row slider" title="Volume — output gain of the granular engine">
           <span class="ctrl-key">vol</span>
-          <input type="range" id="gs2-volSlider" min="0" max="1000" value="60" step="5">
+          <input type="range" id="gs2-volSlider" min="0" max="1000" value="75" step="5">
           <span class="ctrl-val" id="gs2-volVal">0.60×</span>
         </div>
         <div class="ctrl-row slider" title="Preservation — buffer feedback. At 0, incoming audio overwrites the buffer; at 1, old audio never erases and layers accumulate indefinitely">
@@ -931,7 +980,16 @@
           <input type="range" id="gs2-preserveSlider" min="0" max="95" value="20" step="1">
           <span class="ctrl-val" id="gs2-preserveVal">0.20</span>
         </div>
-        <div class="ctrl-row slider" aria-hidden="true"></div>
+        <div class="ctrl-row slider" title="Filter — low-pass cutoff. Rolls off high frequencies from the granular output for a darker, warmer texture">
+          <span class="ctrl-key">filt</span>
+          <input type="range" id="gs2-filterFreqSlider" min="0" max="100" value="80" step="1">
+          <span class="ctrl-val" id="gs2-filterFreqVal">8.0k</span>
+        </div>
+        <div class="ctrl-row slider" title="Resonance — filter Q. Boosts frequencies near the cutoff for a resonant peak">
+          <span class="ctrl-key">res</span>
+          <input type="range" id="gs2-filterResSlider" min="0" max="100" value="10" step="1">
+          <span class="ctrl-val" id="gs2-filterResVal">1.0</span>
+        </div>
         <div class="ctrl-row slider" title="Read head — toggle H1 and H2 independent scan heads on or off. Each head scans the buffer at its own rate">
           <span class="ctrl-key">head</span>
           <div class="tui-group">
@@ -1135,7 +1193,7 @@
       <div class="ctrl-row slider" title="Master volume — overall output level of the sequencer">
         <span class="ctrl-key">mvol</span>
         <span class="s-brk">◄</span>
-        <input type="range" id="ig-mvolSlider" min="0" max="100" value="80" step="1">
+        <input type="range" id="ig-mvolSlider" min="0" max="100" value="100" step="1">
         <span class="s-brk">►</span>
         <span class="ctrl-val" id="ig-mvolVal">80%</span>
       </div>
@@ -1451,7 +1509,7 @@
           </div>
           <div class="ctrl-row slider" data-bmlfo="vol">
             <span class="ctrl-key lfo-toggle" id="bm-lfo-lbl-vol" title="Volume — overall output level of the bloom engine. Click to open LFO modulation">vol<span class="lfo-chev">›</span></span>
-            <input type="range" id="bm-volSlider" min="0" max="100" value="20">
+            <input type="range" id="bm-volSlider" min="0" max="100" value="25">
             <span class="ctrl-val" id="bm-volVal">0.20</span>
           </div>
           <div class="ctrl-row slider" data-bmlfo="shmr">
@@ -2312,8 +2370,11 @@ class GranularProcessor extends AudioWorkletProcessor {
     this.preserve  = 0.0;
     this.h1Rate    = 1.0;
     this.h2Rate    = 0.5;
-    this.pitchDrift = 0.0;
-    this.headJump   = 0.0;
+    this.pitchDrift  = 0.0;
+    this.headJump    = 0.0;
+    this.envShape    = 0.5;
+    this.sizeScatter = 0.0;
+    this.revProb     = 0.0;
     this.h1Active  = true;
     this.h2Active  = true;
     this.h1Idx     = 0;
@@ -2332,8 +2393,11 @@ class GranularProcessor extends AudioWorkletProcessor {
         case 'h2Rate':    this.h2Rate    = data.value; break;
         case 'pitchDrift': this.pitchDrift = data.value; break;
         case 'headJump':   this.headJump   = data.value; break;
-        case 'h1Active':  this.h1Active = data.value; break;
-        case 'h2Active':  this.h2Active = data.value; break;
+        case 'h1Active':    this.h1Active    = data.value; break;
+        case 'h2Active':    this.h2Active    = data.value; break;
+        case 'envShape':    this.envShape    = data.value; break;
+        case 'sizeScatter': this.sizeScatter = data.value; break;
+        case 'revProb':     this.revProb     = data.value; break;
         case 'seek':      this.h1Idx = data.value * this.BUF_SIZE;
                           this.h2Idx = ((data.value + 0.5) % 1) * this.BUF_SIZE; break;
       }
@@ -2342,17 +2406,19 @@ class GranularProcessor extends AudioWorkletProcessor {
 
   spawnGrain(headIdx) {
     if (this.grains.length >= this.maxGrains) return;
-    const sizeSamples  = Math.max(64, Math.floor(this.grainSz * this.SR));
+    const scatter      = 1 + (Math.random() - 0.5) * 2 * this.sizeScatter;
+    const sizeSamples  = Math.max(64, Math.floor(this.grainSz * this.SR * scatter));
     const spreadRange  = this.spread * this.BUF_SIZE * 0.06;
     const offset       = (Math.random() - 0.5) * 2 * spreadRange;
     const start        = ((headIdx + offset) % this.BUF_SIZE + this.BUF_SIZE) % this.BUF_SIZE;
     const pan          = (Math.random() - 0.5) * this.spread * 1.8;
     const a            = Math.PI * 0.25 + pan * Math.PI * 0.25;
+    const sign         = Math.random() < this.revProb ? -1 : 1;
     this.grains.push({
       idx:   start,
       size:  sizeSamples,
       phase: 0,
-      rate:  this.pitch * (1 + (Math.random() - 0.5) * 0.018) * (Math.random() < this.pitchDrift ? (Math.random() < 0.5 ? 2.0 : 0.5) : 1.0),
+      rate:  sign * this.pitch * (1 + (Math.random() - 0.5) * 0.018) * (Math.random() < this.pitchDrift ? (Math.random() < 0.5 ? 2.0 : 0.5) : 1.0),
       gL:    Math.cos(a),
       gR:    Math.sin(a)
     });
@@ -2406,7 +2472,11 @@ class GranularProcessor extends AudioWorkletProcessor {
       const gr = this.grains[g];
       for (let i = 0; i < bs; i++) {
         if (gr.phase >= gr.size) break;
-        const env  = 0.5 * (1 - Math.cos(6.2832 * gr.phase / gr.size));
+        const t    = gr.phase / gr.size;
+        const pk   = 0.1 + this.envShape * 0.8;
+        const env  = t < pk
+          ? 0.5 * (1 - Math.cos(Math.PI * t / pk))
+          : 0.5 * (1 + Math.cos(Math.PI * (t - pk) / (1 - pk)));
         outL[i]   += this.lerp(this.bufL, gr.idx) * env * gr.gL;
         outR[i]   += this.lerp(this.bufR, gr.idx) * env * gr.gR;
         gr.idx     = (gr.idx + gr.rate + this.BUF_SIZE) % this.BUF_SIZE;
@@ -2450,13 +2520,19 @@ const S = {
   spread:      0.8,
   reverbWet:   0.7,
   preserve:    0.2,
-  volume:      0.6,
+  volume:      0.75,
   h1Rate:      0.25,
   h2Rate:     -0.15,
   pitchDrift:  0.12,
   headJump:    0.0,
   h1Active:    true,
   h2Active:    true,
+  envShape:    0.5,
+  mix:         1.0,
+  filterFreq:  8000,
+  filterRes:   1.0,
+  sizeScatter: 0.0,
+  revProb:     0.0,
   splices:     [],
   // Worklet feedback
   writeIdx:    0,
@@ -2470,6 +2546,7 @@ const S = {
 
 // ─── Audio ─────────────────────────────────────────────────────────────────────
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
+let grainFilter = null, dryGain = null, wetGain = null;
 let _waveAnalyserA = null;
 let _captureStream = null; // holds full getDisplayMedia stream so we can stop it later
 
@@ -2513,7 +2590,7 @@ async function ensureGranularCtx() {
   _sumAnalyser.fftSize = 2048;
   // Soft limiter on the combined A+B output to catch peaks when both engines run hot together
   _sharedLimiter = ctx.createDynamicsCompressor();
-  _sharedLimiter.threshold.value = -6;
+  _sharedLimiter.threshold.value = -3;
   _sharedLimiter.knee.value      = 6;
   _sharedLimiter.ratio.value     = 8;
   _sharedLimiter.attack.value    = 0.003;
@@ -2609,17 +2686,31 @@ async function initAudio(srcType) {
   reverbDryGain.gain.value = 1 - S.reverbWet;
   reverbWetGain.gain.value = S.reverbWet;
 
+  // Grain filter (lowpass) + dry/wet mix nodes
+  grainFilter = audioCtx.createBiquadFilter();
+  grainFilter.type = 'lowpass';
+  grainFilter.frequency.value = S.filterFreq;
+  grainFilter.Q.value = S.filterRes;
+  dryGain = audioCtx.createGain();
+  wetGain = audioCtx.createGain();
+  dryGain.gain.value = 1 - S.mix;
+  wetGain.gain.value = S.mix;
+
   // Routing
   sourceNode.connect(analyserIn);
   sourceNode.connect(granularNode);
+  sourceNode.connect(dryGain);
   granularNode.connect(analyserOut);
-  granularNode.connect(reverbDryGain);
-  granularNode.connect(convolver);
+  granularNode.connect(grainFilter);
+  grainFilter.connect(reverbDryGain);
+  grainFilter.connect(convolver);
   convolver.connect(reverbWetGain);
   masterGain = audioCtx.createGain();
   masterGain.gain.value = S.isMuted ? 0 : S.volume;
-  reverbDryGain.connect(masterGain);
-  reverbWetGain.connect(masterGain);
+  reverbDryGain.connect(wetGain);
+  reverbWetGain.connect(wetGain);
+  wetGain.connect(masterGain);
+  dryGain.connect(masterGain);
   masterGain.connect(_sharedLimiter || audioCtx.destination);
   if (_sumAnalyser) masterGain.connect(_sumAnalyser); // feed shared A+B visual/meter
   _waveAnalyserA = audioCtx.createAnalyser(); _waveAnalyserA.fftSize = 2048;
@@ -2650,19 +2741,22 @@ function send(type, value) {
 }
 
 function sendAllParams() {
-  send('density',  S.density);
-  send('grainSz',  S.grainSize);
-  send('position', S.position);
-  send('pitch',    S.pitch);
-  send('spread',   S.spread);
-  send('preserve', S.preserve);
-  send('h1Rate',    S.h1Rate);
-  send('h2Rate',    S.h2Rate);
-  send('pitchDrift',S.pitchDrift);
-  send('headJump',  S.headJump);
-  send('h1Active', S.h1Active);
-  send('h2Active', S.h2Active);
-  send('freeze',   S.isFrozen);
+  send('density',     S.density);
+  send('grainSz',     S.grainSize);
+  send('position',    S.position);
+  send('pitch',       S.pitch);
+  send('spread',      S.spread);
+  send('preserve',    S.preserve);
+  send('h1Rate',      S.h1Rate);
+  send('h2Rate',      S.h2Rate);
+  send('pitchDrift',  S.pitchDrift);
+  send('headJump',    S.headJump);
+  send('h1Active',    S.h1Active);
+  send('h2Active',    S.h2Active);
+  send('freeze',      S.isFrozen);
+  send('envShape',    S.envShape);
+  send('sizeScatter', S.sizeScatter);
+  send('revProb',     S.revProb);
 }
 
 function seekHeads(pos) {
@@ -2705,8 +2799,33 @@ bindSlider('pitchSlider',   'pitchVal',   'pitch',     'pitch',    v => v/100,  
 bindSlider('spreadSlider',   'spreadVal',   'spread',      'spread',      v => v/100, v => v.toFixed(2));
 bindSlider('pitchDriftSlider','pitchDriftVal','pitchDrift','pitchDrift',  v => v/100, v => v.toFixed(2));
 bindSlider('headJumpSlider', 'headJumpVal', 'headJump',  'headJump',    v => v/100, v => v.toFixed(2));
-bindSlider('reverbSlider',  'reverbVal',  'reverbWet', 'reverbWet',v => v/100,   v => v.toFixed(2));
-bindSlider('preserveSlider','preserveVal','preserve',  'preserve', v => v/100,   v => v.toFixed(2));
+bindSlider('reverbSlider',  'reverbVal',  'reverbWet',   'reverbWet',   v => v/100, v => v.toFixed(2));
+bindSlider('preserveSlider','preserveVal','preserve',    'preserve',    v => v/100, v => v.toFixed(2));
+bindSlider('shapeSlider',   'shapeVal',   'envShape',    'envShape',    v => v/100, v => v.toFixed(2));
+bindSlider('sizeSctSlider', 'sizeSctVal', 'sizeScatter', 'sizeScatter', v => v/100, v => v.toFixed(2));
+bindSlider('revProbSlider', 'revProbVal', 'revProb',     'revProb',     v => v/100, v => Math.round(v * 100) + '%');
+
+$$('mixSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.mix = v;
+  $$('mixVal').textContent = v.toFixed(2);
+  if (wetGain) wetGain.gain.value = v;
+  if (dryGain) dryGain.gain.value = 1 - v;
+});
+
+$$('filterFreqSlider').addEventListener('input', e => {
+  const freq = 200 * Math.pow(100, +e.target.value / 100);
+  S.filterFreq = freq;
+  $$('filterFreqVal').textContent = freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : Math.round(freq) + '';
+  if (grainFilter) grainFilter.frequency.value = freq;
+});
+
+$$('filterResSlider').addEventListener('input', e => {
+  const q = 0.5 + +e.target.value / 100 * 4.5;
+  S.filterRes = q;
+  $$('filterResVal').textContent = q.toFixed(1);
+  if (grainFilter) grainFilter.Q.value = q;
+});
 
 $$('volSlider').addEventListener('input', e => {
   const v = +e.target.value / 100;
@@ -3538,7 +3657,7 @@ window.asgOnGridGenerateGranular = (info = {}) => {
   // Octave-shift the re-grained grid audio: grid sitting high/bright → granular
   // drops an octave for body; grid dark/low → granular lifts an octave for air.
   const goLow = bright > 0.45 || transpose >= 3;
-  _gsSetSlider('pitchSlider', goLow ? 50 : 200);   // 0.5× or 2.0×
+  _gsSetSlider('pitchSlider', goLow ? 75 : 150);   // 0.75× or 1.5×
 
   // Texture vs grid articulation — slow continuous wash to fill a staccato
   // grid's gaps; shorter, busier grains for motion against a sustained grid.
@@ -3551,6 +3670,16 @@ window.asgOnGridGenerateGranular = (info = {}) => {
 
   // Reverb — share grid's space, generously floored for the wash.
   _gsSetSlider('reverbSlider', cl(reverb * 100 + 10, 45, 92));
+
+  // Envelope shape — staccato grid: attack-spike (grains decay into tails);
+  // sustained: slow swell so grains bloom in gently.
+  _gsSetSlider('shapeSlider', staccato ? 30 : sustained ? 68 : 50);
+
+  // Size scatter — more diffusion against staccato; tighter cloud on pads.
+  _gsSetSlider('sizeSctSlider', staccato ? 32 : sustained ? 12 : 20);
+
+  // Filter — track grid brightness so granular layer stays tonally cohesive.
+  _gsSetSlider('filterFreqSlider', cl(Math.round(bright * 55 + 30), 30, 85));
 
   window._gs2OnGridGenerate?.(info); // synthesis B re-voices too
 };
@@ -3809,13 +3938,19 @@ const S = {
   spread:      0.8,
   reverbWet:   0.7,
   preserve:    0.2,
-  volume:      0.6,
+  volume:      0.75,
   h1Rate:      0.25,
   h2Rate:     -0.15,
   pitchDrift:  0.12,
   headJump:    0.0,
   h1Active:    true,
   h2Active:    true,
+  envShape:    0.5,
+  mix:         1.0,
+  filterFreq:  8000,
+  filterRes:   1.0,
+  sizeScatter: 0.0,
+  revProb:     0.0,
   splices:     [],
   // Worklet feedback
   writeIdx:    0,
@@ -3829,6 +3964,7 @@ const S = {
 
 // ─── Audio (own nodes; shared context) ──────────────────────────────────────
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
+let grainFilter = null, dryGain = null, wetGain = null;
 let _waveAnalyserB = null;
 let _captureStream = null;
 
@@ -3915,17 +4051,31 @@ async function initAudio(srcType) {
   reverbDryGain.gain.value = 1 - S.reverbWet;
   reverbWetGain.gain.value = S.reverbWet;
 
+  // Grain filter (lowpass) + dry/wet mix nodes
+  grainFilter = audioCtx.createBiquadFilter();
+  grainFilter.type = 'lowpass';
+  grainFilter.frequency.value = S.filterFreq;
+  grainFilter.Q.value = S.filterRes;
+  dryGain = audioCtx.createGain();
+  wetGain = audioCtx.createGain();
+  dryGain.gain.value = 1 - S.mix;
+  wetGain.gain.value = S.mix;
+
   // Routing
   sourceNode.connect(analyserIn);
   sourceNode.connect(granularNode);
+  sourceNode.connect(dryGain);
   granularNode.connect(analyserOut);
-  granularNode.connect(reverbDryGain);
-  granularNode.connect(convolver);
+  granularNode.connect(grainFilter);
+  grainFilter.connect(reverbDryGain);
+  grainFilter.connect(convolver);
   convolver.connect(reverbWetGain);
   masterGain = audioCtx.createGain();
   masterGain.gain.value = S.isMuted ? 0 : S.volume;
-  reverbDryGain.connect(masterGain);
-  reverbWetGain.connect(masterGain);
+  reverbDryGain.connect(wetGain);
+  reverbWetGain.connect(wetGain);
+  wetGain.connect(masterGain);
+  dryGain.connect(masterGain);
   { const _lim = window.asgGetGranularLimiter?.(); masterGain.connect(_lim || audioCtx.destination); }
   { const _sum = window.asgGetGranularSum?.(); if (_sum) masterGain.connect(_sum); } // feed shared A+B visual/meter
   _waveAnalyserB = audioCtx.createAnalyser(); _waveAnalyserB.fftSize = 2048;
@@ -3956,19 +4106,22 @@ function send(type, value) {
 }
 
 function sendAllParams() {
-  send('density',  S.density);
-  send('grainSz',  S.grainSize);
-  send('position', S.position);
-  send('pitch',    S.pitch);
-  send('spread',   S.spread);
-  send('preserve', S.preserve);
-  send('h1Rate',    S.h1Rate);
-  send('h2Rate',    S.h2Rate);
-  send('pitchDrift',S.pitchDrift);
-  send('headJump',  S.headJump);
-  send('h1Active', S.h1Active);
-  send('h2Active', S.h2Active);
-  send('freeze',   S.isFrozen);
+  send('density',     S.density);
+  send('grainSz',     S.grainSize);
+  send('position',    S.position);
+  send('pitch',       S.pitch);
+  send('spread',      S.spread);
+  send('preserve',    S.preserve);
+  send('h1Rate',      S.h1Rate);
+  send('h2Rate',      S.h2Rate);
+  send('pitchDrift',  S.pitchDrift);
+  send('headJump',    S.headJump);
+  send('h1Active',    S.h1Active);
+  send('h2Active',    S.h2Active);
+  send('freeze',      S.isFrozen);
+  send('envShape',    S.envShape);
+  send('sizeScatter', S.sizeScatter);
+  send('revProb',     S.revProb);
 }
 
 function seekHeads(pos) {
@@ -4011,8 +4164,33 @@ bindSlider('pitchSlider',   'pitchVal',   'pitch',     'pitch',    v => v/100,  
 bindSlider('spreadSlider',   'spreadVal',   'spread',      'spread',      v => v/100, v => v.toFixed(2));
 bindSlider('pitchDriftSlider','pitchDriftVal','pitchDrift','pitchDrift',  v => v/100, v => v.toFixed(2));
 bindSlider('headJumpSlider', 'headJumpVal', 'headJump',  'headJump',    v => v/100, v => v.toFixed(2));
-bindSlider('reverbSlider',  'reverbVal',  'reverbWet', 'reverbWet',v => v/100,   v => v.toFixed(2));
-bindSlider('preserveSlider','preserveVal','preserve',  'preserve', v => v/100,   v => v.toFixed(2));
+bindSlider('reverbSlider',  'reverbVal',  'reverbWet',   'reverbWet',   v => v/100, v => v.toFixed(2));
+bindSlider('preserveSlider','preserveVal','preserve',    'preserve',    v => v/100, v => v.toFixed(2));
+bindSlider('shapeSlider',   'shapeVal',   'envShape',    'envShape',    v => v/100, v => v.toFixed(2));
+bindSlider('sizeSctSlider', 'sizeSctVal', 'sizeScatter', 'sizeScatter', v => v/100, v => v.toFixed(2));
+bindSlider('revProbSlider', 'revProbVal', 'revProb',     'revProb',     v => v/100, v => Math.round(v * 100) + '%');
+
+$$('mixSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.mix = v;
+  $$('mixVal').textContent = v.toFixed(2);
+  if (wetGain) wetGain.gain.value = v;
+  if (dryGain) dryGain.gain.value = 1 - v;
+});
+
+$$('filterFreqSlider').addEventListener('input', e => {
+  const freq = 200 * Math.pow(100, +e.target.value / 100);
+  S.filterFreq = freq;
+  $$('filterFreqVal').textContent = freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : Math.round(freq) + '';
+  if (grainFilter) grainFilter.frequency.value = freq;
+});
+
+$$('filterResSlider').addEventListener('input', e => {
+  const q = 0.5 + +e.target.value / 100 * 4.5;
+  S.filterRes = q;
+  $$('filterResVal').textContent = q.toFixed(1);
+  if (grainFilter) grainFilter.Q.value = q;
+});
 
 $$('volSlider').addEventListener('input', e => {
   const v = +e.target.value / 100;
@@ -4434,12 +4612,17 @@ window._gs2OnGridGenerate = (info = {}) => {
   const sustained = style === 'long' || style === 'bowl';
   // B takes the opposite octave to A so the two layers stack as body + air.
   const goLow = bright > 0.45 || transpose >= 3;
-  _gsSetSlider('pitchSlider', goLow ? 200 : 50);
+  _gsSetSlider('pitchSlider', goLow ? 150 : 75);
   _gsSetSlider('densSlider', staccato ? 30 : sustained ? 62 : 45);
   _gsSetSlider('sizeSlider', staccato ? 360 : sustained ? 180 : 260);
   _gsSetSlider('spreadSlider',     staccato ? 75 : 55);
   _gsSetSlider('pitchDriftSlider', staccato ? 22 : 14);
   _gsSetSlider('reverbSlider', cl(reverb * 100 + 6, 40, 88));
+
+  // Envelope shape, size scatter, filter — mirror A's logic (B takes opposite octave).
+  _gsSetSlider('shapeSlider',      staccato ? 30 : sustained ? 68 : 50);
+  _gsSetSlider('sizeSctSlider',    staccato ? 32 : sustained ? 12 : 20);
+  _gsSetSlider('filterFreqSlider', cl(Math.round(bright * 55 + 30), 30, 85));
 };
 
 // ── Boot ──
@@ -4818,7 +5001,7 @@ const S = {
   wave:    'sine',
   volume:  0.70,
   decay:   0.40,
-  masterVol: 0.80,
+  masterVol: 1.0,
   transpose: 0,
 };
 
@@ -8507,7 +8690,7 @@ function ensureCtx() {
   reverbSendGain.connect(masterGain);
   // Soft limiter to prevent clipping when many voices stack
   limiter = audioCtx.createDynamicsCompressor();
-  limiter.threshold.value = -6;   // start compressing at -6 dBFS
+  limiter.threshold.value = -3;   // start compressing at -3 dBFS
   limiter.knee.value      = 6;    // soft knee
   limiter.ratio.value     = 8;    // strong but musical
   limiter.attack.value    = 0.003;
