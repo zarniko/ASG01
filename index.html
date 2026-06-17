@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=block" rel="stylesheet">
+  
+
+  
   <style>
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,7 +31,6 @@
   --dimmer: rgba(255,255,255,0.18);
   --cell: clamp(16px, calc((100vw - 71px) / 16), 38px);
 }
-
     body {
       background: #000;
       color: #fff;
@@ -40,7 +42,7 @@
       user-select: none;
       -webkit-user-select: none;
     }
-
+    
     /* ── CRT overlays ── */
     #scanlines {
       position: fixed; inset: 0;
@@ -1531,6 +1533,24 @@
 </div>
 
 <script>
+/*╔════════════════════════════════════════════════════════════════╗*/
+/*║                                                                ║*/
+/*║       ##        ######      ######      ######       ##        ║*/
+/*║      ####     ##     ##   ##    ##    ##      ##    ###        ║*/
+/*║     ##  ##    ##          ##          ##      ##     ##        ║*/
+/*║    ##    ##   ##          ##          ##      ##     ##        ║*/
+/*║   ##      ##  ##          ##          ##      ##     ##        ║*/
+/*║   ##      ##   ########   ##  ######  ##      ##     ##        ║*/
+/*║   ##########          ##  ##      ##  ##      ##     ##        ║*/
+/*║   ##      ##          ##  ##      ##  ##      ##     ##        ║*/
+/*║   ##      ##          ##  ##      ##  ##      ##     ##        ║*/
+/*║   ##      ##  ##      ##  ##      ##  ##      ##     ##        ║*/
+/*║   ##      ##   #######      ######      ######    #########    ║*/
+/*║                                                                ║*/
+/*║                    ambient sound generator                     ║*/
+/*║                                                                ║*/
+/*╚════════════════════════════════════════════════════════════════╝*/
+
 // ── §SHARED:nav  _panels · _showPanel · keydown · color-legend ──────────────
 
 const COLORS = ['#FFFFFF','#AAAAAA','#55FFFF','#55FF55','#FFFF55','#FF55FF','#FF5555','#5555FF'];
@@ -8641,13 +8661,16 @@ BM_LFO_PARAMS.forEach(p => bmLfoState[p] = { rate: 0, depth: 0, shape: 'sine' })
 
 // ── ADSR envelope (atk panel) ──
 // a/r mirror the atk/rel sliders (seconds); d (decay, seconds) and s (sustain
-// level 0-1) are only adjustable via the envelope editor. Applies to newly
-// spawned voices, like the other macro params.
-const BM_DFLT_ADSR = { a: 0.8, d: 0.3, s: 0.7, r: 4.0 };
+// level 0-1) are only adjustable via the envelope editor. h (hold, seconds) is
+// a tail-hold: the sustain stays indefinite while a touch is held, but once you
+// lift, the voice holds at the sustain level for h seconds before the release
+// ramp begins. Applies to newly spawned voices, like the other macro params.
+const BM_DFLT_ADSR = { a: 0.8, d: 0.3, s: 0.7, h: 0.4, r: 4.0 };
 const bmAdsr = {
   a: $$('atkSlider').value / 1000,
   d: BM_DFLT_ADSR.d,
   s: BM_DFLT_ADSR.s,
+  h: BM_DFLT_ADSR.h,
   r: $$('relSlider').value / 1000,
 };
 
@@ -8731,8 +8754,11 @@ function getVisualEnv(v) {
     if (elapsed < v.atk + bmAdsr.d) return 1 - ((elapsed - v.atk) / bmAdsr.d) * (1 - bmAdsr.s);
     return bmAdsr.s;
   }
-  if (v.state === 'releasing')
-    return Math.max(0, v.peakEnv * (1 - (now - v.releaseTime) / 1000 / v.rel));
+  if (v.state === 'releasing') {
+    const t = (now - v.releaseTime) / 1000;
+    if (t < v.hold) return v.peakEnv;                 // tail-hold at sustain level
+    return Math.max(0, v.peakEnv * (1 - (t - v.hold) / v.rel));
+  }
   return 0;
 }
 
@@ -8756,6 +8782,7 @@ function spawnVoice(pointerId, x, y) {
   const pan = panFromX(x);
   const atk = $$('atkSlider').value / 1000;
   const rel = $$('relSlider').value / 1000;
+  const hold = bmAdsr.h;
 
   const osc1 = audioCtx.createOscillator();
   const osc2 = audioCtx.createOscillator();
@@ -8830,7 +8857,7 @@ function spawnVoice(pointerId, x, y) {
 
   voices.set(pointerId, {
     osc1, osc2, filter, envGain, panner, reverbGain, shimmerOsc, shimmerGain,
-    x, y, pan, atk, rel, a, b, lfoTargets,
+    x, y, pan, atk, rel, hold, a, b, lfoTargets,
     precomp: precomputePattern(n, m),
     state: 'active',
     spawnTime: performance.now(),
@@ -8864,18 +8891,22 @@ function releaseVoice(pointerId) {
   v.releaseTime = performance.now();
   v.state      = 'releasing';
   const now    = audioCtx.currentTime;
+  const hold   = v.hold || 0;          // tail-hold at sustain before release ramp
+  const relEnd = now + hold + v.rel;
   v.envGain.gain.cancelScheduledValues(now);
   v.envGain.gain.setValueAtTime(v.envGain.gain.value, now);
-  v.envGain.gain.linearRampToValueAtTime(0, now + v.rel);
+  if (hold > 0) v.envGain.gain.setValueAtTime(v.envGain.gain.value, now + hold);
+  v.envGain.gain.linearRampToValueAtTime(0, relEnd);
   v.filter.frequency.cancelScheduledValues(now);
-  v.osc1.stop(now + v.rel + 0.1);
-  v.osc2.stop(now + v.rel + 0.1);
+  v.osc1.stop(relEnd + 0.1);
+  v.osc2.stop(relEnd + 0.1);
   if (v.shimmerGain) {
     v.shimmerGain.gain.cancelScheduledValues(now);
     v.shimmerGain.gain.setValueAtTime(v.shimmerGain.gain.value, now);
-    v.shimmerGain.gain.linearRampToValueAtTime(0, now + v.rel);
+    if (hold > 0) v.shimmerGain.gain.setValueAtTime(v.shimmerGain.gain.value, now + hold);
+    v.shimmerGain.gain.linearRampToValueAtTime(0, relEnd);
   }
-  if (v.shimmerOsc) v.shimmerOsc.stop(now + v.rel + 0.1);
+  if (v.shimmerOsc) v.shimmerOsc.stop(relEnd + 0.1);
 }
 
 function killVoice(pointerId) {
@@ -9604,7 +9635,7 @@ function buildBmAdsrPanel() {
   panel.id = `bm-lfo-panel-${param}`;
   const isMobile = window.matchMedia('(hover: none)').matches;
   const hr   = isMobile ? 11 : 4.5;
-  const CV_H = Math.round(68 * hr / 4.5), T_MAX = 2.0, PAD = 10, HOLD_W = 24;
+  const CV_H = Math.round(68 * hr / 4.5), T_MAX = 2.0, PAD = 10;
   const DH   = CV_H - PAD * 2;
   const hitR = hr + 6;
   const dpr  = window.devicePixelRatio || 1;
@@ -9614,21 +9645,18 @@ function buildBmAdsrPanel() {
   const ATK_MAX = (+$$('atkSlider').max) / 1000;
   const REL_MAX = (+$$('relSlider').max) / 1000;
   const DEC_MAX = 2.0;
+  const HOLD_MAX = 2.0;
 
   function toPoints(dw) {
-    const total  = bmAdsr.a + bmAdsr.d + bmAdsr.r;
-    const usable = Math.max(1, dw - HOLD_W);
-    const sc     = usable / Math.max(T_MAX, total);
-    const py     = PAD + (1 - Math.max(0.01, Math.min(0.99, bmAdsr.s))) * DH;
-    const p1x = PAD + bmAdsr.a * sc;
-    const p2x = p1x + bmAdsr.d * sc;
-    const p3x = p2x + HOLD_W + bmAdsr.r * sc;
+    const total = bmAdsr.a + bmAdsr.d + bmAdsr.h + bmAdsr.r;
+    const sc    = dw / Math.max(T_MAX, total);
+    const py    = PAD + (1 - Math.max(0.01, Math.min(0.99, bmAdsr.s))) * DH;
     return [
-      [PAD,            PAD + DH], // start
-      [p1x,            PAD],      // attack peak
-      [p2x,            py],       // decay -> sustain level
-      [p2x + HOLD_W,   py],       // hold (indefinite, drawn at fixed width)
-      [p3x,            PAD + DH], // release end
+      [PAD,                                          PAD + DH], // start
+      [PAD + bmAdsr.a * sc,                          PAD],      // attack peak
+      [PAD + (bmAdsr.a + bmAdsr.d) * sc,             py],       // decay -> sustain level
+      [PAD + (bmAdsr.a + bmAdsr.d + bmAdsr.h) * sc,  py],       // tail-hold end (after lift)
+      [PAD + total * sc,                             PAD + DH], // release end
     ];
   }
   function draw() {
@@ -9663,9 +9691,9 @@ function buildBmAdsrPanel() {
     ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1;
     ctx.strokeRect(0.5, 0.5, cssW - 1, CV_H - 1);
 
-    // handles — attack peak (1), decay/sustain (2), release end (4)
+    // handles — attack peak (1), decay/sustain (2), tail-hold end (3), release end (4)
     ctx.fillStyle = accent;
-    [1, 2, 4].forEach(i => {
+    [1, 2, 3, 4].forEach(i => {
       ctx.beginPath(); ctx.arc(p[i][0], p[i][1], hr, 0, Math.PI * 2); ctx.fill();
     });
   }
@@ -9679,27 +9707,28 @@ function buildBmAdsrPanel() {
   function hitTest(mx, my) {
     const dw = cv.offsetWidth - PAD * 2;
     const p = toPoints(dw);
-    for (const i of [1, 2, 4]) {
+    for (const i of [1, 2, 3, 4]) {
       if (Math.abs(mx - p[i][0]) <= hitR && Math.abs(my - p[i][1]) <= hitR) return i;
     }
     return null;
   }
   function clp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function applyDrag(idx, mx, my) {
-    const dw     = cv.offsetWidth - PAD * 2;
-    const usable = Math.max(1, dw - HOLD_W);
-    const total  = bmAdsr.a + bmAdsr.d + bmAdsr.r;
-    const sc     = usable / Math.max(T_MAX, total);
-    const MIN_T  = 4 / sc;
+    const dw    = cv.offsetWidth - PAD * 2;
+    const total = bmAdsr.a + bmAdsr.d + bmAdsr.h + bmAdsr.r;
+    const sc    = dw / Math.max(T_MAX, total);
+    const MIN_T = 4 / sc;
+    const t     = (mx - PAD) / sc;
     if (idx === 1) {
-      bmAdsr.a = clp((mx - PAD) / sc, MIN_T, ATK_MAX);
+      bmAdsr.a = clp(t, MIN_T, ATK_MAX);
       bmSetSlider('atkSlider', bmAdsr.a * 1000);
     } else if (idx === 2) {
-      bmAdsr.d = clp((mx - PAD) / sc - bmAdsr.a, MIN_T, DEC_MAX);
+      bmAdsr.d = clp(t - bmAdsr.a, MIN_T, DEC_MAX);
       bmAdsr.s = clp(1 - (my - PAD) / DH, 0.01, 0.99);
+    } else if (idx === 3) {
+      bmAdsr.h = clp(t - bmAdsr.a - bmAdsr.d, MIN_T, HOLD_MAX);
     } else if (idx === 4) {
-      const before = PAD + bmAdsr.a * sc + bmAdsr.d * sc + HOLD_W;
-      bmAdsr.r = clp((mx - before) / sc, MIN_T, REL_MAX);
+      bmAdsr.r = clp(t - bmAdsr.a - bmAdsr.d - bmAdsr.h, MIN_T, REL_MAX);
       bmSetSlider('relSlider', bmAdsr.r * 1000);
     }
     draw();
@@ -9721,6 +9750,7 @@ function buildBmAdsrPanel() {
   panel.querySelector('[data-reset="atk"]').addEventListener('click', () => {
     bmAdsr.d = BM_DFLT_ADSR.d;
     bmAdsr.s = BM_DFLT_ADSR.s;
+    bmAdsr.h = BM_DFLT_ADSR.h;
     bmSetSlider('atkSlider', BM_DFLT_ADSR.a * 1000);
     bmSetSlider('relSlider', BM_DFLT_ADSR.r * 1000);
     draw();
