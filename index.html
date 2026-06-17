@@ -718,7 +718,7 @@
 
 <!-- control a accordion -->
  <div class="gs-acc open" id="gs-accCtrlA" style="margin-top: 8px;">
-  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> control A</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+A)</span></button>
+  <button class="gs-acc-head" id="gs-accHeadCtrlA"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> control A</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(⌃+A)</span></button>
   <div class="gs-acc-body">
 
   <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
@@ -834,6 +834,56 @@
   </div><!-- /control a body -->
   </div><!-- /control a acc -->
 
+  <!-- ── §GS01 Delay A accordion (multi-tap diffusion) ── -->
+  <div class="gs-acc" id="gs-accDelayA" style="margin-top: 8px;">
+  <button class="gs-acc-head" id="gs-accHeadDelayA"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> delay A</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+A)</span></button>
+  <div class="gs-acc-body">
+  <div class="gs-controls" style="width:100%;padding-top:16px;">
+    <div class="ctrl-grid">
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Delay mix — dry/wet level of the multi-tap diffusion delay. 0 = off (bypassed)">
+          <span class="ctrl-key">dly</span>
+          <input type="range" id="gs-dlyMixSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs-dlyMixVal">0.00</span>
+        </div>
+        <div class="ctrl-row slider" title="Delay time — base delay of the first tap; later taps spread to wider golden-ratio spacings. Scales the whole pattern in time">
+          <span class="ctrl-key">time</span>
+          <input type="range" id="gs-dlyTimeSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs-dlyTimeVal">330ms</span>
+        </div>
+        <div class="ctrl-row slider" title="Density — how many taps stay audible. Low = a couple of echoes; high = a dense, diffuse cloud">
+          <span class="ctrl-key">taps</span>
+          <input type="range" id="gs-dlyDensSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs-dlyDensVal">0.50</span>
+        </div>
+        <div class="ctrl-row slider" title="Probability — chance that new material is let into the delay. 100% = continuous; lower values make echoes appear intermittently, by chance">
+          <span class="ctrl-key">prob</span>
+          <input type="range" id="gs-dlyProbSlider" min="0" max="100" value="100" step="1">
+          <span class="ctrl-val" id="gs-dlyProbVal">always</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Feedback — sum of all taps fed back into the delay. Higher = longer, building tails">
+          <span class="ctrl-key">fbk</span>
+          <input type="range" id="gs-dlyFbSlider" min="0" max="100" value="35" step="1">
+          <span class="ctrl-val" id="gs-dlyFbVal">0.35</span>
+        </div>
+        <div class="ctrl-row slider" title="Modulation — wow/flutter depth. Slow random pitch wobble on each tap for organic, tape-like motion">
+          <span class="ctrl-key">mod</span>
+          <input type="range" id="gs-dlyModSlider" min="0" max="100" value="20" step="1">
+          <span class="ctrl-val" id="gs-dlyModVal">0.20</span>
+        </div>
+        <div class="ctrl-row slider" title="Tone — low-pass cutoff on the delay's wet and feedback path. Lower = darker, warmer echoes">
+          <span class="ctrl-key">tone</span>
+          <input type="range" id="gs-dlyToneSlider" min="0" max="100" value="76" step="1">
+          <span class="ctrl-val" id="gs-dlyToneVal">5.0k</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /delay a body -->
+  </div><!-- /delay a acc -->
+
   </div><!-- /gs-acc-body A -->
   </div><!-- /gs-acc A -->
 
@@ -901,7 +951,7 @@
 
   <!-- control b accordion -->
   <div class="gs-acc open" id="gs2-accCtrlB" style="margin-top: 8px;">
-  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> control B</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+B)</span></button>
+  <button class="gs-acc-head" id="gs2-accHeadCtrlB"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> control B</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(⌃+B)</span></button>
   <div class="gs-acc-body">
 
   <!-- controls (moved out of the old 'controls' tab into the accordion body) -->
@@ -1016,6 +1066,56 @@
 
   </div><!-- /control b body -->
   </div><!-- /control b acc -->
+
+  <!-- ── §GS01 Delay B accordion (multi-tap diffusion) ── -->
+  <div class="gs-acc" id="gs2-accDelayB" style="margin-top: 8px;">
+  <button class="gs-acc-head" id="gs2-accHeadDelayB"><span class="gs-acc-label"><span class="gs-acc-chev">▾</span> delay B</span><span class="tab-key" style="color:rgba(255,255,255,0.35); font-size: inherit; letter-spacing: inherit;">(↑+B)</span></button>
+  <div class="gs-acc-body">
+  <div class="gs-controls" style="width:100%;padding-top:16px;">
+    <div class="ctrl-grid">
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Delay mix — dry/wet level of the multi-tap diffusion delay. 0 = off (bypassed)">
+          <span class="ctrl-key">dly</span>
+          <input type="range" id="gs2-dlyMixSlider" min="0" max="100" value="0" step="1">
+          <span class="ctrl-val" id="gs2-dlyMixVal">0.00</span>
+        </div>
+        <div class="ctrl-row slider" title="Delay time — base delay of the first tap; later taps spread to wider golden-ratio spacings. Scales the whole pattern in time">
+          <span class="ctrl-key">time</span>
+          <input type="range" id="gs2-dlyTimeSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs2-dlyTimeVal">330ms</span>
+        </div>
+        <div class="ctrl-row slider" title="Density — how many taps stay audible. Low = a couple of echoes; high = a dense, diffuse cloud">
+          <span class="ctrl-key">taps</span>
+          <input type="range" id="gs2-dlyDensSlider" min="0" max="100" value="50" step="1">
+          <span class="ctrl-val" id="gs2-dlyDensVal">0.50</span>
+        </div>
+        <div class="ctrl-row slider" title="Probability — chance that new material is let into the delay. 100% = continuous; lower values make echoes appear intermittently, by chance">
+          <span class="ctrl-key">prob</span>
+          <input type="range" id="gs2-dlyProbSlider" min="0" max="100" value="100" step="1">
+          <span class="ctrl-val" id="gs2-dlyProbVal">always</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-row slider" title="Feedback — sum of all taps fed back into the delay. Higher = longer, building tails">
+          <span class="ctrl-key">fbk</span>
+          <input type="range" id="gs2-dlyFbSlider" min="0" max="100" value="35" step="1">
+          <span class="ctrl-val" id="gs2-dlyFbVal">0.35</span>
+        </div>
+        <div class="ctrl-row slider" title="Modulation — wow/flutter depth. Slow random pitch wobble on each tap for organic, tape-like motion">
+          <span class="ctrl-key">mod</span>
+          <input type="range" id="gs2-dlyModSlider" min="0" max="100" value="20" step="1">
+          <span class="ctrl-val" id="gs2-dlyModVal">0.20</span>
+        </div>
+        <div class="ctrl-row slider" title="Tone — low-pass cutoff on the delay's wet and feedback path. Lower = darker, warmer echoes">
+          <span class="ctrl-key">tone</span>
+          <input type="range" id="gs2-dlyToneSlider" min="0" max="100" value="76" step="1">
+          <span class="ctrl-val" id="gs2-dlyToneVal">5.0k</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /delay b body -->
+  </div><!-- /delay b acc -->
 
   </div><!-- /gs-acc-body B -->
   </div><!-- /gs-acc B -->
@@ -2551,6 +2651,13 @@ const S = {
   mix:         1.0,
   filterFreq:  8000,
   filterRes:   1.0,
+  dlyMix:      0,
+  dlyTime:     0.33,
+  dlyDens:     0.5,
+  dlyFb:       0.35,
+  dlyMod:      0.2,
+  dlyTone:     5000,
+  dlyProb:     1.0,
   sizeScatter: 0.0,
   revProb:     0.0,
   splices:     [],
@@ -2567,6 +2674,7 @@ const S = {
 // ─── Audio ─────────────────────────────────────────────────────────────────────
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
 let grainFilter = null, dryGain = null, wetGain = null;
+let gsDelay = null;
 let _waveAnalyserA = null;
 let _captureStream = null; // holds full getDisplayMedia stream so we can stop it later
 
@@ -2727,6 +2835,8 @@ async function initAudio(srcType) {
   convolver.connect(reverbWetGain);
   masterGain = audioCtx.createGain();
   masterGain.gain.value = S.isMuted ? 0 : S.volume;
+  if (gsDelay) { try { clearTimeout(gsDelay.probTimer); gsDelay.lfos.forEach(o => o.stop()); gsDelay.input.disconnect(); gsDelay.tone.disconnect(); } catch (_) {} }
+  gsDelay = buildGsDelay(grainFilter, masterGain);
   reverbDryGain.connect(wetGain);
   reverbWetGain.connect(wetGain);
   wetGain.connect(masterGain);
@@ -2739,6 +2849,58 @@ async function initAudio(srcType) {
   S.isRecording = true;
   updateRecBtn();
   sendAllParams();
+}
+
+// Multi-tap diffusion delay (Tapographic-inspired): N taps at golden-ratio
+// spacings, each panned + gain-decayed, with a slow per-tap LFO for wow/flutter.
+// Tone-filtered wet + feedback path. Silent until dly mix is raised.
+function buildGsDelay(srcNode, destNode) {
+  const ctx = audioCtx;
+  const ratios = [1, 1.62, 2.24, 3.0, 4.0];
+  const N = ratios.length;
+  const input = ctx.createGain();
+  const feed  = ctx.createGain();   // probability gate on incoming material
+  const sum   = ctx.createGain();
+  const tone  = ctx.createBiquadFilter();
+  tone.type = 'lowpass'; tone.Q.value = 0.7; tone.frequency.value = S.dlyTone;
+  const wet = ctx.createGain(); wet.gain.value = S.dlyMix;
+  const fb  = ctx.createGain(); fb.gain.value  = S.dlyFb * 0.85;
+  const delays = [], gains = [], pans = [], lfos = [], lfoDepths = [];
+  const decay = 0.3 + S.dlyDens * 0.62;
+  const modDepth = S.dlyMod * 0.012;
+  for (let i = 0; i < N; i++) {
+    const d = ctx.createDelay(5);
+    d.delayTime.value = S.dlyTime * ratios[i];
+    const g = ctx.createGain();
+    g.gain.value = Math.pow(decay, i) * 0.6;
+    const p = ctx.createStereoPanner();
+    p.pan.value = ((i / (N - 1)) * 2 - 1) * 0.8;
+    input.connect(d); d.connect(g); g.connect(p); p.connect(sum);
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.08 * (1 + i * 0.37);
+    const ld = ctx.createGain();
+    ld.gain.value = modDepth * (0.7 + 0.15 * i);
+    lfo.connect(ld); ld.connect(d.delayTime); lfo.start();
+    delays.push(d); gains.push(g); pans.push(p); lfos.push(lfo); lfoDepths.push(ld);
+  }
+  sum.connect(tone);
+  tone.connect(wet); wet.connect(destNode);
+  tone.connect(fb);  fb.connect(input);        // feedback re-enters ungated — tails keep ringing
+  srcNode.connect(feed); feed.connect(input);  // new material passes through the probability gate
+  // Probability gate — every ~0.4–0.8s, roll dlyProb to decide whether new
+  // material is let into the delay. At 1.0 the gate stays open (no effect);
+  // lower values make echoes appear intermittently, "by chance". Smooth ramps
+  // so it swells in/out rather than chopping.
+  const unit = { input, feed, sum, tone, wet, fb, delays, gains, pans, lfos, lfoDepths, ratios, N, probTimer: null };
+  (function rollGate() {
+    unit.probTimer = setTimeout(() => {
+      const open = Math.random() < S.dlyProb;
+      feed.gain.setTargetAtTime(open ? 1 : 0, ctx.currentTime, 0.12);
+      rollGate();
+    }, 400 + Math.random() * 400);
+  })();
+  return unit;
 }
 
 function buildReverb(ctx) {
@@ -2845,6 +3007,52 @@ $$('filterResSlider').addEventListener('input', e => {
   S.filterRes = q;
   $$('filterResVal').textContent = q.toFixed(1);
   if (grainFilter) grainFilter.Q.value = q;
+});
+
+// ── Multi-tap diffusion delay ──
+$$('dlyMixSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyMix = v;
+  $$('dlyMixVal').textContent = v.toFixed(2);
+  if (gsDelay) gsDelay.wet.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
+});
+$$('dlyTimeSlider').addEventListener('input', e => {
+  const base = (60 + +e.target.value / 100 * 540) / 1000;
+  S.dlyTime = base;
+  $$('dlyTimeVal').textContent = Math.round(base * 1000) + 'ms';
+  if (gsDelay) gsDelay.delays.forEach((d, i) =>
+    d.delayTime.setTargetAtTime(base * gsDelay.ratios[i], audioCtx.currentTime, 0.05));
+});
+$$('dlyDensSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyDens = v;
+  $$('dlyDensVal').textContent = v.toFixed(2);
+  const decay = 0.3 + v * 0.62;
+  if (gsDelay) gsDelay.gains.forEach((g, i) => g.gain.setTargetAtTime(Math.pow(decay, i) * 0.6, audioCtx.currentTime, 0.02));
+});
+$$('dlyProbSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyProb = v;
+  $$('dlyProbVal').textContent = v >= 1 ? 'always' : Math.round(v * 100) + '%';
+});
+$$('dlyFbSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyFb = v;
+  $$('dlyFbVal').textContent = v.toFixed(2);
+  if (gsDelay) gsDelay.fb.gain.setTargetAtTime(v * 0.85, audioCtx.currentTime, 0.02);
+});
+$$('dlyModSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyMod = v;
+  $$('dlyModVal').textContent = v.toFixed(2);
+  const depth = v * 0.012;
+  if (gsDelay) gsDelay.lfoDepths.forEach((ld, i) => ld.gain.setTargetAtTime(depth * (0.7 + 0.15 * i), audioCtx.currentTime, 0.02));
+});
+$$('dlyToneSlider').addEventListener('input', e => {
+  const freq = 300 * Math.pow(40, +e.target.value / 100);
+  S.dlyTone = freq;
+  $$('dlyToneVal').textContent = freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : Math.round(freq) + '';
+  if (gsDelay) gsDelay.tone.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.02);
 });
 
 $$('volSlider').addEventListener('input', e => {
@@ -3267,8 +3475,8 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('gs-panel').style.display === 'none') return;
   if (e.code === 'Space') { e.preventDefault(); $$('freezeBtn').click(); }
   if (e.code === 'KeyH')  { helpVisible ? hideHelp() : showHelp(); }
-  if (e.code === 'KeyA')  { document.getElementById(e.shiftKey ? 'gs-accCtrlA' : 'gs-accA')?.classList.toggle('open'); kbRebuildItems(); }
-  if (e.code === 'KeyB')  { document.getElementById(e.shiftKey ? 'gs2-accCtrlB' : 'gs2-accB')?.classList.toggle('open'); kbRebuildItems(); }
+  if (e.code === 'KeyA')  { if (e.ctrlKey) e.preventDefault(); document.getElementById(e.shiftKey ? 'gs-accDelayA' : e.ctrlKey ? 'gs-accCtrlA' : 'gs-accA')?.classList.toggle('open'); kbRebuildItems(); }
+  if (e.code === 'KeyB')  { if (e.ctrlKey) e.preventDefault(); document.getElementById(e.shiftKey ? 'gs2-accDelayB' : e.ctrlKey ? 'gs2-accCtrlB' : 'gs2-accB')?.classList.toggle('open'); kbRebuildItems(); }
 });
 
 // ─── Help overlay ───────────────────────────────────────────────────────────────
@@ -3288,8 +3496,10 @@ const HELP_ROWS = [
   ['row',  'ESC',             'close this help'],
   ['row',  'A',               'toggle synthesis a accordion'],
   ['row',  'B',               'toggle synthesis b accordion'],
-  ['row',  'shift+A',         'toggle control a accordion'],
-  ['row',  'shift+B',         'toggle control b accordion'],
+  ['row',  'ctrl+A',          'toggle control a accordion'],
+  ['row',  'ctrl+B',          'toggle control b accordion'],
+  ['row',  'shift+A',         'toggle delay a accordion'],
+  ['row',  'shift+B',         'toggle delay b accordion'],
   ['gap'],
   ['head', 'WAVEFORM', ''],
   ['row',  'shift + click',   'add splice marker'],
@@ -3701,6 +3911,25 @@ window.asgOnGridGenerateGranular = (info = {}) => {
   // Filter — track grid brightness so granular layer stays tonally cohesive.
   _gsSetSlider('filterFreqSlider', cl(Math.round(bright * 55 + 30), 30, 85));
 
+  // Delay — used sparingly: only ~1 in 4 generations engage it, and gently.
+  // The decision is shared with synthesis B (via info) so a song is coherently
+  // delayed or dry across both clouds. Every other generation is left fully dry.
+  // When it does engage, mix/feedback/density stay low and the probability gate
+  // (dlyProb < 100%) thins echoes out so busy passages don't get cluttered.
+  const useDelay = Math.random() < 0.25;
+  info._gsUseDelay = useDelay;
+  if (useDelay) {
+    _gsSetSlider('dlyMixSlider',  13 + Math.random() * 12);            // ~0.13–0.25, gentle
+    _gsSetSlider('dlyTimeSlider', staccato ? 38 : sustained ? 66 : 52);
+    _gsSetSlider('dlyFbSlider',   staccato ? 18 : 30);
+    _gsSetSlider('dlyDensSlider', sustained ? 46 : 32);
+    _gsSetSlider('dlyModSlider',  24);
+    _gsSetSlider('dlyToneSlider', cl(Math.round(bright * 40 + 45), 45, 85));
+    _gsSetSlider('dlyProbSlider', staccato ? 45 : sustained ? 62 : 55); // sparse, by chance
+  } else {
+    _gsSetSlider('dlyMixSlider', 0);  // keep most songs delay-free
+  }
+
   window._gs2OnGridGenerate?.(info); // synthesis B re-voices too
 };
 
@@ -3969,6 +4198,13 @@ const S = {
   mix:         1.0,
   filterFreq:  8000,
   filterRes:   1.0,
+  dlyMix:      0,
+  dlyTime:     0.33,
+  dlyDens:     0.5,
+  dlyFb:       0.35,
+  dlyMod:      0.2,
+  dlyTone:     5000,
+  dlyProb:     1.0,
   sizeScatter: 0.0,
   revProb:     0.0,
   splices:     [],
@@ -3985,6 +4221,7 @@ const S = {
 // ─── Audio (own nodes; shared context) ──────────────────────────────────────
 let audioCtx, granularNode, analyserOut, analyserIn, reverbWetGain, reverbDryGain, masterGain, sourceNode;
 let grainFilter = null, dryGain = null, wetGain = null;
+let gsDelay = null;
 let _waveAnalyserB = null;
 let _captureStream = null;
 
@@ -4092,6 +4329,8 @@ async function initAudio(srcType) {
   convolver.connect(reverbWetGain);
   masterGain = audioCtx.createGain();
   masterGain.gain.value = S.isMuted ? 0 : S.volume;
+  if (gsDelay) { try { clearTimeout(gsDelay.probTimer); gsDelay.lfos.forEach(o => o.stop()); gsDelay.input.disconnect(); gsDelay.tone.disconnect(); } catch (_) {} }
+  gsDelay = buildGsDelay(grainFilter, masterGain);
   reverbDryGain.connect(wetGain);
   reverbWetGain.connect(wetGain);
   wetGain.connect(masterGain);
@@ -4104,6 +4343,58 @@ async function initAudio(srcType) {
   S.isRecording = true;
   updateRecBtn();
   sendAllParams();
+}
+
+// Multi-tap diffusion delay (Tapographic-inspired): N taps at golden-ratio
+// spacings, each panned + gain-decayed, with a slow per-tap LFO for wow/flutter.
+// Tone-filtered wet + feedback path. Silent until dly mix is raised.
+function buildGsDelay(srcNode, destNode) {
+  const ctx = audioCtx;
+  const ratios = [1, 1.62, 2.24, 3.0, 4.0];
+  const N = ratios.length;
+  const input = ctx.createGain();
+  const feed  = ctx.createGain();   // probability gate on incoming material
+  const sum   = ctx.createGain();
+  const tone  = ctx.createBiquadFilter();
+  tone.type = 'lowpass'; tone.Q.value = 0.7; tone.frequency.value = S.dlyTone;
+  const wet = ctx.createGain(); wet.gain.value = S.dlyMix;
+  const fb  = ctx.createGain(); fb.gain.value  = S.dlyFb * 0.85;
+  const delays = [], gains = [], pans = [], lfos = [], lfoDepths = [];
+  const decay = 0.3 + S.dlyDens * 0.62;
+  const modDepth = S.dlyMod * 0.012;
+  for (let i = 0; i < N; i++) {
+    const d = ctx.createDelay(5);
+    d.delayTime.value = S.dlyTime * ratios[i];
+    const g = ctx.createGain();
+    g.gain.value = Math.pow(decay, i) * 0.6;
+    const p = ctx.createStereoPanner();
+    p.pan.value = ((i / (N - 1)) * 2 - 1) * 0.8;
+    input.connect(d); d.connect(g); g.connect(p); p.connect(sum);
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.08 * (1 + i * 0.37);
+    const ld = ctx.createGain();
+    ld.gain.value = modDepth * (0.7 + 0.15 * i);
+    lfo.connect(ld); ld.connect(d.delayTime); lfo.start();
+    delays.push(d); gains.push(g); pans.push(p); lfos.push(lfo); lfoDepths.push(ld);
+  }
+  sum.connect(tone);
+  tone.connect(wet); wet.connect(destNode);
+  tone.connect(fb);  fb.connect(input);        // feedback re-enters ungated — tails keep ringing
+  srcNode.connect(feed); feed.connect(input);  // new material passes through the probability gate
+  // Probability gate — every ~0.4–0.8s, roll dlyProb to decide whether new
+  // material is let into the delay. At 1.0 the gate stays open (no effect);
+  // lower values make echoes appear intermittently, "by chance". Smooth ramps
+  // so it swells in/out rather than chopping.
+  const unit = { input, feed, sum, tone, wet, fb, delays, gains, pans, lfos, lfoDepths, ratios, N, probTimer: null };
+  (function rollGate() {
+    unit.probTimer = setTimeout(() => {
+      const open = Math.random() < S.dlyProb;
+      feed.gain.setTargetAtTime(open ? 1 : 0, ctx.currentTime, 0.12);
+      rollGate();
+    }, 400 + Math.random() * 400);
+  })();
+  return unit;
 }
 
 function buildReverb(ctx) {
@@ -4210,6 +4501,52 @@ $$('filterResSlider').addEventListener('input', e => {
   S.filterRes = q;
   $$('filterResVal').textContent = q.toFixed(1);
   if (grainFilter) grainFilter.Q.value = q;
+});
+
+// ── Multi-tap diffusion delay ──
+$$('dlyMixSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyMix = v;
+  $$('dlyMixVal').textContent = v.toFixed(2);
+  if (gsDelay) gsDelay.wet.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
+});
+$$('dlyTimeSlider').addEventListener('input', e => {
+  const base = (60 + +e.target.value / 100 * 540) / 1000;
+  S.dlyTime = base;
+  $$('dlyTimeVal').textContent = Math.round(base * 1000) + 'ms';
+  if (gsDelay) gsDelay.delays.forEach((d, i) =>
+    d.delayTime.setTargetAtTime(base * gsDelay.ratios[i], audioCtx.currentTime, 0.05));
+});
+$$('dlyDensSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyDens = v;
+  $$('dlyDensVal').textContent = v.toFixed(2);
+  const decay = 0.3 + v * 0.62;
+  if (gsDelay) gsDelay.gains.forEach((g, i) => g.gain.setTargetAtTime(Math.pow(decay, i) * 0.6, audioCtx.currentTime, 0.02));
+});
+$$('dlyProbSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyProb = v;
+  $$('dlyProbVal').textContent = v >= 1 ? 'always' : Math.round(v * 100) + '%';
+});
+$$('dlyFbSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyFb = v;
+  $$('dlyFbVal').textContent = v.toFixed(2);
+  if (gsDelay) gsDelay.fb.gain.setTargetAtTime(v * 0.85, audioCtx.currentTime, 0.02);
+});
+$$('dlyModSlider').addEventListener('input', e => {
+  const v = +e.target.value / 100;
+  S.dlyMod = v;
+  $$('dlyModVal').textContent = v.toFixed(2);
+  const depth = v * 0.012;
+  if (gsDelay) gsDelay.lfoDepths.forEach((ld, i) => ld.gain.setTargetAtTime(depth * (0.7 + 0.15 * i), audioCtx.currentTime, 0.02));
+});
+$$('dlyToneSlider').addEventListener('input', e => {
+  const freq = 300 * Math.pow(40, +e.target.value / 100);
+  S.dlyTone = freq;
+  $$('dlyToneVal').textContent = freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : Math.round(freq) + '';
+  if (gsDelay) gsDelay.tone.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.02);
 });
 
 $$('volSlider').addEventListener('input', e => {
@@ -4643,6 +4980,21 @@ window._gs2OnGridGenerate = (info = {}) => {
   _gsSetSlider('shapeSlider',      staccato ? 30 : sustained ? 68 : 50);
   _gsSetSlider('sizeSctSlider',    staccato ? 32 : sustained ? 12 : 20);
   _gsSetSlider('filterFreqSlider', cl(Math.round(bright * 55 + 30), 30, 85));
+
+  // Delay — follow A's shared decision so the song is coherently delayed or dry.
+  // Slightly different time/tone than A for stereo depth when it does engage.
+  const useDelay = info._gsUseDelay ?? (Math.random() < 0.25);
+  if (useDelay) {
+    _gsSetSlider('dlyMixSlider',  11 + Math.random() * 11);            // ~0.11–0.22, gentle
+    _gsSetSlider('dlyTimeSlider', staccato ? 44 : sustained ? 72 : 58);
+    _gsSetSlider('dlyFbSlider',   staccato ? 16 : 26);
+    _gsSetSlider('dlyDensSlider', sustained ? 42 : 30);
+    _gsSetSlider('dlyModSlider',  28);
+    _gsSetSlider('dlyToneSlider', cl(Math.round(bright * 40 + 42), 42, 82));
+    _gsSetSlider('dlyProbSlider', staccato ? 40 : sustained ? 58 : 50);
+  } else {
+    _gsSetSlider('dlyMixSlider', 0);
+  }
 };
 
 // ── Boot ──
