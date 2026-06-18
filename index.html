@@ -85,6 +85,10 @@
       transition: color .1s;
     }
     .app-toggle-btn.active { color: #fff; text-shadow: 0 0 8px #fff, 0 0 18px #fff; }
+    @keyframes _perf-spin { to { transform: rotate(360deg); } }
+    @keyframes _perf-pulse { 0%,100% { opacity: 1; text-shadow: 0 0 8px #fff, 0 0 18px #fff; } 50% { opacity: 0.45; text-shadow: 0 0 4px #fff; } }
+    #app-play-btn { display: inline-block; line-height: 1; text-decoration: none; outline: none; }
+    #app-play-btn.active { animation: _perf-pulse 2s ease-in-out infinite; }
     .app-toggle-btn:hover:not(.active) { color: rgba(255,255,255,0.65); }
     .app-toggle-sep { color: rgba(255,255,255,0.18); }
     .tab-key { font-size: 10px; letter-spacing: 1px; color: rgba(255,255,255,0.22); margin-left: 4px; }
@@ -506,7 +510,7 @@
     .page-btn { background: none; border: none; font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; line-height: 1; color: rgba(255,255,255,0.25); cursor: pointer; padding: 0; vertical-align: middle; transition: color .1s, text-shadow .1s; }
     .page-btn:hover { color: rgba(255,255,255,0.6); }
     .page-btn.active { color: var(--accent); text-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); }
-    .page-sep { color: var(--dim); letter-spacing: 0; margin: 0 2px; }
+    .page-sep { color: var(--dimmer); letter-spacing: 0; margin: 0 2px; }
     .copy-btn { background: none; border: none; font-family: 'Share Tech Mono', monospace; font-size: 14px; letter-spacing: 2px; line-height: 1; color: rgba(255,255,255,0.25); cursor: pointer; padding: 0; vertical-align: middle; transition: color .1s, text-shadow .1s; }
     .copy-btn:hover { color: rgba(255,255,255,0.6); }
     .copy-btn.has-copy { color: var(--accent); text-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); }
@@ -641,7 +645,9 @@
     <button class="app-toggle-btn" id="toggleBm">bloom<span class="tab-key">(E)</span></button>
   </div>
   <div class="atb-right">
-    <button id="app-midi-btn" class="app-toggle-btn">midi</button>
+    <button id="app-play-btn" class="app-toggle-btn">▲</button>
+    <span class="app-toggle-sep" style="margin-left:10px;">|</span>
+    <button id="app-midi-btn" class="app-toggle-btn" style="margin-left:10px;">midi</button>
     <span class="app-toggle-sep" style="margin-left:10px;">|</span>
     <div id="app-legend"></div>
     <span class="app-toggle-sep" style="margin-left:10px;">|</span>
@@ -693,7 +699,7 @@
         <span class="splice-label">splice</span>
         <button class="btn-action" id="gs-clearSplicesBtn" style="letter-spacing:2px" title="Clear splices — removes all splice markers from the waveform">clear</button>
         <div id="gs-spliceList"><span class="splice-empty"></span></div>
-        <span class="splice-label">|</span>
+        <span class="splice-label" style="color:var(--dimmer);">|</span>
         <span style="display:flex; align-items:center; gap:4px;">
           <span class="splice-label">bpm</span>
           <button class="btn-action" id="gs-bpmDens" style="margin-left:4px;" title="Density sync — links grain spawn rate to the global BPM for rhythmic pulsing">density</button>
@@ -708,7 +714,7 @@
         <span style="white-space:nowrap;letter-spacing:2px;">
           <span style="color:rgba(255,255,255,0.35);font-size:11px;letter-spacing:2px;">display options:</span>
           <button class="btn-action" id="gs-waveViewGrain" style="font-size:11px;">grain</button>
-          <span class="splice-label"> | </span>
+          <span class="splice-label" style="color:var(--dimmer);"> | </span>
           <button class="btn-action active" id="gs-waveViewInput" style="font-size:11px;">input</button>
         </span>
       </div>
@@ -926,7 +932,7 @@
         <span class="splice-label">splice</span>
         <button class="btn-action" id="gs2-clearSplicesBtn" style="letter-spacing:2px" title="Clear splices — removes all splice markers from the waveform">clear</button>
         <div id="gs2-spliceList"><span class="splice-empty"></span></div>
-        <span class="splice-label">|</span>
+        <span class="splice-label" style="color:var(--dimmer);">|</span>
         <span style="display:flex; align-items:center; gap:4px;">
           <span class="splice-label">bpm</span>
           <button class="btn-action" id="gs2-bpmDens" style="margin-left:4px;" title="Density sync — links grain spawn rate to the global BPM for rhythmic pulsing">density</button>
@@ -941,7 +947,7 @@
         <span style="white-space:nowrap;letter-spacing:2px;">
           <span style="color:rgba(255,255,255,0.35);font-size:11px;letter-spacing:2px;">display options:</span>
           <button class="btn-action" id="gs2-waveViewGrain" style="font-size:11px;">grain</button>
-          <span class="splice-label"> | </span>
+          <span class="splice-label" style="color:var(--dimmer);"> | </span>
           <button class="btn-action active" id="gs2-waveViewInput" style="font-size:11px;">input</button>
         </span>
       </div>
@@ -1203,7 +1209,7 @@
       <input type="range" id="ig-bpmSlider" min="40" max="240" value="120" step="1">
       <span class="s-brk" id="ig-bpmInc">►</span>
       <span class="ctrl-val" id="ig-bpmVal">120</span>
-      <button class="btn-play" id="ig-playBtn" tabindex="-1">play</button>
+      <button class="btn-play" id="ig-playBtn" tabindex="-1">start</button>
     </div>
   </div>
 
@@ -1497,7 +1503,7 @@
     <div class="bm-left">
       <div class="bm-overlay-left">
         <button class="btn-action" id="bm-bpmSync" title="BPM sync — locks Chladni resonance frequency to a harmonic of the current grid BPM">bpm sync</button>
-        <span style="color:var(--dim);">|</span>
+        <span style="color:var(--dimmer);">|</span>
         <span style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
         <button class="btn-action active" id="bm-scaleLink" style="letter-spacing:0;" title="Scale link — when active ●, bloom uses the same scale as the grid. Toggle off ○ for an independent bloom scale">●</button>
         <span class="ctrl-key" style="width:auto;">scale</span>
@@ -1539,19 +1545,17 @@
             <option value="comb_diminished">comb. dim.</option>
         </select>
         </span>
-        <span style="color:var(--dim);">|</span>
-        <span id="bm-pattern-num">00</span>
       </div>
       <div class="bm-overlay-right">
         <button class="btn-action" id="bm-holdBtn" title="Hold — sustains all current voices after touches are lifted. New touches add to the held cluster">hold</button>
         <span id="bm-voiceCount" style="color:var(--dim); letter-spacing:1px;">0/24</span>
-        <span style="color:var(--dim);">|</span>
+        <span style="color:var(--dimmer);">|</span>
         <button class="btn-action" id="bm-recBtn" title="Record — captures your touch gesture for later replay">rec</button>
         <span style="color:var(--dim);">-</span>
         <button class="btn-action" id="bm-playBtn" disabled title="Replay — plays back the last recorded touch gesture">replay</button>
-        <span style="color:var(--dim);">|</span>
+        <span style="color:var(--dimmer);">|</span>
         <button class="btn-action" id="bm-refreshBtn" title="Clear — kills all active voices and stops replay. Use this if voices get stuck">clear</button>
-        <span style="color:var(--dim);">|</span>
+        <span style="color:var(--dimmer);">|</span>
         <button class="btn-action" id="bm-autoBtn" title="Auto — automatically cycles through Chladni patterns at a slow interval">auto</button>
         <span id="bm-autoModes" style="display:inline-flex;gap:8px;align-items:center;margin-left:2px;">
           <button class="btn-action active" id="bm-autoModeA" title="Auto mode A — halo: airy mid-register single tones (default)">A</button>
@@ -1972,6 +1976,39 @@ document.getElementById('app-help-btn').addEventListener('click', () => {
   if (active?.panel === 'gs-panel') window._gsShowHelp?.();
   else if (active?.panel === 'ig-panel') window._igShowHelp?.();
   else if (active?.panel === 'bm-panel') window._bmShowHelp?.();
+});
+
+// ─── App play button (▷) — master start/stop ────────────────────────────────
+let _perfActive = false;
+document.getElementById('app-play-btn').addEventListener('click', async () => {
+  _perfActive = !_perfActive;
+  document.getElementById('app-play-btn').classList.toggle('active', _perfActive);
+  if (_perfActive) {
+    document.getElementById('ig-randRefresh').dispatchEvent(
+      new MouseEvent('click', { bubbles: true, shiftKey: true })
+    );
+    await new Promise(r => setTimeout(r, 80));
+    const autoBtn = document.getElementById('ig-auto-btn');
+    if (autoBtn && !autoBtn.classList.contains('has-copy')) autoBtn.click();
+    await new Promise(r => setTimeout(r, 150));
+    const gsRecBtn = document.getElementById('gs-recBtn');
+    if (gsRecBtn && !gsRecBtn.classList.contains('active')) gsRecBtn.click();
+    const gs2RecBtn = document.getElementById('gs2-recBtn');
+    if (gs2RecBtn && !gs2RecBtn.classList.contains('active')) gs2RecBtn.click();
+    const bmAutoBtn = document.getElementById('bm-autoBtn');
+    if (bmAutoBtn && !bmAutoBtn.classList.contains('active')) bmAutoBtn.click();
+  } else {
+    const bmAutoBtn = document.getElementById('bm-autoBtn');
+    if (bmAutoBtn && bmAutoBtn.classList.contains('active')) bmAutoBtn.click();
+    const gsRecBtn = document.getElementById('gs-recBtn');
+    if (gsRecBtn && gsRecBtn.classList.contains('active')) gsRecBtn.click();
+    const gs2RecBtn = document.getElementById('gs2-recBtn');
+    if (gs2RecBtn && gs2RecBtn.classList.contains('active')) gs2RecBtn.click();
+    const igPlayBtn = document.getElementById('ig-playBtn');
+    if (igPlayBtn && igPlayBtn.classList.contains('playing')) igPlayBtn.click();
+    const autoBtn = document.getElementById('ig-auto-btn');
+    if (autoBtn && autoBtn.classList.contains('has-copy')) autoBtn.click();
+  }
 });
 
 </script>
@@ -2868,11 +2905,13 @@ function buildGsDelay(srcNode, destNode) {
   const delays = [], gains = [], pans = [], lfos = [], lfoDepths = [];
   const decay = 0.3 + S.dlyDens * 0.62;
   const modDepth = S.dlyMod * 0.012;
+  const _gainSum = ratios.reduce((s, _, i) => s + Math.pow(decay, i), 0);
+  const _gainNorm = 0.7 / _gainSum;
   for (let i = 0; i < N; i++) {
     const d = ctx.createDelay(5);
     d.delayTime.value = S.dlyTime * ratios[i];
     const g = ctx.createGain();
-    g.gain.value = Math.pow(decay, i) * 0.6;
+    g.gain.value = Math.pow(decay, i) * _gainNorm;
     const p = ctx.createStereoPanner();
     p.pan.value = ((i / (N - 1)) * 2 - 1) * 0.8;
     input.connect(d); d.connect(g); g.connect(p); p.connect(sum);
@@ -3028,7 +3067,11 @@ $$('dlyDensSlider').addEventListener('input', e => {
   S.dlyDens = v;
   $$('dlyDensVal').textContent = v.toFixed(2);
   const decay = 0.3 + v * 0.62;
-  if (gsDelay) gsDelay.gains.forEach((g, i) => g.gain.setTargetAtTime(Math.pow(decay, i) * 0.6, audioCtx.currentTime, 0.02));
+  if (gsDelay) {
+    const _gainSum = gsDelay.ratios.reduce((s, _, i) => s + Math.pow(decay, i), 0);
+    const _gainNorm = 0.7 / _gainSum;
+    gsDelay.gains.forEach((g, i) => g.gain.setTargetAtTime(Math.pow(decay, i) * _gainNorm, audioCtx.currentTime, 0.02));
+  }
 });
 $$('dlyProbSlider').addEventListener('input', e => {
   const v = +e.target.value / 100;
@@ -4362,11 +4405,13 @@ function buildGsDelay(srcNode, destNode) {
   const delays = [], gains = [], pans = [], lfos = [], lfoDepths = [];
   const decay = 0.3 + S.dlyDens * 0.62;
   const modDepth = S.dlyMod * 0.012;
+  const _gainSum = ratios.reduce((s, _, i) => s + Math.pow(decay, i), 0);
+  const _gainNorm = 0.7 / _gainSum;
   for (let i = 0; i < N; i++) {
     const d = ctx.createDelay(5);
     d.delayTime.value = S.dlyTime * ratios[i];
     const g = ctx.createGain();
-    g.gain.value = Math.pow(decay, i) * 0.6;
+    g.gain.value = Math.pow(decay, i) * _gainNorm;
     const p = ctx.createStereoPanner();
     p.pan.value = ((i / (N - 1)) * 2 - 1) * 0.8;
     input.connect(d); d.connect(g); g.connect(p); p.connect(sum);
@@ -4522,7 +4567,11 @@ $$('dlyDensSlider').addEventListener('input', e => {
   S.dlyDens = v;
   $$('dlyDensVal').textContent = v.toFixed(2);
   const decay = 0.3 + v * 0.62;
-  if (gsDelay) gsDelay.gains.forEach((g, i) => g.gain.setTargetAtTime(Math.pow(decay, i) * 0.6, audioCtx.currentTime, 0.02));
+  if (gsDelay) {
+    const _gainSum = gsDelay.ratios.reduce((s, _, i) => s + Math.pow(decay, i), 0);
+    const _gainNorm = 0.7 / _gainSum;
+    gsDelay.gains.forEach((g, i) => g.gain.setTargetAtTime(Math.pow(decay, i) * _gainNorm, audioCtx.currentTime, 0.02));
+  }
 });
 $$('dlyProbSlider').addEventListener('input', e => {
   const v = +e.target.value / 100;
@@ -6231,7 +6280,7 @@ function stopSeq() {
   S.playing = false;
   clearTimeout(seqTimer);
   S.step = -1; renderAll();
-  playBtn.textContent = 'play';
+  playBtn.textContent = 'start';
   playBtn.classList.remove('playing');
   if (progressActive) stopProgression();
 }
@@ -6527,6 +6576,7 @@ function buildPageBar() {
 
   // P — auto-progress through pages, 3-8 min cycle, page durations weighted by arc
   progressBtn = document.createElement('button');
+  progressBtn.id = 'ig-auto-btn';
   progressBtn.className = 'copy-btn';
   progressBtn.textContent = 'auto';
   progressBtn.tabIndex = -1;
