@@ -1752,14 +1752,17 @@ function _resumeActiveAnim() {
   window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
   if (_resumePending) return;
   _resumePending = true;
-  // Wait for the browser to be ready to paint (iOS defers rAF after suspend)
-  requestAnimationFrame(() => {
+  let _started = false;
+  const _doStart = () => {
+    if (_started) return; _started = true;
     _resumePending = false;
     const active = _panels.find(p => document.getElementById(p.panel).style.display !== 'none');
     if (active?.panel === 'gs-panel') window._gsAnimStart?.();
     else if (active?.panel === 'ig-panel') window._igDrawStart?.();
     else if (active?.panel === 'bm-panel') window._bmFrameStart?.();
-  });
+  };
+  requestAnimationFrame(_doStart);
+  setTimeout(_doStart, 300); // fallback if rAF is throttled after screensaver
 }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -2740,45 +2743,56 @@ let _captureStream = null; // holds full getDisplayMedia stream so we can stop i
 let _sharedGranCtx = null;
 let _sumAnalyser    = null;
 let _sharedLimiter  = null;
+let _granCtxPromise = null; // singleton guard — prevents GS01+GS02 race on simultaneous init
 async function ensureGranularCtx() {
   if (_sharedGranCtx) {
-    if (_sharedGranCtx.state === 'suspended') await _sharedGranCtx.resume();
-    return _sharedGranCtx;
+    if (_sharedGranCtx.state === 'closed') {
+      // iOS can fully close an AudioContext on prolonged screen lock — reset so we recreate it
+      _sharedGranCtx = null; _sumAnalyser = null; _sharedLimiter = null; _granCtxPromise = null;
+    } else {
+      if (_sharedGranCtx.state === 'suspended') await _sharedGranCtx.resume();
+      return _sharedGranCtx;
+    }
   }
-  const ctx = new AudioContext({ sampleRate: 48000 });
-  try {
-    await ctx.resume(); // ensure context is running before loading worklet
-    // Try blob URL first; fall back to data URL (file:// origin in some browsers blocks blob)
-    let loaded = false;
+  if (_granCtxPromise) return _granCtxPromise;
+  _granCtxPromise = (async () => {
+    const ctx = new AudioContext({ sampleRate: 48000 });
     try {
-      const blob = new Blob([PROCESSOR_SRC], { type: 'application/javascript' });
-      const blobUrl = URL.createObjectURL(blob);
-      await ctx.audioWorklet.addModule(blobUrl);
-      URL.revokeObjectURL(blobUrl);
-      loaded = true;
-    } catch (e1) {
-      console.warn('[GS01] blob URL worklet load failed, trying data URL:', e1.message);
+      await ctx.resume(); // ensure context is running before loading worklet
+      // Try blob URL first; fall back to data URL (file:// origin in some browsers blocks blob)
+      let loaded = false;
+      try {
+        const blob = new Blob([PROCESSOR_SRC], { type: 'application/javascript' });
+        const blobUrl = URL.createObjectURL(blob);
+        await ctx.audioWorklet.addModule(blobUrl);
+        URL.revokeObjectURL(blobUrl);
+        loaded = true;
+      } catch (e1) {
+        console.warn('[GS01] blob URL worklet load failed, trying data URL:', e1.message);
+      }
+      if (!loaded) {
+        const dataUrl = 'data:application/javascript;base64,' + btoa(PROCESSOR_SRC);
+        await ctx.audioWorklet.addModule(dataUrl);
+      }
+    } catch (e) {
+      _granCtxPromise = null; // allow retry on next call
+      try { ctx.close(); } catch (_) {}
+      throw e;
     }
-    if (!loaded) {
-      const dataUrl = 'data:application/javascript;base64,' + btoa(PROCESSOR_SRC);
-      await ctx.audioWorklet.addModule(dataUrl);
-    }
-  } catch (e) {
-    try { ctx.close(); } catch (_) {}
-    throw e;
-  }
-  _sumAnalyser = ctx.createAnalyser();
-  _sumAnalyser.fftSize = 2048;
-  // Soft limiter on the combined A+B output to catch peaks when both engines run hot together
-  _sharedLimiter = ctx.createDynamicsCompressor();
-  _sharedLimiter.threshold.value = -3;
-  _sharedLimiter.knee.value      = 6;
-  _sharedLimiter.ratio.value     = 8;
-  _sharedLimiter.attack.value    = 0.003;
-  _sharedLimiter.release.value   = 0.15;
-  _sharedLimiter.connect(ctx.destination);
-  _sharedGranCtx = ctx;
-  return ctx;
+    _sumAnalyser = ctx.createAnalyser();
+    _sumAnalyser.fftSize = 2048;
+    // Soft limiter on the combined A+B output to catch peaks when both engines run hot together
+    _sharedLimiter = ctx.createDynamicsCompressor();
+    _sharedLimiter.threshold.value = -3;
+    _sharedLimiter.knee.value      = 6;
+    _sharedLimiter.ratio.value     = 8;
+    _sharedLimiter.attack.value    = 0.003;
+    _sharedLimiter.release.value   = 0.15;
+    _sharedLimiter.connect(ctx.destination);
+    _sharedGranCtx = ctx;
+    return ctx;
+  })();
+  return _granCtxPromise;
 }
 window.asgGetGranularCtx = ensureGranularCtx;
 window.asgGetGranularSum = () => _sumAnalyser;
@@ -7078,7 +7092,7 @@ $$('randRefresh').addEventListener('click', (e) => {
   const gDist    = rng() < prof.distChance ? rngR(prof.distRange[0], prof.distRange[1]) : 0;
   const gDelay   = rngR(prof.delayRange[0], prof.delayRange[1]);
   const gReverb  = rngR(prof.reverbRange[0], prof.reverbRange[1]);
-  const gFeedback = rngR(0.25, 0.55);
+  const gFeedback = rngR(0.20, 0.40);
   const gLPF     = Math.round(prof.lpfRange ? rngR(prof.lpfRange[0], prof.lpfRange[1]) : rngR(4000, 18000));
   const gTremolo = rng() < prof.tremoloChance ? rngR(prof.tremoloRange[0], prof.tremoloRange[1]) : 0;
 
@@ -7304,14 +7318,14 @@ $$('randRefresh').addEventListener('click', (e) => {
     //
     const ARC = [
       // { d=density, rv=reverbMult, dl=delayMult, cf=cutoffScale, ch=chordIdx }
-      { d: 0.14, rv: 1.55, dl: 1.45, cf: 0.42, ch: 0 },  // 0 intro
-      { d: 0.24, rv: 1.30, dl: 1.22, cf: 0.56, ch: 0 },  // 1 build 1
-      { d: 0.33, rv: 1.10, dl: 1.00, cf: 0.68, ch: 1 },  // 2 build 2
-      { d: 0.43, rv: 0.94, dl: 0.86, cf: 0.78, ch: 1 },  // 3 peak 1
-      { d: 0.46, rv: 0.90, dl: 0.82, cf: 0.80, ch: 2 },  // 4 peak 2
+      { d: 0.14, rv: 1.40, dl: 1.10, cf: 0.42, ch: 0 },  // 0 intro
+      { d: 0.24, rv: 1.20, dl: 1.04, cf: 0.56, ch: 0 },  // 1 build 1
+      { d: 0.33, rv: 1.08, dl: 1.00, cf: 0.68, ch: 1 },  // 2 build 2
+      { d: 0.36, rv: 1.00, dl: 0.92, cf: 0.72, ch: 1 },  // 3 peak 1
+      { d: 0.38, rv: 0.96, dl: 0.88, cf: 0.74, ch: 2 },  // 4 peak 2
       { d: 0.34, rv: 1.04, dl: 0.96, cf: 0.68, ch: 2 },  // 5 develop
-      { d: 0.22, rv: 1.28, dl: 1.20, cf: 0.54, ch: 3 },  // 6 breakdown
-      { d: 0.14, rv: 1.50, dl: 1.42, cf: 0.42, ch: 3 },  // 7 outro
+      { d: 0.22, rv: 1.18, dl: 1.04, cf: 0.54, ch: 3 },  // 6 breakdown
+      { d: 0.14, rv: 1.36, dl: 1.08, cf: 0.42, ch: 3 },  // 7 outro
     ];
 
     // 4 harmonic gravity centers — rows computed from actual scale structure via DCHORDS.
@@ -7355,7 +7369,7 @@ $$('randRefresh').addEventListener('click', (e) => {
         const beatScale = 0.65 + 0.35 * (BEAT_W[c] / 1.8);
         note.prob       = Math.min(1.0, (note.prob || 0.7) * (inChord ? 1.25 : 0.80) * (0.55 + sec.d * 0.45) * beatScale);
         note.reverbSend = Math.min(0.92, (note.reverbSend || gReverb) * sec.rv);
-        note.delaySend  = Math.min(0.88, (note.delaySend  || gDelay)  * sec.dl);
+        note.delaySend  = Math.min(0.68, (note.delaySend  || gDelay)  * sec.dl);
         note.cutoff     = Math.min(20000, Math.round((note.cutoff || gCutoff) * sec.cf));
         applyMoodFx(note, r);
         page[r][c] = note;
@@ -7409,7 +7423,7 @@ $$('randRefresh').addEventListener('click', (e) => {
           lastEucRow = r;
 
           const rot    = (seedRot + PAGE_ROTS[p]) % COLS;
-          const kMod   = p >= 3 && p <= 4 ? 1 : 0;  // peak: +1 pulse for extra density
+          const kMod   = 0;  // peaks stay at base seedK — extra pulse was too dense
           const rhythm = euclidean(COLS, Math.min(COLS-1, seedK + kMod));
 
           for (let c = 0; c < COLS; c++) {
