@@ -3954,23 +3954,21 @@ window.asgOnGridGenerateGranular = (info = {}) => {
   // Filter — track grid brightness so granular layer stays tonally cohesive.
   _gsSetSlider('filterFreqSlider', cl(Math.round(bright * 55 + 30), 30, 85));
 
-  // Delay — used sparingly: only ~1 in 4 generations engage it, and gently.
-  // The decision is shared with synthesis B (via info) so a song is coherently
-  // delayed or dry across both clouds. Every other generation is left fully dry.
-  // When it does engage, mix/feedback/density stay low and the probability gate
-  // (dlyProb < 100%) thins echoes out so busy passages don't get cluttered.
-  const useDelay = Math.random() < 0.25;
-  info._gsUseDelay = useDelay;
+  // Delay — used rarely (~10–18%); skewed toward sustained textures where slow
+  // pads gain depth from echoes. Staccato kept very sparse (6%) to avoid mud.
+  // When active, reverb pulls back to 0.1 so delay tails sit in clear space.
+  const useDelay = Math.random() < (sustained ? 0.18 : staccato ? 0.06 : 0.10);
   if (useDelay) {
-    _gsSetSlider('dlyMixSlider',  13 + Math.random() * 12);            // ~0.13–0.25, gentle
+    _gsSetSlider('reverbSlider', 10);
+    _gsSetSlider('dlyMixSlider',  13 + Math.random() * 12);
     _gsSetSlider('dlyTimeSlider', staccato ? 38 : sustained ? 66 : 52);
     _gsSetSlider('dlyFbSlider',   staccato ? 18 : 30);
     _gsSetSlider('dlyDensSlider', sustained ? 46 : 32);
     _gsSetSlider('dlyModSlider',  24);
     _gsSetSlider('dlyToneSlider', cl(Math.round(bright * 40 + 45), 45, 85));
-    _gsSetSlider('dlyProbSlider', staccato ? 45 : sustained ? 62 : 55); // sparse, by chance
+    _gsSetSlider('dlyProbSlider', staccato ? 45 : sustained ? 62 : 55);
   } else {
-    _gsSetSlider('dlyMixSlider', 0);  // keep most songs delay-free
+    _gsSetSlider('dlyMixSlider', 0);
   }
 
   window._gs2OnGridGenerate?.(info); // synthesis B re-voices too
@@ -5030,10 +5028,11 @@ window._gs2OnGridGenerate = (info = {}) => {
   _gsSetSlider('sizeSctSlider',    staccato ? 32 : sustained ? 12 : 20);
   _gsSetSlider('filterFreqSlider', cl(Math.round(bright * 55 + 30), 30, 85));
 
-  // Delay — follow A's shared decision so the song is coherently delayed or dry.
-  // Slightly different time/tone than A for stereo depth when it does engage.
-  const useDelay = info._gsUseDelay ?? (Math.random() < 0.25);
+  // Delay — B independently decides (~1 in 4 generations). When active, reverb
+  // is pulled back to 0.1 so delay tails sit in clear space without muddying.
+  const useDelay = Math.random() < 0.25;
   if (useDelay) {
+    _gsSetSlider('reverbSlider', 10);
     _gsSetSlider('dlyMixSlider',  11 + Math.random() * 11);            // ~0.11–0.22, gentle
     _gsSetSlider('dlyTimeSlider', staccato ? 44 : sustained ? 72 : 58);
     _gsSetSlider('dlyFbSlider',   staccato ? 16 : 26);
