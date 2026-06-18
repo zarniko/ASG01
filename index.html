@@ -1744,16 +1744,32 @@ function _showPanel(activePanel) {
 document.getElementById('toggleGs').addEventListener('click', () => _showPanel('gs-panel'));
 document.getElementById('toggleIg').addEventListener('click', () => _showPanel('ig-panel'));
 document.getElementById('toggleBm').addEventListener('click', () => _showPanel('bm-panel'));
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
-  } else {
+let _resumePending = false;
+function _resumeActiveAnim() {
+  // Resume AudioContexts — iOS suspends them on screen lock, audio interruption, or app-switch
+  window._gsAudioResume?.(); window._igAudioResume?.(); window._bmAudioResume?.();
+  // Stop any stale loop so the guard flags are false before we restart
+  window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
+  if (_resumePending) return;
+  _resumePending = true;
+  // Wait for the browser to be ready to paint (iOS defers rAF after suspend)
+  requestAnimationFrame(() => {
+    _resumePending = false;
     const active = _panels.find(p => document.getElementById(p.panel).style.display !== 'none');
     if (active?.panel === 'gs-panel') window._gsAnimStart?.();
     else if (active?.panel === 'ig-panel') window._igDrawStart?.();
     else if (active?.panel === 'bm-panel') window._bmFrameStart?.();
+  });
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    window._gsAnimStop?.(); window._igDrawStop?.(); window._bmFrameStop?.();
+  } else {
+    _resumeActiveAnim();
   }
 });
+// pageshow fires on bfcache restore (iOS app-switch) when visibilitychange alone is unreliable
+window.addEventListener('pageshow', e => { if (e.persisted) _resumeActiveAnim(); });
 // ─── §SHARED:kbnav  arrow-key UI navigation ────────────────────────────────
 const KB_ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 let kbActive = false;     // is the nav highlight currently shown?
