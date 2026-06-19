@@ -7642,9 +7642,12 @@ $$('randRefresh').addEventListener('click', (e) => {
         }
       }
 
-      // Ghost layer — sparse high notes, lush in intro/outro, recedes at peak
+      // Ghost layer — sparse high notes, lush in intro/outro, recedes at peak.
+      // Plucked/articulate leads already fill space with transients, so their
+      // ghost shimmer is thinned to keep the early pages from feeling cluttered.
       const isEdge  = p < 2 || p > 5;
-      const ghostMx = isEdge ? 1.6 : sec.d * 0.8;
+      let   ghostMx = isEdge ? 1.6 : sec.d * 0.8;
+      if (plucky) ghostMx *= 0.4;
       const ghostN  = Math.round((2 + (rng() * 4 | 0)) * ghostMx);
       for (let i = 0; i < ghostN; i++) {
         const r = rng() * 5 | 0;
