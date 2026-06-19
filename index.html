@@ -465,16 +465,16 @@
     .pip.beat { background: #222; }
     .pip.lit  { background: var(--accent); box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent); }
     /* Grid */
-    .grid { display: grid; grid-template-columns: repeat(16, var(--cell)); grid-template-rows: repeat(16, var(--cell)); gap: 3px; padding: 4px; background: #000; border: 1px solid #111; border-radius: 4px; position: relative; }
+    .grid { display: grid; grid-template-columns: repeat(16, var(--cell)); grid-template-rows: repeat(16, var(--cell)); gap: 3px; padding: 4px; background: #080808; border: 1px solid #111; border-radius: 4px; position: relative; }
     .sel-lbl { position: absolute; font-family: 'Roboto Mono', monospace; font-size: 14px; letter-spacing: 0.05em; color: rgba(255,255,255,0.55); text-shadow: 0 0 6px rgba(255,255,255,0.35); pointer-events: none; z-index: 10; white-space: nowrap; line-height: 1; background: rgba(0,0,0,0.72); padding: 0 2px; border-radius: 2px; }
     .cell { border-radius: 2px; background: #080808; border: 1px solid #141414; cursor: pointer; position: relative; overflow: hidden; transition: background .06s, border-color .06s; }
-    .cell::after { content: ''; position: absolute; inset: 6px; border-radius: 1px; background: transparent; transition: background .06s, box-shadow .06s; }
+    .cell::after { content: ''; position: absolute; inset: 0; border-radius: 2px; background: var(--accent); opacity: 0.05; transition: opacity .06s, box-shadow .06s; }
     .cell:hover        { background: #0e0e0e; border-color: #282828; }
     .cell.ph           { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.14); }
     .cell.on           { background: rgba(255,255,255,0.06); border-color: transparent; }
-    .cell.on::after    { background: var(--accent); box-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); opacity: .75; }
+    .cell.on::after    { inset: 6px; border-radius: 1px; background: var(--accent); box-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); opacity: .75; }
     .cell.on.ph        { background: rgba(255,255,255,0.10); border-color: transparent; }
-    .cell.on.ph::after { background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 30px var(--accent); opacity: 1; }
+    .cell.on.ph::after { inset: 6px; border-radius: 1px; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 30px var(--accent); opacity: 1; }
     .cell.on.sel { outline: 1px solid rgba(255,255,255,0.55); outline-offset: 2px; }
     .cell.kbd-cursor { outline: 2px dashed var(--accent); outline-offset: 1px; }
     .cell.on.sel:hover::before { content: '×'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 26px; line-height: 1; letter-spacing: 0; color: rgba(255,255,255,0.90); text-shadow: 0 0 6px rgba(255,255,255,0.7); z-index: 2; pointer-events: none; }
@@ -545,8 +545,14 @@
     #ig-legend span { cursor: pointer; transition: opacity .1s; }
     #ig-legend span:hover { opacity: 0.7; }
     /* Poem footnote */
-    #ig-poem-footnote { display:none; position:relative; margin-top:18px; padding:14px; border:1px solid #1a1a1a; font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:calc(16 * var(--cell) + 65px); box-sizing:border-box; overflow-wrap:break-word; word-break:break-word; }
-    #ig-poem-dismiss { position:absolute;top:8px;right:8px;background:none;border:none;font-family:inherit;font-size:26px;letter-spacing:0;color:rgba(255,255,255,0.25);cursor:pointer;padding:0 2px; }
+    #ig-poem-footnote { display:none; margin-top:18px; border:1px solid rgba(255,255,255,0.08); font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:1.2px; line-height:1.9; color:rgba(255,255,255,0.42); width:calc(16 * var(--cell) + 65px); box-sizing:border-box; }
+    #ig-poem-head { all:unset; display:flex; align-items:center; gap:8px; cursor:pointer; width:100%; padding:10px 14px; box-sizing:border-box; letter-spacing:2px; font-size:11px; color:rgba(255,255,255,0.28); transition:color .1s; }
+    #ig-poem-head:hover { color:rgba(255,255,255,0.7); }
+    #ig-poem-footnote.open > #ig-poem-head { color:rgba(255,255,255,0.5); }
+    #ig-poem-chev { display:inline-block; transition:transform .12s; font-size:10px; }
+    #ig-poem-footnote:not(.open) #ig-poem-chev { transform:rotate(-90deg); }
+    #ig-poem-body { display:none; padding:0 14px 14px; overflow-wrap:break-word; word-break:break-word; }
+    #ig-poem-footnote.open > #ig-poem-body { display:block; }
     /* IG01 Responsive */
     @media (max-width: 1080px) {
       :root { --cell: clamp(16px, calc((100vw - 103px) / 16), 52px); }
@@ -1225,8 +1231,10 @@
       </div>
       <canvas id="ig-spiral-cv"></canvas>
       <div id="ig-poem-footnote">
-        <button id="ig-poem-dismiss" tabindex="-1">×</button>
-        <p id="ig-poem-text" style="margin:0;padding-right:28px;overflow-wrap:break-word;word-break:break-word;"></p>
+        <button id="ig-poem-head" tabindex="-1"><span id="ig-poem-chev">▾</span> generation details</button>
+        <div id="ig-poem-body">
+          <p id="ig-poem-text" style="margin:0;"></p>
+        </div>
       </div>
     </div>
 
@@ -1275,25 +1283,32 @@
         </div>
       </div>
 
-      <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex-shrink:0;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate</button>
+      <div class="ctrl-row slider" title="Mood — the overall sonic character of a generated pattern: its tempo, scale, voices, register and effects. Each mood shapes a different ambient atmosphere.">
+        <span class="ctrl-key">mood</span>
         <div class="scale-wrap">
           <select id="ig-moodSelect">
-            <option value="stochastic" selected>stochastic</option>
-            <option value="transient">transient</option>
-            <option value="laminar">laminar</option>
-            <option value="diffuse">diffuse</option>
-            <option value="periodic">periodic</option>
-            <option value="harmonic">harmonic</option>
-            <option value="resonant">resonant</option>
-            <option value="crystalline">crystalline</option>
-            <option value="modal">modal</option>
-            <option value="nodal">nodal</option>
+            <option value="random" selected title="Random drift — each new song in auto-progress glides to a neighbouring mood in a related key and scale, wandering smoothly through the whole palette over time.">random ✦</option>
+            <option value="stochastic" title="Sparse, distant high chimes and glass — bright, scattered, weightless. Fast attacks, no bass.">stochastic</option>
+            <option value="transient" title="Bright plucked strings with bell and chime accents — gentle and brightening in the mid-high register. Crisp attacks.">transient</option>
+            <option value="laminar" title="Slow, formless float — soft sine and breathy air pads drifting over a warm low drone.">laminar</option>
+            <option value="diffuse" title="Barely-there sustained tones — soft sine and air, widely spaced and minimal. Weightless, almost silent.">diffuse</option>
+            <option value="periodic" title="Gentle swelling pads that rise and fade — warm sine and air with bowl warmth. Slow, tidal breathing.">periodic</option>
+            <option value="harmonic" title="Warm, glowing pulses — triangle and bell with a soft rhythmic lilt. Mid register, comforting.">harmonic</option>
+            <option value="resonant" title="Open and hopeful — bright sine and plucked string with bell shimmer. Higher register, spacious.">resonant</option>
+            <option value="crystalline" title="Delicate high shimmer — glassy chimes in the top register. Fragile and sparkling. No bass.">crystalline</option>
+            <option value="modal" title="Low and meditative — singing bowls, sine and bell, dark and still. Deep register, ancient calm.">modal</option>
+            <option value="tidal" title="Slowly breathing textures — plucked string and air pads in constant gentle motion from deep modulation.">tidal</option>
+            <option value="liminal" title="Dark and suspended — breathy air pads in a low, slow haze. Melancholic but calm, never tense. Very slow.">liminal</option>
+            <option value="nodal" title="Deep, ancient resonance — bowls and bells in cavernous reverb. Very low and slow, ceremonial.">ritual</option>
           </select>
         </div>
       </div>
-      <div class="ctrl-row slider">
-        <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex-shrink:0;" title="Clear — resets the current page to an empty grid. Key: C · Shift+C (or Shift+click / long-press) to clear all 8 pages at once">clear-grid</button>
+      <div class="ctrl-row slider" style="margin-top:10px;">
+        <div style="display:flex; align-items:stretch; border:1px solid rgba(255,255,255,0.15); width:100%;">
+          <button class="tui-btn" id="ig-randRefresh" tabindex="-1" style="flex:1; padding:4px 0; justify-content:center;" title="Generate — creates a new random pattern for the current page using the selected scale and mood. Key: G · Shift+G (or Shift+click / long-press) to generate all 8 pages at once">generate</button>
+          <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
+          <button class="tui-btn" id="ig-clearRefresh" tabindex="-1" style="flex:1; padding:4px 0; justify-content:center;" title="Clear — resets the current page to an empty grid. Key: C · Shift+C (or Shift+click / long-press) to clear all 8 pages at once">clear-grid</button>
+        </div>
       </div>
 
       <div class="panel-rule"></div>
@@ -1325,6 +1340,8 @@
           <button class="tui-btn" data-wave="bowl"  tabindex="-1">bowl</button>
           <button class="tui-btn" data-wave="wood"  tabindex="-1">wood</button>
           <button class="tui-btn" data-wave="glass" tabindex="-1">glass</button>
+          <button class="tui-btn" data-wave="string"  tabindex="-1">string</button>
+          <button class="tui-btn" data-wave="air"  tabindex="-1">air</button>
         </div>
       </div>
 
@@ -1979,12 +1996,25 @@ document.addEventListener('keydown', e => {
     legendEl.appendChild(s);
     return s;
   });
-  setInterval(() => spans.forEach(s => s.textContent = rc()), 140);
   const zkoEl = document.getElementById('app-zko');
-  if (zkoEl) {
-    zkoEl.textContent = rc()+rc()+rc()+rc();
-    setInterval(() => { zkoEl.textContent = rc()+rc()+rc()+rc(); }, 140);
+  if (zkoEl) zkoEl.textContent = rc()+rc()+rc()+rc();
+  const _charPlayBtn = document.getElementById('app-play-btn');
+  let _charLast = 0;
+  function _charTick(now) {
+    let interval = 140;
+    if (_charPlayBtn.classList.contains('active')) {
+      const lvl = window.asgGetGranularLevels?.() || { rms: 0 };
+      const e = Math.min(lvl.rms * 5, 1);
+      interval = e > 0.01 ? Math.round(350 - e * 310) : 140;
+    }
+    if (now - _charLast >= interval) {
+      spans.forEach(s => s.textContent = rc());
+      if (zkoEl) zkoEl.textContent = rc()+rc()+rc()+rc();
+      _charLast = now;
+    }
+    requestAnimationFrame(_charTick);
   }
+  requestAnimationFrame(_charTick);
 })();
 
 document.getElementById('app-help-btn').addEventListener('click', () => {
@@ -6075,8 +6105,8 @@ function reflectNote(note) {
 
 /* ── Audio ──────────────────────────────────────────── */
 // cached PeriodicWaves for physical-model voices
-const _physicalWaves = new Set(['chime', 'bell', 'bowl', 'wood', 'glass']);
-let _chimeWave = null, _bellWave = null, _bowlWave = null, _woodWave = null, _glassWave = null;
+const _physicalWaves = new Set(['chime', 'bell', 'bowl', 'wood', 'glass', 'string', 'air']);
+let _chimeWave = null, _bellWave = null, _bowlWave = null, _woodWave = null, _glassWave = null, _stringWave = null, _airWave = null;
 function _getPhysWave(type) {
   const mk = r => audioCtx.createPeriodicWave(new Float32Array(r), new Float32Array(r.length));
   if (type === 'chime') return _chimeWave || (_chimeWave = mk([0, 1, 0.30, 0.10, 0.04, 0.01]));
@@ -6084,6 +6114,8 @@ function _getPhysWave(type) {
   if (type === 'bowl')  return _bowlWave  || (_bowlWave  = mk([0, 1, 0.07, 0.02]));
   if (type === 'wood')  return _woodWave  || (_woodWave  = mk([0, 1, 0.05, 0.02]));
   if (type === 'glass') return _glassWave || (_glassWave = mk([0, 1, 0, 0.25, 0, 0.08, 0, 0.03]));
+  if (type === 'string')  return _stringWave  || (_stringWave  = mk([0, 1, 0.55, 0.38, 0.26, 0.17, 0.11, 0.07, 0.04, 0.02]));
+  if (type === 'air')  return _airWave  || (_airWave  = mk([0, 1, 0.42, 0.30, 0.16, 0.10, 0.05, 0.02]));
 }
 
 function playTone(freq, note, when) {
@@ -6200,6 +6232,8 @@ function playTone(freq, note, when) {
       bowl:  [[2.010, 0.05, 0.80, 3.0]],
       wood:  [[3.932, 0.25, 0.25, 0.4]],
       glass: [[1.500, 0.07, 0.50, 1.2]],
+      string:  [[3.012, 0.06, 0.45, 0.9], [6.030, 0.02, 0.25, 0.5]],
+      air:  [],
     };
     for (const [ratio, level, factor, max] of _inharm[note.wave]) {
       const oscH  = audioCtx.createOscillator();
@@ -6474,6 +6508,8 @@ let progressTimer = null;
 let progressLoops = [];
 let progressPage = 0;
 let _lastSongMood = null;
+let _lastSongScale = null;
+let _lastSongTranspose = 0;
 
 /* ── Spiral view ────────────────────────────────────── */
 let spiralBtn = null;
@@ -6637,8 +6673,9 @@ function scheduleNextProgression() {
     if (!progressActive) return;
     progressPage++;
     if (progressPage >= N_PAGES) {
-      // Cycle complete — regenerate the full song in the same mood, then restart
-      if (_lastSongMood) $$('moodSelect').value = _lastSongMood;
+      // Cycle complete — regenerate the full song, then restart. In 'random' mood
+      // the next song drifts to a related mood/key/scale; otherwise stays put.
+      if (_lastSongMood && $$('moodSelect').value !== 'random') $$('moodSelect').value = _lastSongMood;
       $$('randRefresh').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
       // Song gen calls switchPage(0) internally; rebuild timing with new BPM
       progressLoops = buildProgression(S.bpm);
@@ -6746,14 +6783,22 @@ $$('voiceGroup').addEventListener('click', e => {
   if (selR >= 0 && S.cells[selR][selC]) S.cells[selR][selC].wave = S.wave;
 });
 /* ── Poem footnote ──────────────────────────────────── */
-function hidePoem() {
-  $$('poem-footnote').style.display = 'none';
-}
 function showPoem(text) {
   $$('poem-text').textContent = text;
-  $$('poem-footnote').style.display = 'block';
+  const fn = $$('poem-footnote');
+  fn.style.display = 'block';
 }
-$$('poem-dismiss').addEventListener('click', hidePoem);
+$$('poem-head').addEventListener('click', () => {
+  $$('poem-footnote').classList.toggle('open');
+  void $$('poem-footnote').offsetHeight;
+  const vizCv = $$('viz-cv');
+  const vizHidden = vizCv?.style.display === 'none';
+  if (vizCv && !vizHidden) vizCv.style.display = 'none';
+  requestAnimationFrame(() => {
+    if (vizCv && !vizHidden) vizCv.style.display = '';
+    window.dispatchEvent(new Event('resize'));
+  });
+});
 
 function generatePoem(p) {
   const { mode, mood, chosenScale, bpm, strategy,
@@ -6857,7 +6902,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 1],
     bassDroneChance: 0.50, ghostChance: 0.25,
-    voices: ['sine','sine','sine','bowl'],
+    voices: ['sine','sine','air','bowl'],
     transposeRange: [-3, 8],
   },
   // slow, formless float — sine dominant with bowl and triangle
@@ -6876,7 +6921,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.65, ghostChance: 0.40,
-    voices: ['sine','sine','bowl','triangle'],
+    voices: ['sine','air','bowl','triangle'],
     transposeRange: [-5, 7],
   },
   // gentle swell and fade — sine and triangle with bowl warmth
@@ -6895,7 +6940,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.70, ghostChance: 0.35,
-    voices: ['sine','sine','triangle','bowl'],
+    voices: ['sine','air','triangle','bowl'],
     transposeRange: [-6, 5],
   },
   // warm, glowing pulse — triangle and bell with sine softness
@@ -6933,7 +6978,7 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.45, ghostChance: 0.55,
-    voices: ['sine','sine','triangle','bell'],
+    voices: ['sine','string','triangle','bell'],
     transposeRange: [3, 12],
   },
   // light, distant touches — chime and glass with sine ground
@@ -7009,8 +7054,46 @@ const MOOD_PROFILES = {
     ratchetChance: 0,
     voiceCountRange: [1, 2],
     bassDroneChance: 0.0, ghostChance: 0.60,
-    voices: ['chime','bell','bell','sine'],
+    voices: ['string','string','chime','bell'],
     transposeRange: [5, 14],
+  },
+  // slow organic breathing — sine and bowl with heavy LFO movement across all params
+  tidal: {
+    scales: ['whole_tone','hawaiian','lydian','major_pentatonic','balinese_pelog'],
+    bpmRange: [32, 50],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.15, 0.45], cutoffRange: [1800, 5000],
+    lpfRange: [2500, 6000],
+    delayRange: [0.25, 0.42], reverbRange: [0.78, 0.92],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.40, tremoloRange: [0.08, 0.24],
+    adsrChance: 1.0, adsrStyle: 'long',
+    lfoParams: ['cut','rev','pan','det'], lfoChance: 0.75, lfoRateRange: [0.04, 0.16],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 2],
+    bassDroneChance: 0.55, ghostChance: 0.45,
+    voices: ['string','string','air','bowl'],
+    transposeRange: [-2, 9],
+  },
+  // dark and suspended — breathy air and triangle on gentle minor scales, low and slow
+  liminal: {
+    scales: ['aeolian','dorian','minor_pentatonic','hawaiian'],
+    bpmRange: [28, 42],
+    strategies: ['anchor-scatter','anchor-scatter'],
+    atkRange: [0.25, 0.65], cutoffRange: [400, 1800],
+    lpfRange: [600, 2200],
+    delayRange: [0.35, 0.55], reverbRange: [0.88, 0.98],
+    distChance: 0, distRange: [0, 0],
+    tremoloChance: 0.15, tremoloRange: [0.04, 0.12],
+    adsrChance: 1.0, adsrStyle: 'long',
+    lfoParams: ['cut','rev','pan'], lfoChance: 0.40, lfoRateRange: [0.03, 0.12],
+    dstShapes: ['soft'], dstShapeChance: 0,
+    ratchetChance: 0,
+    voiceCountRange: [1, 1],
+    bassDroneChance: 0.30, ghostChance: 0.20,
+    voices: ['air','air','triangle','sine'],
+    transposeRange: [-6, 3],
   },
   // deep resonance, ancient — bowl and bell with triangle body
   nodal: {
@@ -7033,6 +7116,65 @@ const MOOD_PROFILES = {
   },
 };
 
+// ── 'random' mood drift: musical song-to-song transitions ───────────────────
+// Moods ordered by register + brightness (bright/high → dark/low) so neighbours
+// share timbre and tempo. Treated as a path that reflects at the ends (not a
+// wrap-around ring), so it never jumps from the brightest mood to the darkest.
+const MOOD_RING = ['crystalline','stochastic','transient','resonant','harmonic',
+                   'tidal','periodic','laminar','diffuse','liminal','modal','nodal'];
+const _driftPick = a => a[Math.random() * a.length | 0];
+
+// Next mood: mostly a ±1 step along the path, occasional ±2 (moderate wander).
+function pickNextMood(prev) {
+  const n = MOOD_RING.length;
+  const i = MOOD_RING.indexOf(prev);
+  if (i < 0) return _driftPick(MOOD_RING);
+  const r = Math.random();
+  const step = r < 0.40 ? 1 : r < 0.80 ? -1 : r < 0.90 ? 2 : -2;
+  let j = i + step;
+  if (j < 0) j = -j;                            // reflect at bright end
+  if (j > n - 1) j = (n - 1) - (j - (n - 1));   // reflect at dark end
+  if (j === i) j = (i + 1) % n;                 // never repeat the same mood
+  return MOOD_RING[j];
+}
+
+// Next key: shift the tonal centre by a consonant interval (stay / perfect fifth
+// / fourth / step / relative), then realise that pitch-class in the mood's range.
+function pickNextTranspose(prevTranspose, mood) {
+  const [lo, hi] = MOOD_PROFILES[mood].transposeRange;
+  const prevPc   = (((BASE_MIDI + (prevTranspose | 0)) % 12) + 12) % 12;
+  const move     = _driftPick([0, 0, 7, 7, -5, 5, 2, -2, -3]);
+  const targetPc = (((prevPc + move) % 12) + 12) % 12;
+  const cands = [];
+  for (let t = Math.round(lo); t <= Math.round(hi); t++)
+    if ((((BASE_MIDI + t) % 12) + 12) % 12 === targetPc) cands.push(t);
+  if (cands.length) return _driftPick(cands);
+  // no exact pitch-class in range — fall back to the nearest one
+  let bestT = Math.round((lo + hi) / 2), bestD = 99;
+  for (let t = Math.round(lo); t <= Math.round(hi); t++) {
+    const pc = (((BASE_MIDI + t) % 12) + 12) % 12;
+    const d  = Math.min(Math.abs(pc - targetPc), 12 - Math.abs(pc - targetPc));
+    if (d < bestD) { bestD = d; bestT = t; }
+  }
+  return bestT;
+}
+
+// Next scale: from the mood's palette, the one sharing the most pitch-classes
+// with the previous scale (common-tone voice leading between modes).
+function pickNextScale(prevScale, mood) {
+  const opts = MOOD_PROFILES[mood].scales || [];
+  if (!opts.length) return prevScale;
+  const prevSet = new Set(SCALE_IVLS[prevScale] || []);
+  let best = [], bestScore = -1;
+  for (const s of opts) {
+    let shared = 0;
+    for (const pc of (SCALE_IVLS[s] || [])) if (prevSet.has(pc)) shared++;
+    if (shared > bestScore) { bestScore = shared; best = [s]; }
+    else if (shared === bestScore) best.push(s);
+  }
+  return _driftPick(best);
+}
+
 $$('randRefresh').addEventListener('click', (e) => {
   if (!e.shiftKey) for (let r = 0; r < ROWS; r++) S.pages[S.page][r].fill(null);
   clearSel();
@@ -7041,21 +7183,30 @@ $$('randRefresh').addEventListener('click', (e) => {
   const pick = a => a[Math.random() * a.length | 0];
   const rngR = (lo, hi) => lo + rng() * (hi - lo);
 
-  // ── Resolve mood ────────────────────────────────────
-  const moodSelectEl = $$('moodSelect');
-  const moodKeys = Object.keys(MOOD_PROFILES);
-  const sel = moodSelectEl?.value || 'stochastic';
-  const mood = MOOD_PROFILES[sel] ? sel : pick(moodKeys);
-  const prof = MOOD_PROFILES[mood];
-
-  // ── Scale from user selection, BPM from mood ────────
-  const chosenScale = $$('scaleSelect').value;
-  S.scale = chosenScale;
-
   // When single-page mode (shift), check if other pages already have patterns.
   // If so, preserve the existing BPM/transpose and blend new notes toward the
   // established sonic character instead of starting fresh.
   const pageCtx = !e.shiftKey ? extractPageContext(S.page) : null;
+
+  // ── Resolve mood ────────────────────────────────────
+  // 'random' drifts to a related mood each full song (see pickNextMood); a
+  // specific selection is used as-is.
+  const moodSelectEl = $$('moodSelect');
+  const moodKeys = Object.keys(MOOD_PROFILES);
+  const sel = moodSelectEl?.value || 'stochastic';
+  const driftMode = (sel === 'random') && !pageCtx;
+  const mood = (sel === 'random') ? pickNextMood(_lastSongMood)
+             : (MOOD_PROFILES[sel] ? sel : pick(moodKeys));
+  const prof = MOOD_PROFILES[mood];
+
+  // ── Scale — user selection, or common-tone voice-leading in drift mode ──
+  let chosenScale = $$('scaleSelect').value;
+  if (driftMode) {
+    chosenScale = pickNextScale(_lastSongScale || chosenScale, mood);
+    const scaleSel = $$('scaleSelect');
+    if ([...scaleSel.options].some(o => o.value === chosenScale)) scaleSel.value = chosenScale;
+  }
+  S.scale = chosenScale;
 
   if (!pageCtx) {
     const bpm = Math.round(rngR(prof.bpmRange[0], prof.bpmRange[1]));
@@ -7065,12 +7216,15 @@ $$('randRefresh').addEventListener('click', (e) => {
     window.asgBpmSync?.(bpm);
   }
 
-  // ── Transpose — auto-apply for moods that have a target range ──
+  // ── Transpose — drift mode moves the key by a consonant interval; otherwise
+  // a fresh random pick within the mood's register range ──
   if (!pageCtx && prof.transposeRange) {
-    const t = Math.round(rngR(prof.transposeRange[0], prof.transposeRange[1]));
+    const t = driftMode
+      ? pickNextTranspose(_lastSongTranspose, mood)
+      : Math.round(rngR(prof.transposeRange[0], prof.transposeRange[1]));
     S.transpose = t;
     $$('transposeSlider').value = t;
-    $$('transposeVal').textContent = '+' + t;
+    $$('transposeVal').textContent = (t >= 0 ? '+' : '') + t;
   }
 
   // ── Wave from mood voice palette ────────────────────
@@ -7171,6 +7325,12 @@ $$('randRefresh').addEventListener('click', (e) => {
     if (prof.adsrStyle === 'glass') {
       return { a: rngR(0.001, 0.003), d: rngR(0.80, 2.50), s: 0.001, h: 0, r: rngR(0.40, 0.80) };
     }
+    if (prof.adsrStyle === 'string') {
+      return { a: rngR(0.002, 0.008), d: rngR(0.50, 1.40), s: rngR(0.04, 0.12), h: 0, r: rngR(0.30, 0.70) };
+    }
+    if (prof.adsrStyle === 'air') {
+      return { a: rngR(0.12, 0.35), d: rngR(0.20, 0.45), s: rngR(0.55, 0.80), h: rngR(0.80, 2.50), r: rngR(0.80, 2.00) };
+    }
     return { a: rngR(0.03, 0.12), d: rngR(0.10, 0.25), s: rngR(0.50, 0.75), h: rngR(0.15, 0.35), r: rngR(0.15, 0.40) };
   }
 
@@ -7228,6 +7388,15 @@ $$('randRefresh').addEventListener('click', (e) => {
 
   const [vMin, vMax] = prof.voiceCountRange;
 
+  // Heaviest-drone moods (≥85% drone + long bowl sustains + deep reverb): extend
+  // the consonance guard to neighbouring columns so a semitone scale-tone's
+  // reverb/sustain tail can't beat against the sustained root drone. ('nodal' is
+  // the internal key for the 'ritual' mood.)
+  const tailGuard = ['modal','nodal'].includes(mood);
+  // Plucked/articulate lead voices read as 'busy' when notes stack up, so give
+  // them more room: no vertical layering and a thinner melodic layer.
+  const plucky = ['string','chime','glass','wood'].includes(prof.voices[0]);
+
   // ── Per-note FX factory — varies by register ────────
   function noteFx(r) {
     const t = r / 15; // 0 = top (high), 1 = bottom (bass)
@@ -7274,10 +7443,22 @@ $$('randRefresh').addEventListener('click', (e) => {
   // Returns false if row r at column c would form a minor 2nd or tritone
   // against any note already in that column on the given page array.
   function consonant(r, c, pg) {
+    // Same column: reject minor 2nd or tritone against any simultaneous note.
     for (let rr = 0; rr < ROWS; rr++) {
       if (rr === r || !pg[rr][c]) continue;
       const d = semiDist(genFreqs[r], genFreqs[rr]);
       if (d === 1 || d === 6) return false;
+    }
+    // Heavy-drone moods: also reject a minor 2nd against a neighbouring column,
+    // where long reverb/sustain tails overlap and would beat.
+    if (tailGuard) {
+      for (const cc of [c - 1, c + 1]) {
+        if (cc < 0 || cc >= COLS) continue;
+        for (let rr = 0; rr < ROWS; rr++) {
+          if (!pg[rr][cc]) continue;
+          if (semiDist(genFreqs[r], genFreqs[rr]) === 1) return false;
+        }
+      }
     }
     return true;
   }
@@ -7302,6 +7483,7 @@ $$('randRefresh').addEventListener('click', (e) => {
 
   if (e.shiftKey) {
     _lastSongMood = mood; // remember for prg auto-regeneration
+    _lastSongScale = chosenScale; _lastSongTranspose = S.transpose; // drift continuity
     // ── Full song generation across all 8 pages ─────────
     //
     // Algorithm:
@@ -7356,7 +7538,7 @@ $$('randRefresh').addEventListener('click', (e) => {
       const harmRows = CHORDS[sec.ch];
       const page     = S.pages[p];
       const colCount = new Array(COLS).fill(0);
-      const pageVox  = Math.max(1, vMin + (rng() * (vMax - vMin + 1) | 0));
+      const pageVox  = plucky ? 1 : Math.max(1, vMin + (rng() * (vMax - vMin + 1) | 0));
 
       for (let r = 0; r < ROWS; r++) page[r].fill(null);
 
@@ -7423,8 +7605,10 @@ $$('randRefresh').addEventListener('click', (e) => {
           lastEucRow = r;
 
           const rot    = (seedRot + PAGE_ROTS[p]) % COLS;
-          const kMod   = 0;  // peaks stay at base seedK — extra pulse was too dense
-          const rhythm = euclidean(COLS, Math.min(COLS-1, seedK + kMod));
+          // peaks stay at base seedK — extra pulse was too dense. Plucked/
+          // articulate voices get fewer pulses so they don't feel busy.
+          const eucK   = plucky ? Math.max(2, seedK - 2) : seedK;
+          const rhythm = euclidean(COLS, Math.min(COLS-1, eucK));
 
           for (let c = 0; c < COLS; c++) {
             if (!rhythm[(c + rot) % COLS]) continue;
@@ -7759,6 +7943,8 @@ const HELP_COLS = [
   ['row',  'bowl',  'inharmonic — singing bowl sustain'],
   ['row',  'wood',  'inharmonic — percussive thud'],
   ['row',  'glass', 'inharmonic — glassy shimmer'],
+  ['row',  'string',  'plucked string — bright harmonic decay'],
+  ['row',  'air',  'sustained air — soft breathing tone'],
   ['gap'],
   ['head', 'COLORS', ''],
   ['row',  'click swatch', 'set accent color'],
