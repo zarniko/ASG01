@@ -2167,8 +2167,8 @@ window._asgBuildHelpOverlay = function(inst, items, color, cols, maxW, onHide) {
   const grid = document.createElement('div');
   Object.assign(grid.style, {
     position: 'relative', zIndex: '10',
-    fontFamily: "'Roboto Mono', monospace", fontSize: '14px',
-    lineHeight: '1.5', letterSpacing: '2px',
+    fontFamily: "'Roboto Mono', monospace", fontSize: '11px',
+    lineHeight: '1.6', letterSpacing: '1px',
     userSelect: 'none', color,
     maxWidth: maxW, width: cols === 1 ? '100%' : '90vw',
     textShadow: `0 0 8px ${color}60`,
@@ -2185,7 +2185,7 @@ window._asgBuildHelpOverlay = function(inst, items, color, cols, maxW, onHide) {
       if (item[2]) {
         const sub = document.createElement('div');
         sub.textContent = item[2];
-        sub.style.cssText = `grid-column:1/-1; opacity:0.35; font-size:12px; margin-bottom:2px; letter-spacing:2px;`;
+        sub.style.cssText = `grid-column:1/-1; opacity:0.35; font-size:10px; margin-bottom:2px; letter-spacing:1px;`;
         container.appendChild(sub);
       }
       return;
